@@ -1,0 +1,198 @@
+--------------------------------------------------------------------------------------------------------------
+      name:  <unnamed>
+       log:  /Users/jasondebacker/Econ/Research/PikettyWealthTax/data/scf_wealth_tabs.log
+  log type:  text
+ opened on:  23 Jan 2015, 17:16:36
+
+. local datapath "~/Econ/Research/PikettyWealthTax/data/" ;
+
+. set matsize 800 ;
+
+. use "`datapath'/rscfp2013.dta", clear ;
+
+. append using "`datapath'/rscfp2010.dta" ;
+checking was long now double
+saving was long now double
+mmda was long now double
+mmmf was long now double
+mma was long now double
+call was long now double
+liq was long now double
+cds was long now double
+stmutf was long now double
+tfbmutf was long now double
+gbmutf was long now double
+obmutf was long now double
+comutf was long now double
+omutf was long now double
+nmmf was long now double
+stocks was long now double
+notxbnd was long now double
+mortbnd was long now double
+govtbnd was long now double
+obnd was long now double
+bond was long now double
+irakh was long now double
+thrift was long now double
+futpen was long now double
+currpen was long now double
+retqliq was long now double
+savbnd was long now double
+cashli was long now double
+annuit was long now double
+trusts was long now double
+othma was long now double
+othfin was long now double
+deq was long now double
+ntrad was int now long
+fin was long now double
+vehic was long now double
+vlease was long now double
+nonactbus was long now double
+othnfin was long now double
+heloc was long now double
+othloc was long now double
+MORT1 was long now double
+MORT2 was long now double
+resdbt was long now double
+ccbal was long now double
+VEH_INST was long now double
+EDN_INST was long now double
+install was long now double
+OTH_INST was long now double
+odebt was long now double
+kgstmf was long now double
+PAYLOC3 was int now double
+PAYHI1 was int now double
+PAYHI2 was int now double
+PAYVEH3 was int now double
+payvehm was int now double
+PAYEDU3 was int now double
+PAYEDU4 was int now double
+PAYEDU5 was int now double
+PAYEDU6 was int now double
+PAYEDU7 was int now double
+PAYILN3 was int now double
+PAYILN4 was int now double
+PAYILN5 was byte now double
+PAYILN6 was byte now double
+PAYILN7 was int now double
+PLOAN2 was long now double
+PLOAN3 was long now double
+PLOAN4 was long now double
+PLOAN5 was long now double
+PLOAN6 was long now double
+PLOAN7 was long now double
+LLOAN2 was long now double
+LLOAN3 was long now double
+LLOAN4 was long now double
+LLOAN5 was long now double
+LLOAN6 was long now double
+LLOAN7 was long now double
+LLOAN8 was long now double
+LLOAN9 was long now double
+LLOAN10 was long now double
+LLOAN11 was long now double
+LLOAN12 was long now double
+
+.  /* append 2010 data  - note it's already in 2013 dollars*/
+> append using "`datapath'/rscfp2007.dta" ;
+MORT3 was byte now double
+PAYORE3 was byte now double
+PAYPEN3 was byte now double
+PAYPEN6 was byte now double
+
+.  /* append 2007 data  - note it's already in 2013 dollars*/
+> 
+> 
+> /* calculate the distribution of wealth by age */
+> collapse (mean) mean_wealth=networth (sd) sd_wealth=networth (median) median_wealth=networth (p10) p10_wealt
+> h=networth (p90) p90_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=networth (p98) p98_wealth=ne
+> tworth (p99) p99_wealth=networth (count) num_obs=networth[aweight=wgt], by(age) ;
+
+. format * %23.5f ;
+
+. outsheet using "`datapath'/scf2007to2013_wealth_age.csv", comma replace ;
+
+. replace mean_wealth = mean_wealth/1000 ;
+(78 real changes made)
+
+. replace median_wealth = median_wealth/1000 ;
+(78 real changes made)
+
+. replace p10_wealth = p10_wealth/1000 ;
+(68 real changes made)
+
+. replace p90_wealth = p90_wealth/1000 ;
+(78 real changes made)
+
+. replace p90_wealth = p90_wealth/1000 ;
+(78 real changes made)
+
+. replace p95_wealth = p95_wealth/1000 ;
+(78 real changes made)
+
+. replace p96_wealth = p96_wealth/1000 ;
+(78 real changes made)
+
+. replace p98_wealth = p98_wealth/1000 ;
+(78 real changes made)
+
+. replace p99_wealth = p99_wealth/1000 ;
+(78 real changes made)
+
+. format * %23.0f ;
+
+. /* plot some graphs of the life-cycle profile of wealth */
+> /* plot life-cycle profiles in dollas per hour */
+> twoway (connected mean_wealth age, msize(small) mcolor(blue) lcolor(blue) msymbol(D))
+> (connected p10_wealth age, msize(small) mcolor(red) lcolor(red) msymbol(O))
+> (connected median_wealth age, msize(small) mcolor(orange) lcolor(organge) msymbol(S))
+> (connected p90_wealth age, msize(small) mcolor(green) lcolor(green) msymbol(T)),
+>         title("Life-Cylce Wealth Profiles") 
+>         xtitle("Age") 
+>         ytitle("Wealth (1000s of 2013$)")
+>         /*xscale(range(1 8)) 
+>         xlabel(1(1)8) */
+>         ylabel(0(1000)3000,grid)
+>         legend(label(1 "Mean")) 
+>         legend(label(2 "10th Percentile")) 
+>         legend(label(3 "50th Percentile")) 
+>         legend(label(4 "90th Percentile")) 
+>         scheme(s1mono) 
+>         saving(graph1, replace);
+(note:  named style organge not found in class color, default attributes used)
+(note:  named style organge not found in class color, default attributes used)
+(file graph1.gph saved)
+
+.  graph export "`datapath'/LCP_wealth_scf.pdf", replace;
+(file ~/Econ/Research/PikettyWealthTax/data//LCP_wealth_scf.pdf written in PDF format)
+
+. /* plot some graphs of the life-cycle profile of wealth */
+> /* plot life-cycle profiles in dollas per hour */
+> twoway (connected mean_wealth age, msize(small) mcolor(blue) lcolor(blue) msymbol(D))
+> (connected p95_wealth age, msize(small) mcolor(red) lcolor(red) msymbol(O))
+> (connected p96_wealth age, msize(small) mcolor(orange) lcolor(organge) msymbol(S))
+> (connected p98_wealth age, msize(small) mcolor(black) lcolor(black) msymbol(X))
+> (connected p99_wealth age, msize(small) mcolor(green) lcolor(green) msymbol(T)),
+>         title("Life-Cylce Wealth Profiles") 
+>         xtitle("Age") 
+>         ytitle("Wealth (1000s of 2013$)")
+>         /*xscale(range(1 8)) 
+>         xlabel(1(1)8) */
+>         ylabel(0(1000)3000,grid)
+>         legend(label(1 "Mean")) 
+>         legend(label(2 "95th Percentile")) 
+>         legend(label(3 "96th Percentile")) 
+>         legend(label(4 "98th Percentile")) 
+>         legend(label(5 "99th Percentile")) 
+>         scheme(s1mono) 
+>         saving(graph1, replace);
+(note:  named style organge not found in class color, default attributes used)
+(note:  named style organge not found in class color, default attributes used)
+(file graph1.gph saved)
+
+.  graph export "`datapath'/LCP_wealth_scf_top5.pdf", replace;
+(file ~/Econ/Research/PikettyWealthTax/data//LCP_wealth_scf_top5.pdf written in PDF format)
+
+. capture log close ;
