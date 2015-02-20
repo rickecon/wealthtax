@@ -10,9 +10,9 @@ This project looks at the effects of welath an inheritance taxes on the distribu
 
 Contributors
 ============
-- Richard W. Evans
 - Jason DeBacker
-- Kerk Phillips
+- Richard W. Evans
 - Evan Magnusson
+- Kerk Phillips
 - Shanthi Ramnath
 - Isaac Swift
