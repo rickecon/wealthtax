@@ -107,7 +107,7 @@ bin_weights_array = np.array([[.25, .25, .1, .1, .1, .1, .1], [
 which_iterations = np.array([
     'tens', 'fives', 'six_four', 'seven_three', 'eight_two'])
 init_vals_scalars = np.array([.5, .5, .5, .5, .7, .7])
-start_point_iter = 6
+start_point_iter = 0
 starting_age = 20
 ending_age = 100
 E = int(starting_age * (S / float(ending_age-starting_age)))

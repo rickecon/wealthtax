@@ -90,6 +90,8 @@ bin_weights = bin_weights_init
 import income_old as income
 chi_b = 1.0 * np.ones(S)
 chi_n = np.ones(S) * 1.0
+slow_work = np.round(7.0 * S / 16.0)
+chi_n_multiplier = 10
 
 '''
 ------------------------------------------------------------------------
@@ -111,8 +113,11 @@ omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
     S, J, T, bin_weights, starting_age, ending_age, E)
 mort_rate = 1-surv_rate
 
+chi_n[slow_work:] = (mort_rate[slow_work:] + 1 - mort_rate[slow_work])**chi_n_multiplier
+
 surv_rate[-1] = 0.0
 mort_rate[-1] = 1
+
 
 
 '''

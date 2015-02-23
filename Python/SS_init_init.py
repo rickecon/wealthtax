@@ -130,6 +130,11 @@ e = income.get_e(S, J, starting_age, ending_age, bin_weights, omega_SS)
 mort_rate = 1-surv_rate
 
 
+chi_n_guess = np.ones(S) * 1.0
+slow_work = np.round(7.0 * S / 16.0)
+chi_n_multiplier = 10
+chi_n_guess[slow_work:] = (mort_rate[slow_work:] + 1 - mort_rate[slow_work])**chi_n_multiplier
+
 surv_rate[-1] = 0.0
 mort_rate[-1] = 1
 
@@ -515,10 +520,15 @@ for key in variables:
     globals()[key] = variables[key]
 guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
     solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+
+
+
 if 'final_bq_params' in globals():
     bq_guesses = final_bq_params
 else:
-    bq_guesses = list(np.ones(S+1) * 1.0)
+    bq_guesses = np.ones(S+1) * 1.0
+    bq_guesses[1:] = chi_n_guess
+    bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)
 
 final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='SLSQP').x
