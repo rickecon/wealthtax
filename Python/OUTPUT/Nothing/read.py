@@ -6,10 +6,10 @@ from mpl_toolkits.mplot3d import Axes3D
 
 S = 80
 J = 7
-bin_weights = np.array([.25, .25, .2, .1, .1, .08, .02])
+bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 
 
-variables = pickle.load(open("eight_two.pkl", "r"))
+variables = pickle.load(open("init_init_sols.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 

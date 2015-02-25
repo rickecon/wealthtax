@@ -132,8 +132,10 @@ mort_rate = 1-surv_rate
 
 chi_n_guess = np.ones(S) * 1.0
 slow_work = np.round(7.0 * S / 16.0)
-chi_n_multiplier = 10
+chi_n_multiplier = 30
 chi_n_guess[slow_work:] = (mort_rate[slow_work:] + 1 - mort_rate[slow_work])**chi_n_multiplier
+chi_n_guess[-14:] = chi_n_guess[-14]
+
 
 surv_rate[-1] = 0.0
 mort_rate[-1] = 1
@@ -531,8 +533,11 @@ else:
     bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)
 
-final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='SLSQP').x
-print 'The final bequest parameter values:', final_bq_params
+if thetas_simulation:
+    final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='SLSQP').x
+    print 'The final bequest parameter values:', final_bq_params
+else:
+    final_bq_params = bq_guesses
 Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
 solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
 print np.array(Steady_State_X2(solutions)).max()
@@ -608,7 +613,7 @@ else:
     chi_b *= np.ones(S)
     chi_n = np.array(final_bq_params[1:])
     euler1 = Euler1(wss, rss, e, Lssmat, k1, k2, k3, B, factor_ss, Tss, chi_b)
-    euler2 = Euler2(wss, rss, e, Lssmat, k1_2, k2_2, B, factor_ss, Tss)
+    euler2 = Euler2(wss, rss, e, Lssmat, k1_2, k2_2, B, factor_ss, Tss, chi_n)
     euler3 = Euler3(wss, rss, e, Lssmat, K_eul3, B, factor_ss, chi_b, Tss)
 
     '''

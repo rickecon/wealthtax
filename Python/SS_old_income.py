@@ -91,7 +91,7 @@ import income_old as income
 chi_b = 1.0 * np.ones(S)
 chi_n = np.ones(S) * 1.0
 slow_work = np.round(7.0 * S / 16.0)
-chi_n_multiplier = 10
+chi_n_multiplier = 30
 
 '''
 ------------------------------------------------------------------------
@@ -114,6 +114,7 @@ omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
 mort_rate = 1-surv_rate
 
 chi_n[slow_work:] = (mort_rate[slow_work:] + 1 - mort_rate[slow_work])**chi_n_multiplier
+chi_n[-14:] = chi_n[-14]
 
 surv_rate[-1] = 0.0
 mort_rate[-1] = 1
