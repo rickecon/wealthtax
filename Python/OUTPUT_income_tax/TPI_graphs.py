@@ -538,6 +538,7 @@ X, Y = np.meshgrid(domain, Jgrid)
 Gen graphs for movies
 '''
 print 'Starting movies'
+# top zlim is for the income tax, bottom zlim is for the wealth tax
 
 for t in xrange(60):
 
@@ -546,8 +547,8 @@ for t in xrange(60):
     ax5.set_xlabel(r'age-$s$')
     ax5.set_ylabel(r'ability-$j$')
     ax5.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
-    ax5.set_zlim([-.25, .15])
-    # ax5.set_zlim([-.2, .05])
+    # ax5.set_zlim([-.15, .05])
+    ax5.set_zlim([-.15, .05])
     ax5.set_title('T = {}'.format(t))
     ax5.plot_surface(X, Y, ((K_mat[t] - K_mat_init[t])/K_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
     name = "%03d" % t
@@ -558,8 +559,8 @@ for t in xrange(60):
     ax5.set_xlabel(r'age-$s$')
     ax5.set_ylabel(r'ability-$j$')
     ax5.set_zlabel(r'individual labor supply $l_{j,s}$')
-    ax5.set_zlim([-.35, .25])
-    # ax5.set_zlim([-.05, .3])
+    # ax5.set_zlim([-.1, .1])
+    ax5.set_zlim([-.05, .1])
     ax5.set_title('T = {}'.format(t))
     ax5.plot_surface(X, Y, ((L_mat[t] - L_mat_init[t])/L_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
     name = "%03d" % t
@@ -570,8 +571,8 @@ for t in xrange(60):
     ax5.set_xlabel(r'age-$s$')
     ax5.set_ylabel(r'ability-$j$')
     ax5.set_zlabel(r'Consumption $c_{j,s}$')
-    ax5.set_zlim([-.35, .15])
-    # ax5.set_zlim([-.45, .15])
+    # ax5.set_zlim([-.15, .1])
+    ax5.set_zlim([-.15, .05])
     ax5.set_title('T = {}'.format(t))
     ax5.plot_surface(X, Y, ((cinit[t] - cinitbase[t])/cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
     name = "%03d" % t
@@ -582,8 +583,8 @@ for t in xrange(60):
     ax5.set_xlabel(r'age-$s$')
     ax5.set_ylabel(r'ability-$j$')
     ax5.set_zlabel(r'Income $y_{j,s}$')
-    ax5.set_zlim([-.25, .15])
-    # ax5.set_zlim([-.25, 0.05])
+    # ax5.set_zlim([-.1, .1])
+    ax5.set_zlim([-.1, 0.05])
     ax5.set_title('T = {}'.format(t))
     ax5.plot_surface(X, Y, ((Y_mat[t] - Y_mat_init[t])/Y_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
     name = "%03d" % t
@@ -594,8 +595,8 @@ for t in xrange(60):
     ax5.set_xlabel(r'age-$s$')
     ax5.set_ylabel(r'ability-$j$')
     ax5.set_zlabel(r'Log Consumption $log(c_{j,s})$')
+    # ax5.set_zlim([-2.5, 1.1])
     ax5.set_zlim([-2.5, 1.1])
-    # ax5.set_zlim([-.2, .05])
     ax5.set_title('T = {}'.format(t))
     ax5.plot_surface(X, Y, np.log(cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
     name = "%03d" % t
