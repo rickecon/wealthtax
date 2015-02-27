@@ -571,7 +571,7 @@ for t in xrange(60):
     ax5.set_ylabel(r'ability-$j$')
     ax5.set_zlabel(r'Consumption $c_{j,s}$')
     ax5.set_zlim([-.35, .15])
-    # ax5.set_zlim([-.2, .05])
+    # ax5.set_zlim([-.45, .15])
     ax5.set_title('T = {}'.format(t))
     ax5.plot_surface(X, Y, ((cinit[t] - cinitbase[t])/cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
     name = "%03d" % t

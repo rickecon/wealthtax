@@ -74,6 +74,7 @@ ax5.set_ylabel(r'ability type-$j$')
 ax5.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
 ax5.plot_surface(X, Y, Kssmat2.T, rstride=1, cstride=1, cmap=cmap2)
 plt.savefig('SSinit/capital_dist')
+# plt.show()
 
 fig53 = plt.figure()
 ax53 = fig53.gca(projection='3d')
