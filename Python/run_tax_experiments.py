@@ -44,9 +44,6 @@ for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 
-#  delete these after this run
-h_wealth = 1.36350750271454
-m_wealth = 1.02478093770152
 
 
 '''
