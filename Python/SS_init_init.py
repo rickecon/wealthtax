@@ -108,7 +108,7 @@ for key in variables:
 variables = pickle.load(open("OUTPUT/given_params.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
-bin_weights = bin_weights_init
+
 '''
 ------------------------------------------------------------------------
 Generate income and demographic parameters
@@ -128,31 +128,6 @@ omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
     S, J, T, bin_weights, starting_age, ending_age, E)
 e = income.get_e(S, J, starting_age, ending_age, bin_weights, omega_SS)
 mort_rate = 1-surv_rate
-
-
-# chi_n_guess = np.ones(S) * 1.0
-# slow_work = np.round(7.0 * S / 16.0)
-# chi_n_multiplier = 30
-# chi_n_guess[slow_work:] = (mort_rate[slow_work:] + 1 - mort_rate[slow_work])**chi_n_multiplier
-# chi_n_guess[-14:] = chi_n_guess[-14]
-
-# chi_n_guess = np.array([25.0  , 23.36808929  , 19.0978715   , 11.91693867
-#   ,  9.39244751  ,  8.04772528  ,  7.13328096  ,  6.6569549   ,  6.18471577
-#   ,  5.79413131  ,  5.57810188  ,  5.28029037  ,  5.09000427  ,  4.92017985
-#   ,  4.68293528  ,  4.50917643  ,  4.34630557  ,  4.19698782  ,  4.07292637
-#   ,  4.00262846  ,  3.8769443   ,  3.79018663  ,  3.71971047  ,  3.62175787
-#   ,  3.57837772  ,  3.51694841  ,  3.40408528  ,  3.40313675  ,  3.35271903
-#   ,  3.34590638  ,  3.35717063  ,  3.37030627  ,  3.41669435  ,  3.44098278
-#   ,  3.50808345  ,  3.5794458   ,  3.7274887   ,  3.77750174  ,  3.90881753
-#   ,  4.08481377  ,  4.32855403  ,  4.99120077  ,  5.66381587  ,  6.12273368
-#   ,  7.03008813  ,  8.05988511  ,  8.58717935  ,  8.94846604  ,  9.60453523
-#   ,  9.88782496  ,  9.94918009  , 10.32850955  , 10.30528814  ,  9.96002746
-#   ,  9.95174946  , 10.10262544  ,  9.90165704  ,  9.78845576  ,  9.81118447
-#   ,  9.85190971  ,  9.92320211  , 10.01857802  , 10.10315541  , 10.21539475
-#   , 10.38340607  , 10.57052623  , 10.7608433   , 11.0624123   , 11.34197591
-#   , 11.65211931  , 11.99754856  , 12.39999565  , 12.89778177  , 13.3494677
-#   , 13.8837629   , 14.45447548  , 15.10650203  , 14.55039195  , 15.1345734
-#   , 15.47871223])
 
 chi_n_guess = np.array([46.43103569 ,  25.40267722 ,  14.28366036 ,  10.83368034
  ,   8.45625515 ,   7.11317213 ,   6.52761155 ,   6.01693931 ,   5.46449885
@@ -390,8 +365,6 @@ def perc_dif_func(simul, data):
         simulated data
     '''
     frac = (simul - data)/data
-    # frac *= 100
-    # output = frac ** 2
     output = np.abs(frac)
     return output
 
@@ -553,18 +526,30 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     return output.sum()
 
 starttime = time.time()
-variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
-for key in variables:
-    globals()[key] = variables[key]
-guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
-    solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+if name_of_last != 'none':
+    variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+else:
+    K_guess_init = np.ones((S, J)) * .01
+    L_guess_init = np.ones((S, J)) * .99 * ltilde
+    Kg = (omega_SS * K_guess_init).sum()
+    Lg = get_L(e, L_guess_init)
+    Yg = get_Y(Kg, Lg)
+    wguess = get_w(Yg, Lg)
+    rguess = get_r(Yg, Kg)
+    avIguess = ((rguess * K_guess_init + wguess * e * L_guess_init) * omega_SS).sum()
+    factor_guess = [mean_income / avIguess]
+    guesses = list(K_guess_init.flatten()) + list(L_guess_init.flatten()) + factor_guess
+
 
 
 
 if 'final_bq_params' in globals():
     bq_guesses = final_bq_params
 else:
-    # bq_guesses = np.ones(S+1) * 1.0
     bq_guesses = np.ones(S+1) * 88.78340244
     bq_guesses[1:] = chi_n_guess
     bq_guesses = list(bq_guesses)
