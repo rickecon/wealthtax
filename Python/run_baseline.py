@@ -29,6 +29,7 @@ import os
 from glob import glob
 import sys
 import wealth_data
+import labor_data
 
 
 '''
@@ -100,11 +101,8 @@ S = 80
 J = 7
 T = int(2 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
-
-bin_weights_array = np.array([[.25, .25, .2, .1, .1, .09, .01]])
 which_iterations = np.array(['nine_one'])
-init_vals_scalars = np.array([.5])
-
+scal = .5
 start_point_iter = 0
 starting_age = 20
 ending_age = 100
@@ -122,10 +120,6 @@ g_y = (1 + g_y_annual)**(float(ending_age-starting_age)/S) - 1
 # Constraint parameters
 ctilde = .000001
 bqtilde = .000001
-# Chi_n callibration parameters
-# chi_n = np.ones(S) * 1.0
-# slow_work = np.round(7.0 * S / 16.0)
-# chi_n_multiplier = 30
 # TPI parameters
 TPImaxiter = 100
 TPImindist = 3 * 1e-6
@@ -168,54 +162,36 @@ theta_tax = np.zeros(J)
 
 print 'Getting initial SS distribution, not calibrating bequests, to speed up SS.'
 thetas_simulation = False
-for i in xrange(start_point_iter, len(bin_weights_array)):
-    print '\tAttempt', i+1
-    bin_weights_init = bin_weights_array[i, :]
-    scal = init_vals_scalars[i]
-    if i == 0:
-        name_of_last = 'none'
-    else:
-        name_of_last = which_iterations[i-1]
-    name_of_it = which_iterations[i]
-    var_names = ['S', 'J', 'T', 'bin_weights_init', 'starting_age', 'ending_age',
-                 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-                 'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-                 'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-                 'a_tax_income',
-                 'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-                 'tau_payroll', 'tau_bq', 'tau_lump',
-                 'theta_tax', 'retire', 'mean_income',
-                 'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_it',
-                 'name_of_last', 'thetas_simulation']
-    dictionary = {}
-    os.remove("OUTPUT/given_params.pkl")
-    for key in var_names:
-        dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-    import SS_init_init
-    del sys.modules['tax_funcs']
-    del sys.modules['demographics']
-    del sys.modules['income']
-    del sys.modules['SS_init_init']
+name_of_last = 'none'
+name_of_it = which_iterations[-1]
+var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+             'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+             'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+             'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+             'a_tax_income',
+             'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_it',
+             'name_of_last', 'thetas_simulation']
+dictionary = {}
+os.remove("OUTPUT/given_params.pkl")
+for key in var_names:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+import SS_init_init
+del sys.modules['tax_funcs']
+del sys.modules['demographics']
+del sys.modules['income']
+del sys.modules['SS_init_init']
+
 print '\tFinished'
 
-# #Tax Parameters Initially
-# d_tax_income = .225298
-# # tau_sales = 0.02
-# tau_bq = np.zeros(J)
-# tau_wealth = np.zeros(J)
-# tau_lump = 0.0
-# tau_payroll = 0.15
-# theta_tax = np.zeros(J)
 
-
-scal = init_vals_scalars[-1]
 name_of_last = which_iterations[-1]
-bin_weights_init = bin_weights
 # This is the last simulation, using the desired bin weights, to get the replacement rate values
 thetas_simulation = True
-name_of_it = which_iterations[-1]
-var_names = ['S', 'J', 'T', 'bin_weights_init', 'starting_age', 'ending_age',
+var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
@@ -224,7 +200,7 @@ var_names = ['S', 'J', 'T', 'bin_weights_init', 'starting_age', 'ending_age',
              'tau_payroll', 'tau_bq', 'tau_lump',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_last',
-             'thetas_simulation', 'name_of_it']
+             'thetas_simulation']
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]

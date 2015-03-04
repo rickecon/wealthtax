@@ -23,6 +23,7 @@ import pandas as pd
 from scipy import stats
 import pickle
 import matplotlib
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
