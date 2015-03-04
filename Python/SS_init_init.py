@@ -553,11 +553,24 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     return output.sum()
 
 starttime = time.time()
-variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
-for key in variables:
-    globals()[key] = variables[key]
-guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
-    solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+if name_of_last != 'none':
+    variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+else:
+    K_guess_init = np.ones((S, J)) * .01
+    L_guess_init = np.ones((S, J)) * .99 * ltilde
+    Kg = (omega_SS * K_guess_init).sum()
+    Lg = get_L(e, L_guess_init)
+    Yg = get_Y(Kg, Lg)
+    wguess = get_w(Yg, Lg)
+    rguess = get_r(Yg, Kg)
+    avIguess = ((rguess * K_guess_init + wguess * e * L_guess_init) * omega_SS).sum()
+    factor_guess = [mean_income / avIguess]
+    guesses = list(K_guess_init.flatten()) + list(L_guess_init.flatten()) + factor_guess
+
 
 
 

@@ -100,13 +100,11 @@ S = 80
 J = 7
 T = int(2 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
-bin_weights_init = np.array([1.0/J] * J)
-bin_weights_array = np.array([[.25, .25, .1, .1, .1, .1, .1], [
-    .25, .25, .2, .1, .1, .05, .05], [.25, .25, .2, .1, .1, .06, .04], [
-    .25, .25, .2, .1, .1, .07, .03], [.25, .25, .2, .1, .1, .08, .02]])
-which_iterations = np.array([
-    'tens', 'fives', 'six_four', 'seven_three', 'eight_two'])
-init_vals_scalars = np.array([.5, .5, .5, .5, .7, .7])
+
+bin_weights_array = np.array([[.25, .25, .2, .1, .1, .09, .01]])
+which_iterations = np.array(['nine_one'])
+init_vals_scalars = np.array([.5])
+
 start_point_iter = 0
 starting_age = 20
 ending_age = 100
@@ -157,28 +155,6 @@ tau_payroll = 0.0
 theta_tax = 0.0
 p_wealth = 0.0
 
-print 'Getting initial SS distribution, without calibrating bequests, to speed up SS.'
-print '\tAttempt using old income distribution.'
-var_names = ['S', 'J', 'T', 'bin_weights_init', 'starting_age', 'ending_age',
-             'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-             'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-             'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income',
-             'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
-             'theta_tax', 'retire', 'mean_income',
-             'h_wealth', 'p_wealth', 'm_wealth']
-dictionary = {}
-if os.path.isfile("/OUTPUT/given_params.pkl"):
-    os.remove("OUTPUT/given_params.pkl")
-for key in var_names:
-    dictionary[key] = globals()[key]
-pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-import SS_old_income
-del sys.modules['tax_funcs']
-del sys.modules['income_old']
-del sys.modules['demographics']
-del sys.modules['SS_old_income']
 
 # Tax Parameters Initially
 d_tax_income = .219
@@ -190,14 +166,14 @@ tau_payroll = 0.15
 theta_tax = np.zeros(J)
 
 
-print 'Getting initial SS distribution, calibrating bequests, to speed up SS.'
+print 'Getting initial SS distribution, not calibrating bequests, to speed up SS.'
 thetas_simulation = False
 for i in xrange(start_point_iter, len(bin_weights_array)):
     print '\tAttempt', i+1
     bin_weights_init = bin_weights_array[i, :]
     scal = init_vals_scalars[i]
     if i == 0:
-        name_of_last = 'init_init_sols'
+        name_of_last = 'none'
     else:
         name_of_last = which_iterations[i-1]
     name_of_it = which_iterations[i]
@@ -234,7 +210,7 @@ print '\tFinished'
 
 
 scal = init_vals_scalars[-1]
-name_of_last = which_iterations[-2]
+name_of_last = which_iterations[-1]
 bin_weights_init = bin_weights
 # This is the last simulation, using the desired bin weights, to get the replacement rate values
 thetas_simulation = True
