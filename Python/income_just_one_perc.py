@@ -24,6 +24,7 @@ import matplotlib
 # matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
+import scipy.optimize as opt
 
 
 '''
@@ -42,6 +43,7 @@ constant = np.array([3.41e+00, 0.69689692, -0.78761958, -1.11e+00, -0.93939272, 
 ages = np.linspace(21, 80, 60)
 ages = np.tile(ages.reshape(60, 1), (1, 7))
 income_profiles = constant + one * ages + two * ages ** 2 + three * ages ** 3
+income_profiles = np.exp(income_profiles)
 
 
 '''
@@ -66,12 +68,12 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
     cmap2 = matplotlib.cm.get_cmap('autumn')
     if J == 1:
         plt.figure()
-        plt.plot(domain, e)
+        plt.plot(domain, np.log(e))
         plt.savefig('OUTPUT/Demographics/ability_log')
     else:
         fig10 = plt.figure()
         ax10 = fig10.gca(projection='3d')
-        ax10.plot_surface(X, Y, e.T, rstride=1, cstride=2, cmap=cmap2)
+        ax10.plot_surface(X, Y, np.log(e).T, rstride=1, cstride=2, cmap=cmap2)
         ax10.set_xlabel(r'age-$s$')
         ax10.set_ylabel(r'ability type -$j$')
         ax10.set_zlabel(r'log ability $log(e_j(s))$')
@@ -79,17 +81,42 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
         # plt.savefig('OUTPUT/Demographics/ability_log')
     if J == 1:
         plt.figure()
-        plt.plot(domain, np.exp(e))
+        plt.plot(domain, e)
         plt.savefig('OUTPUT/Demographics/ability')
     else:
         fig10 = plt.figure()
         ax10 = fig10.gca(projection='3d')
-        ax10.plot_surface(X, Y, np.exp(e).T, rstride=1, cstride=2, cmap=cmap2)
+        ax10.plot_surface(X, Y, e.T, rstride=1, cstride=2, cmap=cmap2)
         ax10.set_xlabel(r'age-$s$')
         ax10.set_ylabel(r'ability type -$j$')
         ax10.set_zlabel(r'ability $e_j(s)$')
         # plt.savefig('OUTPUT/Demographics/ability')
         plt.show()
+
+
+def arc_tan_func(points, a, b, c):
+    y = (-a / np.pi) * np.arctan(b*points + c) + a / 2
+    return y
+
+
+def arc_tan_deriv_func(points, a, b, c):
+    y = -a * b / (np.pi * (1+(b*x+c)**2))
+    return y
+
+
+def arc_error(guesses, params):
+    a, b, c = guesses
+    first_point, coef1, coef2, coef3 = params
+    error1 = first_point - arc_tan_func(60, a, b, c)
+    error2 = (3 * coef3 * 60 ** 2 + 2 * coef2 * 60 + coef1) - arc_tan_func(60, a, b, c)
+    error3 = .1 * first_point - arc_tan_func(80, a, b, c)
+    error = list(np.abs(error1)) + list(np.abs(error2)) + list(np.abs(error3))
+    return error
+
+
+def arc_tan_fit(first_point, coef1, coef2, coef3):
+    
+
 
 
 def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
@@ -108,8 +135,10 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     e_short = income_profiles
     e_final = np.ones((S, J))
     e_final[:60, :] = e_short
-    e_final[60:, :] = e_short[-1, :]
+    e_final[60:, :] = float('nan')
+    # for j in xrange(J):
+
     graph_income(S, J, e_final, starting_age, ending_age, bin_weights)
     return e_final
 
-get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
+# get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
