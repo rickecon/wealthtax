@@ -101,6 +101,7 @@ S = 80
 J = 7
 T = int(2 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
+wealth_data.get_highest_wealth_data(bin_weights)
 which_iterations = np.array(['nine_one'])
 scal = .5
 start_point_iter = 0
@@ -221,32 +222,23 @@ print '\tFinished.'
 # Run SS with replacement rates, and baseline taxes
 SS_initial_run = True
 print 'Getting initial distribution.'
-
-# Due to difficulty in finding the Steady State, the replacement rates must be added in slowly
-theta_tax_tenth = theta_tax_orig / 15.0
-
-for i in xrange(15):
-    theta_tax = theta_tax_tenth * (i+1)
-    var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
-                 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-                 'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-                 'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-                 'a_tax_income',
-                 'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-                 'tau_payroll', 'tau_bq', 'tau_lump',
-                 'theta_tax', 'retire', 'mean_income',
-                 'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
-    dictionary = {}
-    for key in var_names:
-        dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-
-    print 'Rep rate ', i+1
-    import SS
-    del sys.modules['tax_funcs']
-    del sys.modules['demographics']
-    del sys.modules['SS']
-
+var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+             'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+             'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+             'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+             'a_tax_income',
+             'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+import SS
+del sys.modules['tax_funcs']
+del sys.modules['demographics']
+del sys.modules['SS']
 print '\tFinished'
 
 # Run the baseline TPI simulation

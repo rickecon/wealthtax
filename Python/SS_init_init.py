@@ -507,7 +507,7 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     factor = solutions[-1]
     # Wealth Calibration Euler
     p99_sim = K2[:, -1] * factor
-    bq_half = perc_dif_func(p99_sim[:-3], p99[2:])
+    bq_half = perc_dif_func(p99_sim[:-3], highest_wealth_data[2:])
     bq_tomatch = bq_half[11:45]
     error5 = list(bq_tomatch)
     # labor calibration euler

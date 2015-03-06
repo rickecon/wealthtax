@@ -30,11 +30,14 @@ del data['num_obs']
 cols = ['age', 'mean_wealth', 'sd_wealth', 'p10_wealth', 'median_wealth', 'p90_wealth', 'p95_wealth', 'p96_wealth', 'p98_wealth', 'p99_wealth']
 data = data[cols]
 
-p98 = np.array(data['p98_wealth'])
-p99 = np.array(data['p99_wealth'])
 
-var_names = ['p98', 'p99']
-dictionary = {}
-for key in var_names:
-    dictionary[key] = globals()[key]
-pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments.pkl", "w"))
+
+
+def get_highest_wealth_data(bin_weights):
+    last_ability_size = bin_weights[-1]
+    highest_wealth_data = np.array(data['p99_wealth'])
+    var_names = ['highest_wealth_data']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = locals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments.pkl", "w"))
