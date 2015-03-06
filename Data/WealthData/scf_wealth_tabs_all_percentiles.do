@@ -12,10 +12,6 @@
 set more off;
 capture clear all;
 capture log close;
-set memory 8000m;
-
-
-set matsize 800 ;
 
 use "rscfp2013.dta", clear ;
 append using "rscfp2010.dta" ; /* append 2010 data  - note it's already in 2013 dollars*/
@@ -32,9 +28,8 @@ collapse (p1) p1_wealth=networth (p2) p2_wealth=networth (p3) p3_wealth=networth
          (p61) p61_wealth=networth (p62) p62_wealth=networth (p63) p63_wealth=networth (p64) p64_wealth=networth (p65) p65_wealth=networth (p66) p66_wealth=networth (p67) p67_wealth=networth  (p68) p68_wealth=networth  (p69) p69_wealth=networth  (p70) p70_wealth=networth
          (p71) p71_wealth=networth (p72) p72_wealth=networth (p73) p73_wealth=networth (p74) p74_wealth=networth (p75) p75_wealth=networth (p76) p76_wealth=networth (p77) p77_wealth=networth  (p78) p78_wealth=networth  (p79) p79_wealth=networth  (p80) p80_wealth=networth
          (p81) p81_wealth=networth (p82) p82_wealth=networth (p83) p83_wealth=networth (p84) p84_wealth=networth (p85) p85_wealth=networth (p86) p86_wealth=networth (p87) p87_wealth=networth  (p88) p88_wealth=networth  (p89) p89_wealth=networth  (p90) p90_wealth=networth
-         (p91) p91_wealth=networth (p92) p92_wealth=networth (p93) p93_wealth=networth (p94) p94_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=networth (p97) p97_wealth=networth  (p98) p98_wealth=networth  (p99) p99_wealth=networth, by(age) ;
-
-
+         (p91) p91_wealth=networth (p92) p92_wealth=networth (p93) p93_wealth=networth (p94) p94_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=networth (p97) p97_wealth=networth  (p98) p98_wealth=networth  (p99) p99_wealth=networth  (count) num_obs=networth[aweight=wgt], by(age) ;
+		 
 format * %23.5f ;
 outsheet using "scf2007to2013_wealth_age_all_percentiles.csv", comma replace ;
 

@@ -23,8 +23,8 @@ import pandas as pd
 from scipy import stats
 import pickle
 
-data = pd.read_table(
-    "data/wealth/scf2007to2013_wealth_age_all_percentiles.csv", sep=',', header=0)
+data = pd.read_table("data/wealth/scf2007to2013_wealth_age_all_percentiles.csv", sep=',', header=0)
+# data = pd.read_table("data/wealth/scf2007to2013_wealth_age.csv", sep=',', header=0)
 
 
 def get_highest_wealth_data(bin_weights):
@@ -36,4 +36,3 @@ def get_highest_wealth_data(bin_weights):
     for key in var_names:
         dictionary[key] = locals()[key]
     pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments.pkl", "w"))
-
