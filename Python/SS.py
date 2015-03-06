@@ -2,27 +2,32 @@
 ------------------------------------------------------------------------
 Last updated: 2/13/2015
 
-Calculates steady state of OLG model with S age cohorts
+Calculates steady state of OLG model with S age cohorts, using simple
+bin_weights and no taxes in order to be able to converge in the steady
+state, in order to get initial values for later simulations
 
 This py-file calls the following other file(s):
             income.py
             demographics.py
             tax_funcs.py
             OUTPUT/given_params.pkl
-            OUTPUT/Nothing/init_init_sols.pkl
+            OUTPUT/Nothing/wealth_data_moments.pkl
+            OUTPUT/Nothing/{}.pkl
+                name depends on what iteration just ran
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
-            OUTPUT/SSinit/ss_init_tpi.pkl
-            OUTPUT/SSinit/ss_init.pkl
-            OUTPUT/Nothing/init_init_sols.pkl
-            OUTPUT/SS/ss_vars.pkl
+            OUTPUT/Nothing/{}.pkl
+                name depends on what iteration is being run
+            OUTPUT/Nothing/initial_guesses_for_SS.pkl
+            OUTPUT/Nothing/payroll_inputs.pkl
 ------------------------------------------------------------------------
 '''
 
 # Packages
 import numpy as np
 import time
+import os
 import scipy.optimize as opt
 import pickle
 import matplotlib
@@ -30,9 +35,9 @@ matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import income
+from scipy import stats
 import demographics
 import tax_funcs as tax
-import os
 
 
 '''
@@ -42,7 +47,7 @@ Imported user given values
 S            = number of periods an individual lives
 J            = number of different ability groups
 T            = number of time periods until steady state is reached
-bin_weights  = percent of each age cohort in each ability group
+bin_weights_init  = percent of each age cohort in each ability group
 starting_age = age of first members of cohort
 ending age   = age of the last members of cohort
 E            = number of cohorts before S=1
@@ -83,9 +88,22 @@ retire       = age in which individuals retire(scalar)
 h_wealth     = wealth tax parameter h
 p_wealth     = wealth tax parameter p
 m_wealth     = wealth tax parameter m
-SS_initial_run = is this the baseline SS, or with a tax change?
+thetas_simulation = is this the last simulation before getting
+                replacement rates
+scal         = value to scale the initial guesses by in order to get the
+               fsolve to converge
+name_of_last = name of last simulation that ran
+name_of_it   = name of current simulation
 ------------------------------------------------------------------------
 '''
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+
+variables = pickle.load(open("OUTPUT/Nothing/labor_data_moments.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
 
 variables = pickle.load(open("OUTPUT/given_params.pkl", "r"))
 for key in variables:
@@ -93,8 +111,6 @@ for key in variables:
 
 if os.path.isfile("OUTPUT/SS/d_inc_guess.pkl"):
     d_tax_income = pickle.load(open("OUTPUT/SS/d_inc_guess.pkl", "r"))
-
-
 
 '''
 ------------------------------------------------------------------------
@@ -116,9 +132,28 @@ omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
 e = income.get_e(S, J, starting_age, ending_age, bin_weights, omega_SS)
 mort_rate = 1-surv_rate
 
+chi_n_guess = np.array([46.43103569 ,  25.40267722 ,  14.28366036 ,  10.83368034
+ ,   8.45625515 ,   7.11317213 ,   6.52761155 ,   6.01693931 ,   5.46449885
+ ,   5.09782791 ,   4.87555018 ,   4.60012673 ,   4.45359059 ,   4.31047208
+ ,   4.05662526 ,   4.04725308 ,   3.72016851 ,   2.7593443  ,   3.61187287
+ ,   3.48775222 ,   3.37069344 ,   3.30025423 ,   3.30317224 ,   3.03571148
+ ,   3.27364837 ,   3.22723277 ,   3.04089574 ,   3.16802732 ,   3.02408407
+ ,   2.84869197 ,   3.07992421 ,   3.09463504 ,   3.13974939 ,   3.20918915
+ ,   3.29703147 ,   3.28266044 ,   3.67399162 ,   3.66482653 ,   3.78750891
+ ,   3.99646818 ,   4.31163041 ,   5.00344695 ,   6.11371906 ,   6.29349741
+ ,   7.27272655 ,   8.48719262 ,   9.37100285 ,   9.83132055 ,  10.49184416
+ ,  10.97337187 ,  11.12050979 ,  11.77673893 ,  11.7878914  ,  11.71717301
+ ,  11.58458214 ,  11.76908197 ,  11.45466426 ,  11.71191348 ,  11.89606755
+ ,  12.33591946 ,  12.11880122 ,  12.67935938 ,  12.3145382  ,  12.36754116
+ ,  13.4839303  ,  12.40639494 ,  12.54946963 ,  13.53984928 ,  12.66873465
+ ,  12.99913171 ,  13.24694181 ,  13.37659492 ,  13.76147868 ,  13.70442569
+ ,  14.38740359 ,  14.37493147 ,  14.51253107 ,  14.53498107 ,  15.11107412
+ ,  15.2181688])
+
 
 surv_rate[-1] = 0.0
 mort_rate[-1] = 1
+
 
 '''
 ------------------------------------------------------------------------
@@ -273,7 +308,7 @@ def Euler1(w, r, e, L_guess, K1, K2, K3, B, factor, taulump, chi_b):
             r, K1, w, e[1:, :], L_guess[1:, :], factor)*income)-tax.tau_w_prime(K2)*K2-tax.tau_wealth(K2))
     bequest_ut = (1-surv_rate[:-1].reshape(S-1, 1)) * np.exp(-sigma * g_y) * chi_b[:-1].reshape(S-1, 1) * K2 ** (-sigma)
     euler = MUc(cons1) - beta * surv_rate[:-1].reshape(S-1, 1) * deriv * MUc(
-        cons2/(1+tau_sales)) * np.exp(-sigma * g_y) - bequest_ut
+        cons2) * np.exp(-sigma * g_y) - bequest_ut
     return euler
 
 
@@ -299,7 +334,7 @@ def Euler2(w, r, e, L_guess, K1_2, K2_2, B, factor, taulump, chi_n):
     income = (r * K1_2 + w * e * L_guess) * factor
     deriv = 1 - tau_payroll - tax.tau_income(r, K1_2, w, e, L_guess, factor) - tax.tau_income_deriv(
         r, K1_2, w, e, L_guess, factor) * income
-    euler = (MUc(cons/(1+tau_sales))/(1+tau_sales)) * w * deriv * e - MUl(L_guess, chi_n)
+    euler = MUc(cons) * w * deriv * e - MUl(L_guess, chi_n)
     return euler
 
 
@@ -322,21 +357,31 @@ def Euler3(w, r, e, L_guess, K_guess, B, factor, chi_b, taulump):
     B = B.reshape(1, J)
     tax1 = tax.total_taxes_eul3_SS(r, K_guess[-2, :], w, e[-1, :], L_guess[-1, :], B, bin_weights, factor, taulump)
     cons = get_cons(r, K_guess[-2, :], w, e[-1, :], L_guess[-1, :], B, bin_weights, K_guess[-1, :], g_y, tax1)
-    euler = MUc(cons/(1+tau_sales))/(1+tau_sales) - np.exp(-sigma * g_y) * MUb(
+    euler = MUc(cons) - np.exp(-sigma * g_y) * MUb(
         chi_b, K_guess[-1, :])
     return euler
 
 
-def Steady_State(guesses):
+def perc_dif_func(simul, data):
+    '''
+    Used to calculate the absolute percent difference between the data and
+        simulated data
+    '''
+    frac = (simul - data)/data
+    output = np.abs(frac)
+    return output
+
+
+def Steady_State(guesses, params):
     '''
     Parameters: Steady state distribution of capital guess as array
                 size 2*S*J
 
     Returns:    Array of 2*S*J Euler equation errors
     '''
-    chi_b = final_bq_params[0]
+    chi_b = params[0]
     chi_b *= np.ones(S)
-    chi_n = np.array(final_bq_params[1:])
+    chi_n = np.array(params[1:])
     K_guess = guesses[0: S * J].reshape((S, J))
     B = (K_guess * omega_SS * mort_rate.reshape(S, 1)).sum(0)
     K = (omega_SS * K_guess).sum()
@@ -419,10 +464,10 @@ def constraint_checker(Kssmat, Lssmat, wss, rss, e, cssmat, BQ):
         flag2 = False if all labor constraints are met, true otherwise
 
     Returns:
-        Prints warnings for violations of capital, labor, and
+        # Prints warnings for violations of capital, labor, and
             consumption constraints.
     '''
-    print 'Checking constraints on capital, labor, and consumption.'
+    # print 'Checking constraints on capital, labor, and consumption.'
     flag1 = False
     if Kssmat.sum() <= 0:
         print '\tWARNING: Aggregate capital is less than or equal to zero.'
@@ -445,136 +490,218 @@ def constraint_checker(Kssmat, Lssmat, wss, rss, e, cssmat, BQ):
     else:
         print '\tThere were no violations of the constraints on consumption.'
 
+
+def func_to_min(bq_guesses_init, other_guesses_init):
+    '''
+    Parameters:
+        bq_guesses_init = guesses for chi_b
+        other_guesses_init = guesses for the distribution of capital and labor
+                            stock, and factor value
+
+    Returns:
+        The max absolute deviation between the actual and simulated
+            wealth moments
+    '''
+    print bq_guesses_init
+    Steady_State_X = lambda x: Steady_State(x, bq_guesses_init)
+    solutions = opt.fsolve(Steady_State_X, other_guesses_init, xtol=1e-13)
+    K_guess = solutions[0: S * J].reshape((S, J))
+    K2 = K_guess[:-1, :]
+    factor = solutions[-1]
+    # Wealth Calibration Euler
+    p99_sim = K2[:, -1] * factor
+    bq_half = perc_dif_func(p99_sim[:-3], highest_wealth_data[2:])
+    bq_tomatch = bq_half[11:45]
+    error5 = list(bq_tomatch)
+    # labor calibration euler
+    labor_sim = ((solutions[S*J:2*S*J]).reshape(S, J)*bin_weights.reshape(1, J)).sum(axis=1)
+    error6 = list(perc_dif_func(labor_sim, labor_dist_data))
+    # combine eulers
+    output = np.array(error5 + error6)
+    fsolve_no_converg = np.abs(Steady_State_X(solutions)).max()
+    if np.isnan(fsolve_no_converg):
+        fsolve_no_converg = 1e6
+    if fsolve_no_converg > 1e-4:
+        output += 1e9
+    if (bq_guesses_init <= 0.0).any():
+        output += 1e9
+    print output.sum()
+    return output.sum()
+
 starttime = time.time()
-variables = pickle.load(open("OUTPUT/Nothing/init_init_sols.pkl", "r"))
-for key in variables:
-    globals()[key] = variables[key]
-scal_vec = np.linspace(.8, .85, J)
-guesses = list((solutions[:S*J].reshape(S, J)*scal_vec.reshape(1, J)).flatten()) + list( 
-    solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
-
-solutions = opt.fsolve(Steady_State, guesses, xtol=1e-13)
-# Save the solutions of SS
-var_names = ['solutions', 'final_bq_params']
-dictionary = {}
-for key in var_names:
-    dictionary[key] = globals()[key]
-pickle.dump(dictionary, open("OUTPUT/Nothing/init_init_sols.pkl", "w"))
-
-runtime = time.time() - starttime
-hours = runtime / 3600
-minutes = (runtime / 60) % 60
-seconds = runtime % 60
-Kssmat = solutions[0:(S-1) * J].reshape(S-1, J)
-BQ = solutions[(S-1)*J:S*J]
-Bss = (np.array(list(Kssmat) + list(BQ.reshape(1, J))).reshape(
-    S, J) * omega_SS * mort_rate.reshape(S, 1)).sum(0)
-Kssmat2 = np.array(list(np.zeros(J).reshape(1, J)) + list(Kssmat))
-Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-
-Kssvec = Kssmat.sum(1)
-Kss = (omega_SS[:-1, :] * Kssmat).sum() + (omega_SS[-1, :]*BQ).sum()
-Kssavg = Kssvec.mean()
-Kssvec = np.array([0]+list(Kssvec))
-Lssmat = solutions[S * J:-1].reshape(S, J)
-Lssvec = Lssmat.sum(1)
-Lss = get_L(e, Lssmat)
-Lssavg = Lssvec.mean()
-Yss = get_Y(Kss, Lss)
-wss = get_w(Yss, Lss)
-rss = get_r(Yss, Kss)
-k1_2 = np.array(list(np.zeros(J).reshape((1, J))) + list(Kssmat))
-factor_ss = solutions[-1]
-B = Bss * (1+rss)
-Tss = tax.tax_lump(rss, Kssmat2, wss, e, Lssmat, B, bin_weights, factor_ss, omega_SS)
-taxss = tax.total_taxes_SS(rss, Kssmat2, wss, e, Lssmat, B, bin_weights, factor_ss, Tss)
-cssmat = get_cons(rss, Kssmat2, wss, e, Lssmat, (1+rss)*B.reshape(1, J), bin_weights.reshape(1, J), Kssmat3, g_y, taxss)
-
-# constraint_checker(Kssmat, Lssmat, wss, rss, e, cssmat, BQ)
-
-
-'''
-------------------------------------------------------------------------
-Generate variables for graphs
-------------------------------------------------------------------------
-k1          = (S-1)xJ array of Kssmat in period t-1
-k2          = copy of Kssmat
-k3          = (S-1)xJ array of Kssmat in period t+1
-k1_2        = SxJ array of Kssmat in period t
-k2_2        = SxJ array of Kssmat in period t+1
-euler1      = euler errors from first euler equation
-euler2      = euler errors from second euler equation
-euler3      = euler errors from third euler equation
-------------------------------------------------------------------------
-'''
-k1 = np.array(list(np.zeros(J).reshape((1, J))) + list(Kssmat[:-1, :]))
-k2 = Kssmat
-k3 = np.array(list(Kssmat[1:, :]) + list(BQ.reshape(1, J)))
-k1_2 = np.array(list(np.zeros(J).reshape((1, J))) + list(Kssmat))
-k2_2 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-
-K_eul3 = np.zeros((S, J))
-K_eul3[:S-1, :] = Kssmat
-K_eul3[-1, :] = BQ
-
-chi_b = final_bq_params[0]
-chi_b *= np.ones(S)
-chi_n = np.array(final_bq_params[1:])
-euler1 = Euler1(wss, rss, e, Lssmat, k1, k2, k3, B, factor_ss, Tss, chi_b)
-euler2 = Euler2(wss, rss, e, Lssmat, k1_2, k2_2, B, factor_ss, Tss, chi_n)
-euler3 = Euler3(wss, rss, e, Lssmat, K_eul3, B, factor_ss, chi_b, Tss)
-
-'''
-------------------------------------------------------------------------
-Save variables/values so they can be used in other modules
-------------------------------------------------------------------------
-'''
-
-if SS_initial_run is True:
-    Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-    Lssmat_init = Lssmat
-
-    var_names = ['Kssmat_init', 'Lssmat_init']
-    dictionary = {}
-    for key in var_names:
-        dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init_tpi.pkl", "w"))
-
-    var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
-                 'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
-                 'Yss', 'wss', 'rss', 'runtime', 'hours', 'minutes', 'omega',
-                 'seconds', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
-                 'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
-                 'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
-                 'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
-                 'factor_ss',  'a_tax_income', 'b_tax_income',
-                 'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
-                 'tau_bq', 'tau_lump', 'theta_tax', 'retire',
-                 'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
-                 'starting_age',
-                 'ending_age', 'Tss', 'euler1', 'euler2', 'euler3',
-                 'h_wealth', 'p_wealth', 'm_wealth']
-    dictionary = {}
-    for key in var_names:
-        dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init.pkl", "w"))
+if name_of_last != 'none':
+    variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
 else:
-    var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
-                 'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
-                 'Yss', 'wss', 'rss', 'runtime', 'hours', 'minutes', 'omega',
-                 'seconds', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
-                 'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
-                 'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
-                 'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
-                 'factor_ss',  'a_tax_income', 'b_tax_income',
-                 'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
-                 'tau_bq', 'tau_lump', 'theta_tax', 'retire',
-                 'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
-                 'starting_age',
-                 'ending_age', 'euler1', 'euler2', 'euler3', 'Tss',
-                 'h_wealth', 'p_wealth', 'm_wealth']
+    K_guess_init = np.ones((S, J)) * .01
+    L_guess_init = np.ones((S, J)) * .99 * ltilde
+    Kg = (omega_SS * K_guess_init).sum()
+    Lg = get_L(e, L_guess_init)
+    Yg = get_Y(Kg, Lg)
+    wguess = get_w(Yg, Lg)
+    rguess = get_r(Yg, Kg)
+    avIguess = ((rguess * K_guess_init + wguess * e * L_guess_init) * omega_SS).sum()
+    factor_guess = [mean_income / avIguess]
+    guesses = list(K_guess_init.flatten()) + list(L_guess_init.flatten()) + factor_guess
+
+
+
+
+if 'final_bq_params' in globals():
+    bq_guesses = final_bq_params
+else:
+    bq_guesses = np.ones(S+1) * 88.78340244
+    bq_guesses[1:] = chi_n_guess
+    bq_guesses = list(bq_guesses)
+func_to_min_X = lambda x: func_to_min(x, guesses)
+
+if thetas_simulation:
+    final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='SLSQP').x
+    print 'The final bequest parameter values:', final_bq_params
+else:
+    final_bq_params = bq_guesses
+Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
+solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
+print np.array(Steady_State_X2(solutions)).max()
+
+# Save the solutions of SS
+if thetas_simulation is False:
+    var_names = ['solutions', 'final_bq_params']
     dictionary = {}
     for key in var_names:
         dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/SS/ss_vars.pkl", "w"))
-    pickle.dump(Tss, open("OUTPUT/SS/Tss_var.pkl", "w"))
+    pickle.dump(dictionary, open("OUTPUT/Nothing/{}.pkl".format(name_of_it), "w"))
+else:
+    var_names = ['solutions', 'final_bq_params']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/initial_guesses_for_SS.pkl", "w"))
+if thetas_simulation is True or 'SS_initial_run' in globals():
+    runtime = time.time() - starttime
+    hours = runtime / 3600
+    minutes = (runtime / 60) % 60
+    seconds = runtime % 60
+    Kssmat = solutions[0:(S-1) * J].reshape(S-1, J)
+    BQ = solutions[(S-1)*J:S*J]
+    Bss = (np.array(list(Kssmat) + list(BQ.reshape(1, J))).reshape(
+        S, J) * omega_SS * mort_rate.reshape(S, 1)).sum(0)
+    Kssmat2 = np.array(list(np.zeros(J).reshape(1, J)) + list(Kssmat))
+    Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+
+    Kssvec = Kssmat.sum(1)
+    Kss = (omega_SS[:-1, :] * Kssmat).sum() + (omega_SS[-1, :]*BQ).sum()
+    Kssavg = Kssvec.mean()
+    Kssvec = np.array([0]+list(Kssvec))
+    Lssmat = solutions[S * J:-1].reshape(S, J)
+    Lssvec = Lssmat.sum(1)
+    Lss = get_L(e, Lssmat)
+    Lssavg = Lssvec.mean()
+    Yss = get_Y(Kss, Lss)
+    wss = get_w(Yss, Lss)
+    rss = get_r(Yss, Kss)
+    k1_2 = np.array(list(np.zeros(J).reshape((1, J))) + list(Kssmat))
+    factor_ss = solutions[-1]
+    B = Bss * (1+rss)
+    Tss = tax.tax_lump(rss, Kssmat2, wss, e, Lssmat, B, bin_weights, factor_ss, omega_SS)
+    taxss = tax.total_taxes_SS(rss, Kssmat2, wss, e, Lssmat, B, bin_weights, factor_ss, Tss)
+    cssmat = get_cons(rss, Kssmat2, wss, e, Lssmat, (1+rss)*B.reshape(1, J), bin_weights.reshape(1, J), Kssmat3, g_y, taxss)
+
+    constraint_checker(Kssmat, Lssmat, wss, rss, e, cssmat, BQ)
+
+    '''
+    ------------------------------------------------------------------------
+    Generate variables for graphs
+    ------------------------------------------------------------------------
+    k1          = (S-1)xJ array of Kssmat in period t-1
+    k2          = copy of Kssmat
+    k3          = (S-1)xJ array of Kssmat in period t+1
+    k1_2        = SxJ array of Kssmat in period t
+    k2_2        = SxJ array of Kssmat in period t+1
+    euler1      = euler errors from first euler equation
+    euler2      = euler errors from second euler equation
+    euler3      = euler errors from third euler equation
+    ------------------------------------------------------------------------
+    '''
+    k1 = np.array(list(np.zeros(J).reshape((1, J))) + list(Kssmat[:-1, :]))
+    k2 = Kssmat
+    k3 = np.array(list(Kssmat[1:, :]) + list(BQ.reshape(1, J)))
+    k1_2 = np.array(list(np.zeros(J).reshape((1, J))) + list(Kssmat))
+    k2_2 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+
+    K_eul3 = np.zeros((S, J))
+    K_eul3[:S-1, :] = Kssmat
+    K_eul3[-1, :] = BQ
+    chi_b = final_bq_params[0]
+    chi_b *= np.ones(S)
+    chi_n = np.array(final_bq_params[1:])
+    euler1 = Euler1(wss, rss, e, Lssmat, k1, k2, k3, B, factor_ss, Tss, chi_b)
+    euler2 = Euler2(wss, rss, e, Lssmat, k1_2, k2_2, B, factor_ss, Tss, chi_n)
+    euler3 = Euler3(wss, rss, e, Lssmat, K_eul3, B, factor_ss, chi_b, Tss)
+
+    '''
+    ------------------------------------------------------------------------
+    Save variables/values so they can be used in other modules
+    ------------------------------------------------------------------------
+    '''
+    if 'thetas_simulation' in globals() and thetas_simulation is True:
+        Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+        Lssmat_init = Lssmat
+        var_names = ['retire', 'Lssmat_init', 'wss', 'factor_ss', 'e',
+                     'J', 'omega_SS']
+        dictionary = {}
+        for key in var_names:
+            dictionary[key] = globals()[key]
+        pickle.dump(dictionary, open("OUTPUT/Nothing/payroll_inputs.pkl", "w"))
+    if 'SS_initial_run' in globals():
+        if SS_initial_run is True:
+            Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+            Lssmat_init = Lssmat
+
+            var_names = ['Kssmat_init', 'Lssmat_init']
+            dictionary = {}
+            for key in var_names:
+                dictionary[key] = globals()[key]
+            pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init_tpi.pkl", "w"))
+
+            var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
+                         'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
+                         'Yss', 'wss', 'rss', 'runtime', 'hours', 'minutes', 'omega',
+                         'seconds', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
+                         'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
+                         'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
+                         'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
+                         'factor_ss',  'a_tax_income', 'b_tax_income',
+                         'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
+                         'tau_bq', 'tau_lump', 'theta_tax', 'retire',
+                         'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
+                         'starting_age',
+                         'ending_age', 'Tss', 'euler1', 'euler2', 'euler3',
+                         'h_wealth', 'p_wealth', 'm_wealth']
+            dictionary = {}
+            for key in var_names:
+                dictionary[key] = globals()[key]
+            pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init.pkl", "w"))
+        else:
+            var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
+                         'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
+                         'Yss', 'wss', 'rss', 'runtime', 'hours', 'minutes', 'omega',
+                         'seconds', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
+                         'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
+                         'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
+                         'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
+                         'factor_ss',  'a_tax_income', 'b_tax_income',
+                         'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
+                         'tau_bq', 'tau_lump', 'theta_tax', 'retire',
+                         'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
+                         'starting_age',
+                         'ending_age', 'euler1', 'euler2', 'euler3', 'Tss',
+                         'h_wealth', 'p_wealth', 'm_wealth']
+            dictionary = {}
+            for key in var_names:
+                dictionary[key] = globals()[key]
+            pickle.dump(dictionary, open("OUTPUT/SS/ss_vars.pkl", "w"))
+            pickle.dump(Tss, open("OUTPUT/SS/Tss_var.pkl", "w"))
