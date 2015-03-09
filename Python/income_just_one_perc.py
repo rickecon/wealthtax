@@ -100,23 +100,28 @@ def arc_tan_func(points, a, b, c):
 
 
 def arc_tan_deriv_func(points, a, b, c):
-    y = -a * b / (np.pi * (1+(b*x+c)**2))
+    y = -a * b / (np.pi * (1+(b*points+c)**2))
     return y
 
 
 def arc_error(guesses, params):
     a, b, c = guesses
     first_point, coef1, coef2, coef3 = params
-    error1 = first_point - arc_tan_func(60, a, b, c)
-    error2 = (3 * coef3 * 60 ** 2 + 2 * coef2 * 60 + coef1) - arc_tan_func(60, a, b, c)
-    error3 = .1 * first_point - arc_tan_func(80, a, b, c)
-    error = list(np.abs(error1)) + list(np.abs(error2)) + list(np.abs(error3))
+    error1 = first_point - arc_tan_func(80, a, b, c)
+    error2 = np.exp(3 * coef3 * 80 ** 2 + 2 * coef2 * 80 + coef1) - arc_tan_deriv_func(80, a, b, c)
+    error3 = .1 * first_point - arc_tan_func(95, a, b, c)
+    error = [np.abs(error1)] + [np.abs(error2)] + [np.abs(error3)]
+    print np.array(error).max()
     return error
 
 
 def arc_tan_fit(first_point, coef1, coef2, coef3):
-    
-
+    guesses = [200, 2, 2]
+    params = [first_point, coef1, coef2, coef3]
+    a, b, c = opt.fsolve(arc_error, guesses, params)
+    print a, b, c
+    old_ages = np.linspace(81, 100, 20)
+    return arc_tan_func(old_ages, a, b, c)
 
 
 def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
@@ -135,10 +140,10 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     e_short = income_profiles
     e_final = np.ones((S, J))
     e_final[:60, :] = e_short
-    e_final[60:, :] = float('nan')
-    # for j in xrange(J):
-
+    e_final[60:, :] = 0.0
+    for j in xrange(J):
+        e_final[60:, j] = arc_tan_fit(e_final[59, j], one[j], two[j], three[j])
     graph_income(S, J, e_final, starting_age, ending_age, bin_weights)
     return e_final
 
-# get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
+get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
