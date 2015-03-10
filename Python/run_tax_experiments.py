@@ -28,6 +28,11 @@ for key in variables:
 # New Tax Parameters
 p_wealth = 0.025
 SS_initial_run = False
+name_of_last = 'initial_guesses_for_SS'
+
+# delete me
+h_wealth = 1.18671216506302
+m_wealth = 1.12835012204532
 
 print 'Getting SS distribution for wealth tax.'
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
@@ -37,7 +42,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'a_tax_income',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
              'tau_payroll', 'tau_bq', 'tau_lump',
-             'theta_tax', 'retire', 'mean_income',
+             'theta_tax', 'retire', 'mean_income', 'name_of_last',
              'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
 dictionary = {}
 for key in var_names:
@@ -82,7 +87,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'a_tax_income',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
              'tau_payroll', 'tau_bq', 'tau_lump',
-             'theta_tax', 'retire', 'mean_income',
+             'theta_tax', 'retire', 'mean_income', 'name_of_last',
              'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
 dictionary = {}
 for key in var_names:
@@ -119,7 +124,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'a_tax_income',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
              'tau_payroll', 'tau_bq', 'tau_lump',
-             'theta_tax', 'retire', 'mean_income',
+             'theta_tax', 'retire', 'mean_income', 'name_of_last',
              'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
 dictionary = {}
 for key in var_names:
