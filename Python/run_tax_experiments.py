@@ -29,19 +29,18 @@ for key in variables:
 p_wealth = 0.025
 SS_initial_run = False
 name_of_last = 'initial_guesses_for_SS'
-
-# delete me
-h_wealth = 1.18671216506302
-m_wealth = 1.12835012204532
+thetas_simulation = False
+scal = 1.0
+name_of_it = 'initial_guesses_for_SS'
 
 print 'Getting SS distribution for wealth tax.'
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income',
+             'a_tax_income', 'scal', 'thetas_simulation',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
              'theta_tax', 'retire', 'mean_income', 'name_of_last',
              'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
 dictionary = {}
@@ -84,9 +83,9 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income',
+             'a_tax_income', 'scal', 'thetas_simulation',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
              'theta_tax', 'retire', 'mean_income', 'name_of_last',
              'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
 dictionary = {}
@@ -121,9 +120,9 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income',
+             'a_tax_income', 'scal', 'thetas_simulation',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
              'theta_tax', 'retire', 'mean_income', 'name_of_last',
              'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
 dictionary = {}
