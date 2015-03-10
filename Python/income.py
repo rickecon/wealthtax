@@ -77,8 +77,8 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
         ax10.set_xlabel(r'age-$s$')
         ax10.set_ylabel(r'ability type -$j$')
         ax10.set_zlabel(r'log ability $log(e_j(s))$')
-        plt.show()
-        # plt.savefig('OUTPUT/Demographics/ability_log')
+        # plt.show()
+        plt.savefig('OUTPUT/Demographics/ability_log')
     if J == 1:
         plt.figure()
         plt.plot(domain, e)
@@ -90,8 +90,8 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
         ax10.set_xlabel(r'age-$s$')
         ax10.set_ylabel(r'ability type -$j$')
         ax10.set_zlabel(r'ability $e_j(s)$')
-        # plt.savefig('OUTPUT/Demographics/ability')
-        plt.show()
+        plt.savefig('OUTPUT/Demographics/ability')
+        # plt.show()
 
 
 def arc_tan_func(points, a, b, c):
@@ -155,4 +155,4 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     graph_income(S, J, e_final, starting_age, ending_age, bin_weights)
     e_final /= (e_final * omega_SS).sum()
     return e_final
-    
+  
