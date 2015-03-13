@@ -306,47 +306,58 @@ GINI
 def gini_cols(path, omega):
     mask = path < 0
     path[mask] = 0
-    collapseS = path.sum(1)
-    omega_stationary1 = omega_stationary.sum(1)
-    omega_stationary_sorted = omega_stationary1.reshape(T, J)
+    collapseS = (path).sum(1)
+    omega1 = omega.sum(1).reshape(T, J)
     idx = np.argsort(collapseS, axis=1)
-    collapseS = collapseS[:, idx][np.eye(T,T, dtype=bool)]
-    omega_stationary_sorted = omega_stationary_sorted[:, idx][np.eye(T, T, dtype=bool)]
-    Y = collapseS.sum(1)
-    Y_M = np.tile(collapseS.reshape(T, 1, J), (1, J, 1))
-    OME_mat = np.tril(np.tile(omega_stationary_sorted.reshape(T, J, 1), (1, 1, J)), -1)
-    G = .5 - (OME_mat * Y_M).sum(1).sum(1) / Y
+    collapseS2 = collapseS[:, idx][np.eye(T,T, dtype=bool)]
+    omega_sorted = omega1[:, idx][np.eye(T, T, dtype=bool)]
+    # print collapseS2[5]
+    # print omega_sorted[5]
+    total = (collapseS2).sum(1)
+    cum_omega = np.zeros((T, J))
+    cum_levels = np.zeros((T, J))
+    cum_levels[:, 0] = collapseS2[:, 0]
+    cum_omega[:, 0] = omega_sorted[:, 0]
+    for j in xrange(1, J):
+        cum_levels[:, j] = collapseS2[:, j] + cum_levels[:, j-1]
+        cum_omega[:, j] = omega_sorted[:, j] + cum_omega[:, j-1]
+    G = 1 - 2 * (omega_sorted * cum_levels).sum(1) / total
+    # print cum_levels[5]
+    # print cum_omega[5]
     return G
 
 
 def gini_colj(path, omega):
     mask = path < 0
     path[mask] = 0
-    collapseS = path.sum(2)
-    omega_stationary1 = omega_stationary.sum(2)
-    omega_stationary_sorted = omega_stationary1.reshape(T, S)
-    idx = np.argsort(collapseS, axis=1)
-    collapseS = collapseS[:, idx][np.eye(T,T, dtype=bool)]
-    omega_stationary_sorted = omega_stationary_sorted[:, idx][np.eye(T, T, dtype=bool)]
-    Y = collapseS.sum(1)
-    Y_M = np.tile(collapseS.reshape(T, 1, S), (1, S, 1))
-    OME_mat = np.tril(np.tile(omega_stationary_sorted.reshape(T, S, 1), (1, 1, S)), -1)
-    G = .5 - (OME_mat * Y_M).sum(1).sum(1) / Y
+    collapseJ = path.sum(2)
+    omega1 = omega.sum(2).reshape(T, S)
+    idx = np.argsort(collapseJ, axis=1)
+    collapseJ2 = collapseJ[:, idx][np.eye(T,T, dtype=bool)]
+    omega_sorted = omega1[:, idx][np.eye(T, T, dtype=bool)]
+    total = collapseJ2.sum(1)
+    cum_levels = np.zeros((T, S))
+    cum_levels[:, 0] = collapseJ2[:, 0]
+    for s in xrange(1, S):
+        cum_levels[:, s] = collapseJ2[:, s] + cum_levels[:, s-1]
+    G = 1 - 2 * (omega_sorted * cum_levels).sum(1) / total
     return G
 
 
 def gini_nocol(path, omega):
     mask = path < 0
     path[mask] = 0
-    collapseS = path.reshape(T, S*J)
-    omega_stationary_sorted = omega_stationary.reshape(T, S*J)
-    idx = np.argsort(collapseS, axis=1)
-    collapseS = collapseS[:, idx][np.eye(T,T, dtype=bool)]
-    omega_stationary_sorted = omega_stationary_sorted[:, idx][np.eye(T,T, dtype=bool)]
-    Y = collapseS.sum(1)
-    Y_M = np.tile(collapseS.reshape(T, 1, S*J), (1, S*J, 1))
-    OME_mat = np.tril(np.tile(omega_stationary_sorted.reshape(T, S*J, 1), (1, 1, S*J)), -1)
-    G = .5 - (OME_mat * Y_M).sum(1).sum(1) / Y
+    path = path.reshape(T, S*J)
+    omega = omega.reshape(T, S*J)
+    idx = np.argsort(path, axis=1)
+    path2 = path[:, idx][np.eye(T,T, dtype=bool)]
+    omega_sorted = omega[:, idx][np.eye(T,T, dtype=bool)]
+    total = path2.sum(1)
+    cum_levels = np.zeros((T, S*J))
+    cum_levels[:, 0] = path2[:, 0]
+    for i in xrange(1, S*J):
+        cum_levels[:, i] = path2[:, i] + cum_levels[:, i-1]
+    G = 1 - 2 * (omega_sorted * cum_levels).sum(1) / total
     return G
 
 '''
@@ -360,6 +371,16 @@ plt.xlabel(r"Time $t$")
 plt.ylabel(r"Gini for $\hat{b}$")
 plt.legend(loc=0)
 plt.savefig("TPI/gini_b_cols")
+
+print 'start L\n'
+plt.figure()
+plt.plot(np.arange(T), gini_cols(L_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
+plt.plot(np.arange(T), gini_cols(L_mat[:T], omega_stationary), 'g--', linewidth=2, label="Tax")
+plt.xlabel(r"Time $t$")
+plt.ylabel(r"Gini for $\hat{l}$")
+plt.legend(loc=0)
+plt.savefig("TPI/gini_l_cols")
+print '\nend L'
 
 plt.figure()
 plt.plot(np.arange(T), gini_cols(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
@@ -386,6 +407,14 @@ plt.legend(loc=0)
 plt.savefig("TPI/gini_b_colj")
 
 plt.figure()
+plt.plot(np.arange(T), gini_colj(L_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
+plt.plot(np.arange(T), gini_colj(L_mat[:T], omega_stationary), 'g--', linewidth=2, label="Tax")
+plt.xlabel(r"Time $t$")
+plt.ylabel(r"Gini for $\hat{l}$")
+plt.legend(loc=0)
+plt.savefig("TPI/gini_l_colj")
+
+plt.figure()
 plt.plot(np.arange(T), gini_colj(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
 plt.plot(np.arange(T), gini_colj(Y_mat[:T], omega_stationary), 'g--', linewidth=2, label="Tax")
 plt.xlabel(r"Time $t$")
@@ -408,6 +437,14 @@ plt.xlabel(r"Time $t$")
 plt.ylabel(r"Gini for $\hat{b}$")
 plt.legend(loc=0)
 plt.savefig("TPI/gini_b_nocol")
+
+plt.figure()
+plt.plot(np.arange(T), gini_nocol(L_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
+plt.plot(np.arange(T), gini_nocol(L_mat[:T], omega_stationary), 'g--', linewidth=2, label="Tax")
+plt.xlabel(r"Time $t$")
+plt.ylabel(r"Gini for $\hat{l}$")
+plt.legend(loc=0)
+plt.savefig("TPI/gini_l_nocol")
 
 plt.figure()
 plt.plot(np.arange(T), gini_nocol(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
@@ -437,6 +474,13 @@ plt.legend(loc=0)
 plt.savefig("TPIinit/gini_b_cols")
 
 plt.figure()
+plt.plot(np.arange(T), gini_cols(L_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
+plt.xlabel(r"Time $t$")
+plt.ylabel(r"Gini for $\hat{l}$")
+plt.legend(loc=0)
+plt.savefig("TPIinit/gini_l_cols")
+
+plt.figure()
 plt.plot(np.arange(T), gini_cols(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
 plt.xlabel(r"Time $t$")
 plt.ylabel(r"Gini for $\hat{y}$")
@@ -458,6 +502,13 @@ plt.legend(loc=0)
 plt.savefig("TPIinit/gini_b_colj")
 
 plt.figure()
+plt.plot(np.arange(T), gini_colj(L_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
+plt.xlabel(r"Time $t$")
+plt.ylabel(r"Gini for $\hat{l}$")
+plt.legend(loc=0)
+plt.savefig("TPIinit/gini_l_colj")
+
+plt.figure()
 plt.plot(np.arange(T), gini_colj(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
 plt.xlabel(r"Time $t$")
 plt.ylabel(r"Gini for $\hat{y}$")
@@ -477,6 +528,13 @@ plt.xlabel(r"Time $t$")
 plt.ylabel(r"Gini for $\hat{b}$")
 plt.legend(loc=0)
 plt.savefig("TPIinit/gini_b_nocol")
+
+plt.figure()
+plt.plot(np.arange(T), gini_nocol(L_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
+plt.xlabel(r"Time $t$")
+plt.ylabel(r"Gini for $\hat{l}$")
+plt.legend(loc=0)
+plt.savefig("TPIinit/gini_l_nocol")
 
 plt.figure()
 plt.plot(np.arange(T), gini_nocol(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
