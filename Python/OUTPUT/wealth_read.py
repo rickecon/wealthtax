@@ -1,7 +1,7 @@
 import pickle
 import numpy
 
-variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
+variables = pickle.load(open("given_params.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
