@@ -33,6 +33,7 @@ thetas_simulation = False
 scal = 1.0
 name_of_it = 'initial_guesses_for_SS'
 
+
 print 'Getting SS distribution for wealth tax.'
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',

@@ -9,7 +9,7 @@ J = 7
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 
 
-variables = pickle.load(open("init_init_sols.pkl", "r"))
+variables = pickle.load(open("initial_guesses_for_SS.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
