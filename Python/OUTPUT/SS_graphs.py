@@ -35,8 +35,8 @@ beq_ut = chi_b.reshape(S, 1) * (Kssmat2_init**(1-sigma) -1)/(1-sigma)
 beq_ut[0, :] = 0
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility[-1] += chi_b[-1] * (BQ_init**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(S, 1)
 utility += beq_ut * (1- mort_rate.reshape(S, 1))
+# utility *= mort_rate.reshape(S, 1)
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -161,7 +161,7 @@ beq_ut = chi_b.reshape(S, 1) * (Kssmat2**(1-sigma)-1)/(1-sigma)
 beq_ut[0, :] = 0
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility[-1] += chi_b[-1] * (BQ**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(S, 1)
+# utility *= mort_rate.reshape(S, 1)
 utility += beq_ut * (1- mort_rate.reshape(S, 1))
 beta_string = np.ones(S) * beta
 for i in xrange(S):
