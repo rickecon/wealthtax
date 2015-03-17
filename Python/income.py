@@ -1,15 +1,14 @@
 '''
 ------------------------------------------------------------------------
-Last updated 2/16/2014
+Last updated 3/17/2015
 
 Functions for created the matrix of ability levels, e.
 
-This py-file calls the following other file(s):
-            data/e_vec_data/cwhs_earn_rate_age_profile.csv
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
             OUTPUT/Demographics/ability_log
+            OUTPUT/Demographics/ability
 ------------------------------------------------------------------------
 '''
 
@@ -31,7 +30,14 @@ import scipy.optimize as opt
 ------------------------------------------------------------------------
     Generate Polynomials
 ------------------------------------------------------------------------
+The following coefficients are for polynomials which fit ability data
+for the 25, 50, 70, 80, 90, 99, and 100 percentiles.  The data comes from
+the following file: 
 
+data/ability/FR_wage_profile_tables.xlsx
+
+the polynomials are of the form
+log(ability) = constant + (one)(age) + (two)(age)^2 + (three)(age)^3
 ------------------------------------------------------------------------
 '''
 
@@ -51,7 +57,8 @@ income_profiles = np.exp(income_profiles)
     Generate ability type matrix
 ------------------------------------------------------------------------
 Given desired starting and stopping ages, as well as the values for S
-and J, the ability matrix is created.
+and J, the ability matrix is created.  An arctan function is used
+to extrapolate ability for ages 80-100.
 ------------------------------------------------------------------------
 '''
 

@@ -1,15 +1,17 @@
 '''
 ------------------------------------------------------------------------
-Last updated 2/18/2015
+Last updated 3/17/2015
 
-Returns the labor hours for all ages of a certain percentile.
+Computes the average labor participation rate for each age cohort.
 
 This py-file calls the following other file(s):
-            jason_savings_data/scf2007to2013_wealth_age.csv
+            data\labor\cps_hours_by_age_hourspct.txt
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
-            OUTPUT/Nothing/wealth_data_moments.pkl
+            OUTPUT/Demographics/labor_dist_data_withfit.png
+            OUTPUT/Demographics/data_labor_dist
+            OUTPUT/Nothing/labor_data_moments.pkl
 ------------------------------------------------------------------------
 '''
 
@@ -42,6 +44,7 @@ weights = np.array(piv2)
 weights /= np.nansum(weights, axis=1).reshape(S, 1)
 weighted = np.nansum((lab_mat_basic * weights), axis=1)
 
+# Fit a line to the ages 80-100
 slope = (weighted[56] - weighted[49])/(56-49)
 intercept = weighted[56] - slope * 56
 extension = slope * (np.linspace(56, 80, 23)) + intercept

@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 12/1/2014
+Last updated 3/1/2015
 
 Functions for taxes in SS and TPI.
 
@@ -38,7 +38,6 @@ ctilde       = minimum value amount of consumption
 bqtilde      = minimum bequest value
 ltilde       = measure of time each individual is endowed with each
                period
-chi_n        = discount factor of labor that changes with S (Sx1 array)
 eta          = Frisch elasticity of labor supply
 g_y          = growth rate of technology for one cohort
 TPImaxiter   = Maximum number of iterations that TPI will undergo

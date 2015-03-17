@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated: 2/13/2015
+Last updated: 3/17/2015
 
 Calculates steady state of OLG model with S age cohorts, using simple
 bin_weights and no taxes in order to be able to converge in the steady
@@ -12,8 +12,11 @@ This py-file calls the following other file(s):
             tax_funcs.py
             OUTPUT/given_params.pkl
             OUTPUT/Nothing/wealth_data_moments.pkl
+            OUTPUT/Nothing/labor_data_moments.pkl
             OUTPUT/Nothing/{}.pkl
                 name depends on what iteration just ran
+            OUTPUT/SS/d_inc_guess.pkl
+                if calibrating the income tax to match the wealth tax
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
@@ -21,6 +24,8 @@ This py-file creates the following other file(s):
                 name depends on what iteration is being run
             OUTPUT/Nothing/initial_guesses_for_SS.pkl
             OUTPUT/Nothing/payroll_inputs.pkl
+            OUTPUT/SSinit/ss_init.pkl
+            OUTPUT/SS/Tss_var.pkl
 ------------------------------------------------------------------------
 '''
 
@@ -63,8 +68,6 @@ ctilde       = minimum value amount of consumption
 bqtilde      = minimum bequest value
 ltilde       = measure of time each individual is endowed with each
                period
-chi_n        = discount factor of labor that changes with S (Sx1 array)
-chi_b        = discount factor of incidental bequests
 eta          = Frisch elasticity of labor supply
 g_y          = growth rate of technology for one cohort
 TPImaxiter   = Maximum number of iterations that TPI will undergo

@@ -47,7 +47,6 @@ bqtilde  = minimum bequest value
 delta    = decreciation rate of capital
 ltilde   = measure of time each individual is endowed with each period
 ctilde   = minimum value of consumption
-chi_n    = discount factor of labor
 eta      = Frisch elasticity of labor supply
 e        = S x J matrix of age dependent possible working abilities e_s
 J        = number of points in the support of e

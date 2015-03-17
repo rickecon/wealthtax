@@ -1,15 +1,13 @@
 '''
 ------------------------------------------------------------------------
-Last updated 2/13/2015
+Last updated 3/17/2015
 
 This will run the steady state solver as well as time path iteration.
 
 This py-file calls the following other file(s):
             wealth_data.py
-            SS_old_income.py
             SS.py
             payroll.py
-            SS.py
             TPI.py
 
 This py-file creates the following other file(s):
@@ -39,17 +37,10 @@ Setting up the Model
 S            = number of periods an individual lives
 J            = number of different ability groups
 T            = number of time periods until steady state is reached
-bin_weights  = desires percentiles of ability groups
-bin_weights_init = simple bin_weights (all equal sizes) to get initial
-                   guesses
-bin_weights_array = array of bin weights, each one being used as initial
-                    values for the next
+bin_weights  = desired percentiles of ability groups
 which_iterations = array of strings that label the bin weights in
                    bin_weights_array, to be used for saving files
-init_vals_scalars = scalar multipliers used in SS files to make the
-                    initial values work
-start_point_iter = at what element of bin_weights_array to start
-                   SS
+scal = scalar multiplier used in SS files to make the initial value work
 starting_age = age of first members of cohort
 ending age   = age of the last members of cohort
 E            = number of cohorts before S=1
@@ -67,7 +58,6 @@ g_y_annual   = annual growth rate of technology
 g_y          = growth rate of technology for one cohort
 ctilde       = minimum value amount of consumption
 bqtilde      = minimum bequest value
-chi_n        = discount factor of labor that changes with S (Sx1 array)
 slow_work    = time at which chi_n starts increasing from 1
 chi_n_multiplier = scalar which is increased to force the labor
                distribution to 0
@@ -93,7 +83,6 @@ tau_bq       = bequest tax (scalar)
 tau_lump     = lump sum tax (scalar)
 tau_payroll  = payroll tax (scalar)
 theta_tax    = payback value for payroll tax (scalar)
-bin_weights  = percent of each age cohort in each ability group
 ------------------------------------------------------------------------
 '''
 # Parameters
@@ -104,7 +93,6 @@ bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 wealth_data.get_highest_wealth_data(bin_weights)
 which_iterations = np.array(['nine_one'])
 scal = 1.0
-start_point_iter = 0
 starting_age = 20
 ending_age = 100
 E = int(starting_age * (S / float(ending_age-starting_age)))
@@ -153,7 +141,6 @@ p_wealth = 0.0
 
 # Tax Parameters Initially
 d_tax_income = .219
-# tau_sales = 0.02
 tau_bq = np.zeros(J)
 tau_wealth = np.zeros(J)
 tau_lump = 0.0
@@ -190,7 +177,7 @@ print '\tFinished'
 
 
 name_of_last = which_iterations[-1]
-# This is the last simulation, using the desired bin weights, to get the replacement rate values
+# This is the simulation to get the replacement rate values
 thetas_simulation = True
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',

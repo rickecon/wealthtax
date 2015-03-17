@@ -1,11 +1,11 @@
 '''
 ------------------------------------------------------------------------
-Last updated 1/29/2015
+Last updated 3/1/2015
 
 Returns the wealth for all ages of a certain percentile.
 
 This py-file calls the following other file(s):
-            jason_savings_data/scf2007to2013_wealth_age.csv
+            data/wealth/scf2007to2013_wealth_age_all_percentiles.csv
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
