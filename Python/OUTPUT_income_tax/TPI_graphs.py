@@ -86,9 +86,16 @@ cum_morts = np.zeros(S)
 for i in xrange(S):
     cum_morts[i] = np.prod(1-mort_rate[:i])
 utility *= cum_morts.reshape(1, S, 1)
-utility_init = utility.sum(1)
+utility_lifetime_init = utility.sum(1)
 
 # Period Utility Graphs
+beq_ut_period = chi_b.reshape(1, S, 1) * (mort_rate.reshape(1, S, 1)) * (K_mat_init[:S]**(1-sigma)-1)/(1-sigma)
+utility_period = ((cinitbase[:S] ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(1, S, 1) * (
+    b_ellipse * (1-(L_mat_init[:S]/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
+utility_period += beq_ut_period
+utility_period *= beta_string.reshape(1, S, 1)
+utility_period *= cum_morts.reshape(1, S, 1)
+utility_period_init = utility_period.sum(1)
 
 
 variables = pickle.load(open("SS/ss_vars.pkl", "r"))
@@ -110,6 +117,7 @@ Y_mat = rinit[:T].reshape(T, 1, 1) * K1[:T].reshape(T, S, J) + winit[:T].reshape
     1, S, J) * L_mat[:T].reshape(T, S, J) + rinit[:T].reshape(T, 1, 1) * Bpath_TPI[:T].reshape(
     T, 1, J) / bin_weights.reshape(1, 1, J) - taxinit2.reshape(T, S, J)
 
+# Lifetime Utility
 c_ut = np.zeros((S, S, J))
 for s in xrange(S-1):
     c_ut[:, s+1, :] = cinit[s+1:s+1+S, s+1, :]
@@ -135,7 +143,16 @@ cum_morts = np.zeros(S)
 for i in xrange(S):
     cum_morts[i] = np.prod(1-mort_rate[:i])
 utility *= cum_morts.reshape(1, S, 1)
-utility = utility.sum(1)
+utility_lifetime = utility.sum(1)
+
+# Period Utility
+beq_ut_period = chi_b.reshape(1, S, 1) * (mort_rate.reshape(1, S, 1)) * (K_mat[:S]**(1-sigma)-1)/(1-sigma)
+utility_period = ((cinit[:S] ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(1, S, 1) * (
+    b_ellipse * (1-(L_mat[:S]/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
+utility_period += beq_ut_period
+utility_period *= beta_string.reshape(1, S, 1)
+utility_period *= cum_morts.reshape(1, S, 1)
+utility_period = utility_period.sum(1)
 
 
 '''
@@ -226,24 +243,48 @@ ax5 = fig5.gca(projection='3d')
 ax5.set_xlabel(r'time-$t$')
 ax5.set_ylabel(r'ability-$j$')
 ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
-ax5.plot_surface(X3, Y3, ((utility - utility_init)/np.abs(utility_init)).T, rstride=1, cstride=1, cmap=cmap2)
-plt.savefig('TPI/utility_percdif')
+ax5.plot_surface(X3, Y3, ((utility_lifetime - utility_lifetime_init)/np.abs(utility_lifetime_init)).T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPI/utility_lifetime_percdif')
 
 fig5 = plt.figure()
 ax5 = fig5.gca(projection='3d')
 ax5.set_xlabel(r'time-$t$')
 ax5.set_ylabel(r'ability-$j$')
 ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
-ax5.plot_surface(X3, Y3, (utility_init).T, rstride=1, cstride=1, cmap=cmap2)
-plt.savefig('TPIinit/utility')
+ax5.plot_surface(X3, Y3, (utility_lifetime_init).T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPIinit/utility_lifetime')
 
 fig5 = plt.figure()
 ax5 = fig5.gca(projection='3d')
 ax5.set_xlabel(r'time-$t$')
 ax5.set_ylabel(r'ability-$j$')
 ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
-ax5.plot_surface(X3, Y3, utility.T, rstride=1, cstride=1, cmap=cmap2)
-plt.savefig('TPI/utility')
+ax5.plot_surface(X3, Y3, utility_lifetime.T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPI/utility_lifetime')
+
+fig5 = plt.figure()
+ax5 = fig5.gca(projection='3d')
+ax5.set_xlabel(r'time-$t$')
+ax5.set_ylabel(r'ability-$j$')
+ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
+ax5.plot_surface(X3, Y3, ((utility_period - utility_period_init)/np.abs(utility_period_init)).T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPI/utility_period_percdif')
+
+fig5 = plt.figure()
+ax5 = fig5.gca(projection='3d')
+ax5.set_xlabel(r'time-$t$')
+ax5.set_ylabel(r'ability-$j$')
+ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
+ax5.plot_surface(X3, Y3, (utility_period_init).T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPIinit/utility_period')
+
+fig5 = plt.figure()
+ax5 = fig5.gca(projection='3d')
+ax5.set_xlabel(r'time-$t$')
+ax5.set_ylabel(r'ability-$j$')
+ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
+ax5.plot_surface(X3, Y3, utility_period.T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPI/utility_period')
 
 '''
 ------------------------------------------------------------------------
