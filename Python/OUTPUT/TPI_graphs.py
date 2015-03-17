@@ -25,7 +25,6 @@ from mpl_toolkits.mplot3d import Axes3D
 import pickle
 
 
-
 variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
@@ -61,6 +60,7 @@ Y_mat_init = r_base[:T].reshape(T, 1, 1) * K1[:T].reshape(T, S, J) + w_base[:T].
     T, 1, 1) * e.reshape(1, S, J) * L_mat_init[:T].reshape(T, S, J) + r_base[:T].reshape(
     T, 1, 1) * Bpath_TPIbase[:T].reshape(T, 1, J) / bin_weights.reshape(1, 1, J) - taxinit.reshape(T, S, J)
 
+# Lifetime Utility Graphs:
 c_ut_init = np.zeros((S, S, J))
 for s in xrange(S-1):
     c_ut_init[:, s+1, :] = cinitbase[s+1:s+1+S, s+1, :]
@@ -71,17 +71,13 @@ for s in xrange(S-1):
 L_ut_init[:, 0, :] = L_mat_init[:S, 0, :]
 B_ut_init = Bpath_TPIbase[S:T]
 K_ut_init = np.zeros((S, S, J))
-for s in xrange(S-1):
-    K_ut_init[:, s+1, :] = K_mat_init[s+1:s+1+S, s+1, :]
-K_ut_init[:, 0, :] = 0
+for s in xrange(S):
+    K_ut_init[:, s, :] = K_mat_init[s:s+S, s, :]
 
-beq_ut = chi_b.reshape(1, S, 1) * (K_ut_init[:S]**(1-sigma)-1)/(1-sigma)
-beq_ut[:, 0, :] = 0
+beq_ut = chi_b.reshape(1, S, 1) * (mort_rate.reshape(1, S, 1)) * (K_ut_init[:S]**(1-sigma)-1)/(1-sigma)
 utility = ((c_ut_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(1, S, 1) * (
     b_ellipse * (1-(L_ut_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
-utility[:, -1, :] += chi_b.reshape(S, 1) * (B_ut_init**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(1, S, 1)
-utility += beq_ut * (1- mort_rate.reshape(1, S, 1))
+utility += beq_ut 
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -91,6 +87,8 @@ for i in xrange(S):
     cum_morts[i] = np.prod(1-mort_rate[:i])
 utility *= cum_morts.reshape(1, S, 1)
 utility_init = utility.sum(1)
+
+# Period Utility Graphs
 
 
 variables = pickle.load(open("SS/ss_vars.pkl", "r"))
@@ -122,17 +120,13 @@ for s in xrange(S-1):
 L_ut[:, 0, :] = L_mat[:S, 0, :]
 B_ut = Bpath_TPI[S:T]
 K_ut = np.zeros((S, S, J))
-for s in xrange(S-1):
-    K_ut[:, s+1, :] = K_mat[s+1:s+1+S, s+1, :]
-K_ut[:, 0, :] = 0
+for s in xrange(S):
+    K_ut[:, s, :] = K_mat[s:s+S, s, :]
 
-beq_ut = chi_b.reshape(1, S, 1) * (K_ut[:S]**(1-sigma)-1)/(1-sigma)
-beq_ut[:, 0, :] = 0
+beq_ut = chi_b.reshape(1, S, 1) * (mort_rate.reshape(1, S, 1)) * (K_ut[:S]**(1-sigma)-1)/(1-sigma)
 utility = ((c_ut ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(1, S, 1) * (
     b_ellipse * (1-(L_ut/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
-utility[:, -1, :] += chi_b.reshape(S, 1) * (B_ut**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(1, S, 1)
-utility += beq_ut * (1- mort_rate.reshape(1, S, 1))
+utility += beq_ut 
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -232,8 +226,8 @@ ax5 = fig5.gca(projection='3d')
 ax5.set_xlabel(r'time-$t$')
 ax5.set_ylabel(r'ability-$j$')
 ax5.set_zlabel(r'Utility $\bar{u}_{j,t}$')
-ax5.plot_surface(X3, Y3, ((utility - utility_init)).T, rstride=1, cstride=1, cmap=cmap2)
-plt.savefig('TPI/utility_dif')
+ax5.plot_surface(X3, Y3, ((utility - utility_init)/np.abs(utility_init)).T, rstride=1, cstride=1, cmap=cmap2)
+plt.savefig('TPI/utility_percdif')
 
 fig5 = plt.figure()
 ax5 = fig5.gca(projection='3d')
