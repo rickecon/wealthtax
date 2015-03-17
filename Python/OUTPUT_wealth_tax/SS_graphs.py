@@ -31,12 +31,13 @@ BQ_init = BQ
 Lssmat_init = Lssmat
 cssmat_init = cssmat
 
-beq_ut = chi_b.reshape(S, 1) * (Kssmat2_init**(1-sigma) -1)/(1-sigma)
-beq_ut[0, :] = 0
+savings = np.zeros((S, J))
+savings[:-1, :] = Kssmat2_init[1:, :]
+savings[-1, :] = BQ_init
+
+beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
-utility[-1] += chi_b[-1] * (BQ_init**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(S, 1)
-utility += beq_ut * (1- mort_rate.reshape(S, 1))
+utility += beq_ut 
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -157,12 +158,12 @@ variables = pickle.load(open("SS/ss_vars.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
-beq_ut = chi_b.reshape(S, 1) * (Kssmat2**(1-sigma)-1)/(1-sigma)
-beq_ut[0, :] = 0
+savings = np.zeros((S, J))
+savings[:-1, :] = Kssmat2[1:, :]
+savings[-1, :] = BQ
+beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
-utility[-1] += chi_b[-1] * (BQ**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(S, 1)
-utility += beq_ut * (1- mort_rate.reshape(S, 1))
+utility += beq_ut 
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -250,7 +251,7 @@ Kssmat_percdif = (Kssmat - kssmatinit)/ kssmatinit
 BQ_percdif = (BQ - BQ_init)/ BQ_init
 Lssmat_percdif = (Lssmat - Lssmat_init)/ Lssmat_init 
 cssmat_percdif = (cssmat - cssmat_init)/ cssmat_init
-utility_dif = utility - utility_init
+utility_dif = (utility - utility_init) / np.abs(utility_init)
 income_dif = (income - income_init) / income_init
 
 
