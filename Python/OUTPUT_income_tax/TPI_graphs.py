@@ -356,6 +356,7 @@ def gini_cols(path, omega):
         cum_levels[:, j] = collapseS2[:, j] + cum_levels[:, j-1]
         cum_omega[:, j] = omega_sorted[:, j] + cum_omega[:, j-1]
     G = 2 * ((cum_omega - cum_levels) * omega_sorted).sum(1)
+    print G[-1]
     return G
 
 
@@ -377,6 +378,7 @@ def gini_colj(path, omega):
         cum_levels[:, s] = collapseJ2[:, s] + cum_levels[:, s-1]
         cum_omega[:, s] = omega_sorted[:, s] + cum_omega[:, s-1]
     G = 2 * ((cum_omega - cum_levels) * omega_sorted).sum(1)
+    print G[-1]
     return G
 
 
@@ -398,6 +400,7 @@ def gini_nocol(path, omega):
         cum_levels[:, i] = path2[:, i] + cum_levels[:, i-1]
         cum_omega[:, i] = omega_sorted[:, i] + cum_omega[:, i-1]
     G = 2 * ((cum_omega - cum_levels) * omega_sorted).sum(1)
+    print G[-1]
     return G
 
 '''

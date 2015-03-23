@@ -101,6 +101,8 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
         # plt.show()
+        ax.set_xlabel(r'age-$s$')
+        ax.set_ylabel(r'log ability $log(e_j(s))$')
         plt.savefig('OUTPUT/Demographics/ability_log_2D')
     if J == 1:
         plt.figure()
@@ -224,4 +226,4 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     e_final /= (e_final * omega_SS).sum()
     return e_final
   
-get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
+# get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
