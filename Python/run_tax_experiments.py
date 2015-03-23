@@ -1,10 +1,10 @@
 '''
 ------------------------------------------------------------------------
-Last updated 2/13/2015
+Last updated 3/17/2015
 
 This will run the steady state solver as well as time path iteration,
 given that these have already run with run_model.py, with new tax
-policies.
+policies (calibrating the income tax to match the wealth tax).
 ------------------------------------------------------------------------
 '''
 

@@ -1,15 +1,14 @@
 '''
 ------------------------------------------------------------------------
-Last updated 2/16/2014
+Last updated 3/17/2015
 
 Functions for created the matrix of ability levels, e.
 
-This py-file calls the following other file(s):
-            data/e_vec_data/cwhs_earn_rate_age_profile.csv
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
             OUTPUT/Demographics/ability_log
+            OUTPUT/Demographics/ability
 ------------------------------------------------------------------------
 '''
 
@@ -31,7 +30,14 @@ import scipy.optimize as opt
 ------------------------------------------------------------------------
     Generate Polynomials
 ------------------------------------------------------------------------
+The following coefficients are for polynomials which fit ability data
+for the 25, 50, 70, 80, 90, 99, and 100 percentiles.  The data comes from
+the following file: 
 
+data/ability/FR_wage_profile_tables.xlsx
+
+the polynomials are of the form
+log(ability) = constant + (one)(age) + (two)(age)^2 + (three)(age)^3
 ------------------------------------------------------------------------
 '''
 
@@ -51,7 +57,8 @@ income_profiles = np.exp(income_profiles)
     Generate ability type matrix
 ------------------------------------------------------------------------
 Given desired starting and stopping ages, as well as the values for S
-and J, the ability matrix is created.
+and J, the ability matrix is created.  An arctan function is used
+to extrapolate ability for ages 80-100.
 ------------------------------------------------------------------------
 '''
 
@@ -79,6 +86,24 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
         ax10.set_zlabel(r'log ability $log(e_j(s))$')
         # plt.show()
         plt.savefig('OUTPUT/Demographics/ability_log')
+        # 2D Version
+        fig112 = plt.figure()
+        ax = plt.subplot(111)
+        ax.plot(domain, np.log(e[:, 0]), label='0 - 24%', linestyle='-', color='black')
+        ax.plot(domain, np.log(e[:, 1]), label='25 - 49%', linestyle='--', color='black')
+        ax.plot(domain, np.log(e[:, 2]), label='50 - 69%', linestyle='-.', color='black')
+        ax.plot(domain, np.log(e[:, 3]), label='70 - 79%', linestyle=':', color='black')
+        ax.plot(domain, np.log(e[:, 4]), label='80 - 89%', marker='x', color='black')
+        ax.plot(domain, np.log(e[:, 5]), label='90 - 99%', marker='v', color='black')
+        ax.plot(domain, np.log(e[:, 6]), label='99 - 100%', marker='1', color='black')
+        ax.axvline(x=80, color='black', linestyle='--')
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        # plt.show()
+        ax.set_xlabel(r'age-$s$')
+        ax.set_ylabel(r'log ability $log(e_j(s))$')
+        plt.savefig('OUTPUT/Demographics/ability_log_2D')
     if J == 1:
         plt.figure()
         plt.plot(domain, e)

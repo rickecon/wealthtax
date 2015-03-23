@@ -31,12 +31,13 @@ BQ_init = BQ
 Lssmat_init = Lssmat
 cssmat_init = cssmat
 
-beq_ut = chi_b.reshape(S, 1) * (Kssmat2_init**(1-sigma) -1)/(1-sigma)
-beq_ut[0, :] = 0
+savings = np.zeros((S, J))
+savings[:-1, :] = Kssmat2_init[1:, :]
+savings[-1, :] = BQ_init
+
+beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
-utility[-1] += chi_b[-1] * (BQ_init**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(S, 1)
-utility += beq_ut * (1- mort_rate.reshape(S, 1))
+utility += beq_ut 
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -76,6 +77,23 @@ ax5.plot_surface(X, Y, Kssmat2.T, rstride=1, cstride=1, cmap=cmap2)
 plt.savefig('SSinit/capital_dist')
 # plt.show()
 
+fig112 = plt.figure()
+ax = plt.subplot(111)
+ax.plot(domain, Kssmat2[:, 0], label='0 - 24%', linestyle='-', color='black')
+ax.plot(domain, Kssmat2[:, 1], label='25 - 49%', linestyle='--', color='black')
+ax.plot(domain, Kssmat2[:, 2], label='50 - 69%', linestyle='-.', color='black')
+ax.plot(domain, Kssmat2[:, 3], label='70 - 79%', linestyle=':', color='black')
+ax.plot(domain, Kssmat2[:, 4], label='80 - 89%', marker='x', color='black')
+ax.plot(domain, Kssmat2[:, 5], label='90 - 99%', marker='v', color='black')
+ax.plot(domain, Kssmat2[:, 6], label='99 - 100%', marker='1', color='black')
+ax.axvline(x=80, color='black', linestyle='--')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'individual savings $\bar{b}_{j,s}$')
+plt.savefig('SSinit/capital_dist_2D')
+
 fig53 = plt.figure()
 ax53 = fig53.gca(projection='3d')
 ax53.set_xlabel(r'age-$s$')
@@ -99,6 +117,23 @@ ax4.plot_surface(X, Y, (Lssmat).T, rstride=1, cstride=1, cmap=cmap1)
 plt.savefig('SSinit/labor_dist')
 # plt.show()
 
+fig113 = plt.figure()
+ax = plt.subplot(111)
+ax.plot(domain, Lssmat[:, 0], label='0 - 24%', linestyle='-', color='black')
+ax.plot(domain, Lssmat[:, 1], label='25 - 49%', linestyle='--', color='black')
+ax.plot(domain, Lssmat[:, 2], label='50 - 69%', linestyle='-.', color='black')
+ax.plot(domain, Lssmat[:, 3], label='70 - 79%', linestyle=':', color='black')
+ax.plot(domain, Lssmat[:, 4], label='80 - 89%', marker='x', color='black')
+ax.plot(domain, Lssmat[:, 5], label='90 - 99%', marker='v', color='black')
+ax.plot(domain, Lssmat[:, 6], label='99 - 100%', marker='1', color='black')
+ax.axvline(x=80, color='black', linestyle='--')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'individual labor supply $\bar{l}_{j,s}$')
+plt.savefig('SSinit/labor_dist_2D')
+
 fig9 = plt.figure()
 ax9 = fig9.gca(projection='3d')
 ax9.plot_surface(X, Y, cssmat.T, rstride=1, cstride=1, cmap=cmap2)
@@ -107,6 +142,23 @@ ax9.set_ylabel(r'ability-$j$')
 ax9.set_zlabel('Consumption')
 # ax9.set_title('Steady State Distribution of Consumption')
 plt.savefig('SSinit/consumption')
+
+fig114 = plt.figure()
+ax = plt.subplot(111)
+ax.plot(domain, cssmat[:, 0], label='0 - 24%', linestyle='-', color='black')
+ax.plot(domain, cssmat[:, 1], label='25 - 49%', linestyle='--', color='black')
+ax.plot(domain, cssmat[:, 2], label='50 - 69%', linestyle='-.', color='black')
+ax.plot(domain, cssmat[:, 3], label='70 - 79%', linestyle=':', color='black')
+ax.plot(domain, cssmat[:, 4], label='80 - 89%', marker='x', color='black')
+ax.plot(domain, cssmat[:, 5], label='90 - 99%', marker='v', color='black')
+ax.plot(domain, cssmat[:, 6], label='99 - 100%', marker='1', color='black')
+ax.axvline(x=80, color='black', linestyle='--')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'individual consumption $\bar{c}_{j,s}$')
+plt.savefig('SSinit/consumption_2D')
 
 fig93 = plt.figure()
 ax93 = fig93.gca(projection='3d')
@@ -157,12 +209,12 @@ variables = pickle.load(open("SS/ss_vars.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
-beq_ut = chi_b.reshape(S, 1) * (Kssmat2**(1-sigma)-1)/(1-sigma)
-beq_ut[0, :] = 0
+savings = np.zeros((S, J))
+savings[:-1, :] = Kssmat2[1:, :]
+savings[-1, :] = BQ
+beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
-utility[-1] += chi_b[-1] * (BQ**(1-sigma)-1) / (1-sigma)
-utility *= mort_rate.reshape(S, 1)
-utility += beq_ut * (1- mort_rate.reshape(S, 1))
+utility += beq_ut 
 beta_string = np.ones(S) * beta
 for i in xrange(S):
     beta_string[i] = beta_string[i] ** i
@@ -250,13 +302,13 @@ Kssmat_percdif = (Kssmat - kssmatinit)/ kssmatinit
 BQ_percdif = (BQ - BQ_init)/ BQ_init
 Lssmat_percdif = (Lssmat - Lssmat_init)/ Lssmat_init 
 cssmat_percdif = (cssmat - cssmat_init)/ cssmat_init
-utility_dif = utility - utility_init
+utility_dif = (utility - utility_init) / np.abs(utility_init)
 income_dif = (income - income_init) / income_init
 
 
 plt.figure()
 plt.plot(np.arange(J)+1, utility_dif)
-plt.savefig('SS/lifetime_utility_dif')
+plt.savefig('SS/lifetime_utility_percdif')
 
 fig25 = plt.figure()
 ax25 = fig25.gca(projection='3d')
@@ -264,7 +316,7 @@ ax25.set_xlabel(r'age-$s$')
 ax25.set_ylabel(r'ability-$j$')
 ax25.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
 ax25.plot_surface(X2, Y2, Kssmat_percdif.T, rstride=1, cstride=1, cmap=cmap2)
-plt.savefig('SS/capital_dist_dif')
+plt.savefig('SS/capital_dist_percdif')
 
 plt.figure()
 plt.plot(np.arange(J)+1, BQ_percdif)
