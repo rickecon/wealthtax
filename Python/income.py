@@ -86,6 +86,22 @@ def graph_income(S, J, e, starting_age, ending_age, bin_weights):
         ax10.set_zlabel(r'log ability $log(e_j(s))$')
         # plt.show()
         plt.savefig('OUTPUT/Demographics/ability_log')
+        # 2D Version
+        fig112 = plt.figure()
+        ax = plt.subplot(111)
+        ax.plot(domain, np.log(e[:, 0]), label='0 - 24%', linestyle='-', color='black')
+        ax.plot(domain, np.log(e[:, 1]), label='25 - 49%', linestyle='--', color='black')
+        ax.plot(domain, np.log(e[:, 2]), label='50 - 69%', linestyle='-.', color='black')
+        ax.plot(domain, np.log(e[:, 3]), label='70 - 79%', linestyle=':', color='black')
+        ax.plot(domain, np.log(e[:, 4]), label='80 - 89%', marker='x', color='black')
+        ax.plot(domain, np.log(e[:, 5]), label='90 - 99%', marker='v', color='black')
+        ax.plot(domain, np.log(e[:, 6]), label='99 - 100%', marker='1', color='black')
+        ax.axvline(x=80, color='black', linestyle='--')
+        box = ax.get_position()
+        ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        # plt.show()
+        plt.savefig('OUTPUT/Demographics/ability_log_2D')
     if J == 1:
         plt.figure()
         plt.plot(domain, e)
@@ -208,4 +224,4 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     e_final /= (e_final * omega_SS).sum()
     return e_final
   
-# get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
+get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
