@@ -61,10 +61,13 @@ X, Y = np.meshgrid(domain, Jgrid)
 cmap2 = matplotlib.cm.get_cmap('summer')
 
 
-plt.plot(domain, weighted)
-plt.plot(np.linspace(76, 100, 23), extension, color='red')
-plt.plot(np.linspace(65, 76, 11), to_dot, linestyle='--', color='red')
-plt.axvline(x=76, color='green', linestyle='--')
+plt.plot(domain, weighted, color='black', label='Data')
+plt.plot(np.linspace(76, 100, 23), extension, color='black', linestyle='-.', label='Extrapolation')
+plt.plot(np.linspace(65, 76, 11), to_dot, linestyle='--', color='black')
+plt.axvline(x=76, color='black', linestyle='--')
+plt.xlabel(r'age-$s$')
+plt.ylabel(r'individual labor supply $\bar{l}_s$')
+plt.legend()
 plt.savefig('OUTPUT/Demographics/labor_dist_data_withfit.png')
 
 fig10 = plt.figure()
