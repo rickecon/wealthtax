@@ -28,6 +28,9 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
 domain = np.linspace(20, 95, 76)
-plt.plot(domain, highest_wealth_data[2:])
-plt.plot(domain, factor_ss * Kssmat[:76, -1])
-plt.show()
+plt.plot(domain, highest_wealth_data[2:]/10000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, -1]/10000000, label='Model', linestyle='--')
+plt.xlabel(r'age-$s$')
+plt.ylabel(r'Individual savings, in millions of dollars')
+plt.legend(loc=0)
+plt.savefig('Nothing/wealth_fit_graph')
