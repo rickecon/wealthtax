@@ -140,6 +140,7 @@ for key in variables:
 top100 = highest_wealth_data_new
 
 
+
 variables = pickle.load(open("OUTPUT/Nothing/labor_data_moments.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
@@ -301,7 +302,7 @@ def MUb(chi_b, bq):
 
     Returns:    Marginal Utility of Bequest
     '''
-    output = chi_b[-1] * (bq ** (-sigma))
+    output = chi_b[-1, :].reshape(1, J) * (bq ** (-sigma))
     return output
 
 
@@ -344,7 +345,7 @@ def Euler1(w, r, e, L_guess, K1, K2, K3, B, factor, taulump, chi_b):
     deriv = (
         1 + r*(1-tax.tau_income(r, K1, w, e[1:, :], L_guess[1:, :], factor)-tax.tau_income_deriv(
             r, K1, w, e[1:, :], L_guess[1:, :], factor)*income)-tax.tau_w_prime(K2)*K2-tax.tau_wealth(K2))
-    bequest_ut = (1-surv_rate[:-1].reshape(S-1, 1)) * np.exp(-sigma * g_y) * chi_b[:-1].reshape(S-1, 1) * K2 ** (-sigma)
+    bequest_ut = (1-surv_rate[:-1].reshape(S-1, 1)) * np.exp(-sigma * g_y) * chi_b[:-1].reshape(S-1, J) * K2 ** (-sigma)
     euler = MUc(cons1) - beta * surv_rate[:-1].reshape(S-1, 1) * deriv * MUc(
         cons2) * np.exp(-sigma * g_y) - bequest_ut
     return euler
@@ -417,9 +418,8 @@ def Steady_State(guesses, params):
 
     Returns:    Array of 2*S*J Euler equation errors
     '''
-    chi_b = params[0]
-    chi_b *= np.ones(S)
-    chi_n = np.array(params[1:])
+    chi_b = np.tile(np.array(params[:J]).reshape(1, J), (S, 1))
+    chi_n = np.array(params[J:])
     K_guess = guesses[0: S * J].reshape((S, J))
     B = (K_guess * omega_SS * mort_rate.reshape(S, 1)).sum(0)
     K = (omega_SS * K_guess).sum()
@@ -547,10 +547,22 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     K2 = K_guess[:-1, :]
     factor = solutions[-1]
     # Wealth Calibration Euler
-    p99_sim = K2[:, -1] * factor
-    bq_half = perc_dif_func(p99_sim[:-3], highest_wealth_data[2:])
-    bq_tomatch = bq_half[11:45]
-    error5 = list(bq_tomatch)
+    p25_sim = K2[:, 0] * factor
+    p50_sim = K2[:, 1] * factor
+    p70_sim = K2[:, 2] * factor
+    p80_sim = K2[:, 3] * factor
+    p90_sim = K2[:, 4] * factor
+    p99_sim = K2[:, 5] * factor
+    p100_sim = K2[:, 6] * factor
+    bq_perc_diff_25 = [perc_dif_func(np.mean(p25_sim[:24]), np.mean(top25[2:26]))] + [perc_dif_func(np.mean(p25_sim[24:45]), np.mean(top25[26:47]))]
+    bq_perc_diff_50 = [perc_dif_func(np.mean(p50_sim[:24]), np.mean(top50[2:26]))] + [perc_dif_func(np.mean(p50_sim[24:45]), np.mean(top50[26:47]))]
+    bq_perc_diff_70 = [perc_dif_func(np.mean(p70_sim[:24]), np.mean(top70[2:26]))] + [perc_dif_func(np.mean(p70_sim[24:45]), np.mean(top70[26:47]))]
+    bq_perc_diff_80 = [perc_dif_func(np.mean(p80_sim[:24]), np.mean(top80[2:26]))] + [perc_dif_func(np.mean(p80_sim[24:45]), np.mean(top80[26:47]))]
+    bq_perc_diff_90 = [perc_dif_func(np.mean(p90_sim[:24]), np.mean(top90[2:26]))] + [perc_dif_func(np.mean(p90_sim[24:45]), np.mean(top90[26:47]))]
+    bq_perc_diff_99 = [perc_dif_func(np.mean(p99_sim[:24]), np.mean(top99[2:26]))] + [perc_dif_func(np.mean(p99_sim[24:45]), np.mean(top99[26:47]))]
+    bq_perc_diff_100 = [perc_dif_func(np.mean(p100_sim[:24]), np.mean(top100[2:26]))] + [perc_dif_func(np.mean(p100_sim[24:45]), np.mean(top100[26:47]))]
+    error5 = bq_perc_diff_25 + bq_perc_diff_50 + bq_perc_diff_70 + bq_perc_diff_80 + bq_perc_diff_90 + bq_perc_diff_99 + bq_perc_diff_100
+    print error5
     # labor calibration euler
     labor_sim = ((solutions[S*J:2*S*J]).reshape(S, J)*bin_weights.reshape(1, J)).sum(axis=1)
     error6 = list(perc_dif_func(labor_sim, labor_dist_data))
@@ -591,8 +603,9 @@ else:
 if 'final_bq_params' in globals():
     bq_guesses = final_bq_params
 else:
-    bq_guesses = np.ones(S+1) * 90.04792433
-    bq_guesses[1:] = chi_n_guess
+    bq_guesses = np.ones(S+J)
+    bq_guesses[0:J] = np.array([1, 90, 200, 200, 200, 200, 200])
+    bq_guesses[J:] = chi_n_guess
     bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)
 
@@ -673,9 +686,8 @@ if thetas_simulation is True or 'SS_initial_run' in globals():
     K_eul3 = np.zeros((S, J))
     K_eul3[:S-1, :] = Kssmat
     K_eul3[-1, :] = BQ
-    chi_b = final_bq_params[0]
-    chi_b *= np.ones(S)
-    chi_n = np.array(final_bq_params[1:])
+    chi_b = np.tile(final_bq_params[:J].reshape(1, J), (S, 1))
+    chi_n = np.array(final_bq_params[J:])
     euler1 = Euler1(wss, rss, e, Lssmat, k1, k2, k3, B, factor_ss, Tss, chi_b)
     euler2 = Euler2(wss, rss, e, Lssmat, k1_2, k2_2, B, factor_ss, Tss, chi_n)
     euler3 = Euler3(wss, rss, e, Lssmat, K_eul3, B, factor_ss, chi_b, Tss)

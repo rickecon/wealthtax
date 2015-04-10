@@ -301,7 +301,7 @@ def MUb(bq):
 
     Returns:    Marginal Utility of Bequest
     '''
-    output = chi_b[-1] * (bq ** (-sigma))
+    output = chi_b[-1].reshape(1, J) * (bq ** (-sigma))
     return output
 
 
@@ -383,6 +383,16 @@ def MUl2(n, chi_n1):
     return output
 
 
+def MUb2(bq, chi_b):
+    '''
+    Parameters: Intentional bequests
+
+    Returns:    Marginal Utility of Bequest
+    '''
+    output = chi_b[-1] * (bq ** (-sigma))
+    return output
+
+
 def Euler_Error(guesses, winit, rinit, Binit, T, t):
     '''
     Parameters:
@@ -424,7 +434,7 @@ def Euler_Error(guesses, winit, rinit, Binit, T, t):
     cons12 = get_cons(r2, K2, w2, e2, l2, (1+r2)*B2, bin_weights[j], K3, g_y, tax12)
     wealth1 = (r2 * K2 + w2 * e2 * l2) * factor_ss
     bequest_ut = (
-        1-surv_rate[-(length):-1]) * np.exp(-sigma * g_y) * chi_b[-(length):-1] * K2 ** (-sigma)
+        1-surv_rate[-(length):-1]) * np.exp(-sigma * g_y) * chi_b[-(length):-1, j] * K2 ** (-sigma)
     deriv1 = 1 + r2 * (1 - tax.tau_income(
         r2, K2, w2, e2, l2, factor_ss) - tax.tau_income_deriv(
         r2, K2, w2, e2, l2, factor_ss) * wealth1) - tax.tau_w_prime(
@@ -455,7 +465,7 @@ def Euler_Error(guesses, winit, rinit, Binit, T, t):
     tax3 = tax.total_taxes_eul3_TPI(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], B[-1], bin_weights[j], factor_ss, Tl[-1], j)
     cons3 = get_cons(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], (1+r[-1])*B[-1], bin_weights[j], K_guess[-1], g_y, tax3)
     error3 = MUc(cons3) - np.exp(
-        -sigma * g_y) * MUb(K_guess[-1])
+        -sigma * g_y) * MUb2(K_guess[-1], chi_b[:, j])
     # Check and punish constraint violations
     # mask1 = L_guess < 0
     # error2[mask1] += 1e9
