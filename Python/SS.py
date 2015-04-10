@@ -100,9 +100,45 @@ name_of_it   = name of current simulation
 ------------------------------------------------------------------------
 '''
 
-variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments.pkl", "r"))
+# variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments.pkl", "r"))
+# for key in variables:
+#     globals()[key] = variables[key]
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_25.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
+top25 = highest_wealth_data_new
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_50.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+top50 = highest_wealth_data_new
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_70.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+top70 = highest_wealth_data_new
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_80.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+top80 = highest_wealth_data_new
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_90.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+top90 = highest_wealth_data_new
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_98.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+top99 = highest_wealth_data_new
+
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_99.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+top100 = highest_wealth_data_new
+
 
 variables = pickle.load(open("OUTPUT/Nothing/labor_data_moments.pkl", "r"))
 for key in variables:

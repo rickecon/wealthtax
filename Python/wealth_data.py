@@ -63,3 +63,12 @@ def get_highest_wealth_data(bin_weights):
     for key in var_names:
         dictionary[key] = locals()[key]
     pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments.pkl", "w"))
+
+perc_array = np.array([25, 50, 70, 80, 90, 98, 99])
+for i in perc_array:
+    highest_wealth_data_new = np.array(data['p{}_wealth'.format(i)])
+    var_names = ['highest_wealth_data_new']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = locals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_{}.pkl".format(i), "w"))
