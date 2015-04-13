@@ -129,12 +129,12 @@ for key in variables:
     globals()[key] = variables[key]
 top90 = highest_wealth_data_new
 
-variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_98.pkl", "r"))
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_99.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 top99 = highest_wealth_data_new
 
-variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_99.pkl", "r"))
+variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_100.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 top100 = highest_wealth_data_new
@@ -542,7 +542,11 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     '''
     print bq_guesses_init
     Steady_State_X = lambda x: Steady_State(x, bq_guesses_init)
-    solutions = opt.fsolve(Steady_State_X, other_guesses_init, xtol=1e-13)
+
+    variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
+    for key in variables:
+        globals()[key+'_pre'] = variables[key]
+    solutions = opt.fsolve(Steady_State_X, solutions_pre, xtol=1e-13)
     K_guess = solutions[0: S * J].reshape((S, J))
     K2 = K_guess[:-1, :]
     factor = solutions[-1]
@@ -573,6 +577,12 @@ def func_to_min(bq_guesses_init, other_guesses_init):
         fsolve_no_converg = 1e6
     if fsolve_no_converg > 1e-4:
         output += 1e9
+    else:
+        var_names = ['solutions']
+        dictionary = {}
+        for key in var_names:
+            dictionary[key] = locals()[key]
+        pickle.dump(dictionary, open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "w"))
     if (bq_guesses_init <= 0.0).any():
         output += 1e9
     print output.sum()
@@ -604,7 +614,7 @@ if 'final_bq_params' in globals():
     bq_guesses = final_bq_params
 else:
     bq_guesses = np.ones(S+J)
-    bq_guesses[0:J] = np.array([10, 40, 90, 90, 90, 90, 90])
+    bq_guesses[0:J] = np.array([10, 10, 10, 10, 10, 10, 10])
     bq_guesses[J:] = chi_n_guess
     bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)

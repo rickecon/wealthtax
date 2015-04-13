@@ -124,7 +124,7 @@ var_names = ['highest_wealth_data_new']
 dictionary = {}
 for key in var_names:
     dictionary[key] = locals()[key]
-pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_90.pkl", "w"))
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_99.pkl", "w"))
 
 highest_wealth_data_new = np.array(data['p99_wealth'.format(i)])
 var_names = ['highest_wealth_data_new']
