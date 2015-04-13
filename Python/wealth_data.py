@@ -64,11 +64,71 @@ def get_highest_wealth_data(bin_weights):
         dictionary[key] = locals()[key]
     pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments.pkl", "w"))
 
-perc_array = np.array([25, 50, 70, 80, 90, 98, 99])
-for i in perc_array:
-    highest_wealth_data_new = np.array(data['p{}_wealth'.format(i)])
-    var_names = ['highest_wealth_data_new']
-    dictionary = {}
-    for key in var_names:
-        dictionary[key] = locals()[key]
-    pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_{}.pkl".format(i), "w"))
+perc_array = np.array([25, 50, 70, 80, 90, 99, 100])
+
+ar25 = np.ones((78, 24))
+for i in xrange(1, 25):
+    ar25[:, i-1] = np.array(data['p{}_wealth'.format(i)])
+highest_wealth_data_new = np.mean(ar25, axis=1)
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_25.pkl", "w"))
+
+ar25 = np.ones((78, 25))
+for i in xrange(25, 50):
+    ar25[:, i-25] = np.array(data['p{}_wealth'.format(i)])
+highest_wealth_data_new = np.mean(ar25, axis=1)
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_50.pkl", "w"))
+
+ar20 = np.ones((78, 20))
+for i in xrange(50, 70):
+    ar20[:, i-50] = np.array(data['p{}_wealth'.format(i)])
+highest_wealth_data_new = np.mean(ar20, axis=1)
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_70.pkl", "w"))
+
+ar10 = np.ones((78, 10))
+for i in xrange(70, 80):
+    ar10[:, i-70] = np.array(data['p{}_wealth'.format(i)])
+highest_wealth_data_new = np.mean(ar10, axis=1)
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_80.pkl", "w"))
+
+ar10 = np.ones((78, 10))
+for i in xrange(80, 90):
+    ar10[:, i-80] = np.array(data['p{}_wealth'.format(i)])
+highest_wealth_data_new = np.mean(ar10, axis=1)
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_90.pkl", "w"))
+
+ar09 = np.ones((78, 9))
+for i in xrange(90, 99):
+    ar09[:, i-90] = np.array(data['p{}_wealth'.format(i)])
+highest_wealth_data_new = np.mean(ar09, axis=1)
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_90.pkl", "w"))
+
+highest_wealth_data_new = np.array(data['p99_wealth'.format(i)])
+var_names = ['highest_wealth_data_new']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = locals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/wealth_data_moments_fit_100.pkl", "w"))

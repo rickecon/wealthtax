@@ -604,7 +604,7 @@ if 'final_bq_params' in globals():
     bq_guesses = final_bq_params
 else:
     bq_guesses = np.ones(S+J)
-    bq_guesses[0:J] = np.array([1, 90, 200, 200, 200, 200, 200])
+    bq_guesses[0:J] = np.array([10, 40, 90, 90, 90, 90, 90])
     bq_guesses[J:] = chi_n_guess
     bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)
