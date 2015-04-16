@@ -190,6 +190,7 @@ chi_n_guess = np.array([47.50312288 , 23.21189916 , 18.01962762 , 12.06964982 , 
  , 12.35288956 , 12.58209352 , 12.77800679 , 12.8971616  , 12.90197646])
 
 
+
 surv_rate[-1] = 0.0
 mort_rate[-1] = 1
 
@@ -452,6 +453,8 @@ def Steady_State(guesses, params):
     cons = get_cons(r, K1_2, w, e, L_guess, BQ.reshape(1, J), bin_weights, K2_2, g_y, tax1)
     mask3 = cons < 0
     error2[mask3] += 1e9
+    mask4 = K_guess[:-1] <= 0
+    error1[mask4] += 1e9
     # print np.abs(np.array(list(error1.flatten()) + list(
     #     error2.flatten()) + list(error3.flatten()) + error4)).max()
     return list(error1.flatten()) + list(
@@ -614,19 +617,23 @@ if 'final_bq_params' in globals():
     bq_guesses = final_bq_params
 else:
     bq_guesses = np.ones(S+J)
-    bq_guesses[0:J] = np.array([10, 10, 10, 10, 10, 10, 10])
+    bq_guesses[0:J] = np.array([10, 10, 20, 50, 150, 150, 150])
     bq_guesses[J:] = chi_n_guess
     bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)
 
 if thetas_simulation:
-    final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='SLSQP').x
+    final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='SLSQP', tol=1e-13).x
     print 'The final bequest parameter values:', final_bq_params
 else:
     final_bq_params = bq_guesses
 Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
-solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
-print np.array(Steady_State_X2(solutions)).max()
+if 'solutions_pre' in globals():
+    solutions = opt.fsolve(Steady_State_X2, solutions_pre, xtol=1e-13)
+    print np.array(Steady_State_X2(solutions)).max()
+else:
+    solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
+    print np.array(Steady_State_X2(solutions)).max()
 
 # Save the solutions of SS
 if thetas_simulation is False:

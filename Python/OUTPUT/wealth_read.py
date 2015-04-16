@@ -9,6 +9,7 @@ variables = pickle.load(open("Nothing/wealth_data_moments.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
+
 # print bin_weights
 # print (Kssmat2*omega_SS).sum(0)/bin_weights
 
@@ -38,6 +39,7 @@ plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/wealth_fit_graph_25')
+
 
 variables = pickle.load(open("Nothing/wealth_data_moments_fit_50.pkl", "r"))
 for key in variables:
@@ -83,7 +85,7 @@ plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/wealth_fit_graph_90')
 
-variables = pickle.load(open("Nothing/wealth_data_moments_fit_98.pkl", "r"))
+variables = pickle.load(open("Nothing/wealth_data_moments_fit_99.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
@@ -94,7 +96,7 @@ plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/wealth_fit_graph_99')
 
-variables = pickle.load(open("Nothing/wealth_data_moments_fit_99.pkl", "r"))
+variables = pickle.load(open("Nothing/wealth_data_moments_fit_100.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
@@ -115,7 +117,7 @@ plt.plot(domain, factor_ss * cssmat[:, 4], label='90%')
 plt.plot(domain, factor_ss * cssmat[:, 5], label='99%')
 plt.plot(domain, factor_ss * cssmat[:, 6], label='100%')
 plt.xlabel(r'age-$s$')
-plt.ylabel(r'Individual savings, in millions of dollars')
+plt.ylabel(r'Individual consumption, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/css_fit')
 
@@ -130,6 +132,6 @@ plt.plot(domain, factor_ss * income_ss[:, 4], label='90%')
 plt.plot(domain, factor_ss * income_ss[:, 5], label='99%')
 plt.plot(domain, factor_ss * income_ss[:, 6], label='100%')
 plt.xlabel(r'age-$s$')
-plt.ylabel(r'Individual savings, in millions of dollars')
+plt.ylabel(r'Individual income, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/income_fit')
