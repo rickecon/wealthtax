@@ -135,3 +135,5 @@ plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual income, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/income_fit')
+
+print chi_n
