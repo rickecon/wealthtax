@@ -148,6 +148,11 @@ tau_payroll = 0.15
 theta_tax = np.zeros(J)
 
 
+chi_b_scal = np.zeros(J)
+
+chi_b_scaler = True
+
+
 print 'Getting initial SS distribution, not calibrating bequests, to speed up SS.'
 thetas_simulation = False
 name_of_last = 'none'
@@ -161,7 +166,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'tau_payroll', 'tau_bq', 'tau_lump',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_it',
-             'name_of_last', 'thetas_simulation']
+             'name_of_last', 'thetas_simulation', 'chi_b_scal', 'chi_b_scaler']
 dictionary = {}
 os.remove("OUTPUT/given_params.pkl")
 for key in var_names:
@@ -175,8 +180,50 @@ del sys.modules['SS']
 
 print '\tFinished'
 
+print 'getting a high chi_b'
+
 
 name_of_last = which_iterations[-1]
+
+bumps = np.array([0, 0, 1, 5, 20, 50, 50])
+chi_b_init_guesses = np.array([5, 10, 90, 250, 250, 250, 250])
+
+for i in xrange(1, 4000):
+    variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    print chi_fits_old
+    chi_b_scal = bumps * i
+    print "Iteration: ", i
+    for b in xrange(J):
+        if (chi_fits_old[2*b] + chi_fits_old[2*b + 1])/2.0 < .1:
+            chi_b_scal[b] = chi_b_vals_for_fit[b] - chi_b_init_guesses[b]
+    var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+                 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+                 'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+                 'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+                 'a_tax_income',
+                 'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+                 'tau_payroll', 'tau_bq', 'tau_lump',
+                 'theta_tax', 'retire', 'mean_income',
+                 'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_it',
+                 'name_of_last', 'thetas_simulation', 'chi_b_scal', 'chi_b_scaler']
+    dictionary = {}
+    os.remove("OUTPUT/given_params.pkl")
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+    import SS
+    del sys.modules['tax_funcs']
+    del sys.modules['demographics']
+    del sys.modules['income']
+    del sys.modules['SS']
+
+print 'done getting it'
+chi_b_scaler = False
+
+os.remove("OUTPUT/Nothing/chi_b_fits.pkl")
+
 # This is the simulation to get the replacement rate values
 thetas_simulation = True
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
@@ -188,7 +235,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'tau_payroll', 'tau_bq', 'tau_lump',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_last',
-             'thetas_simulation']
+             'thetas_simulation', 'chi_b_scal', 'chi_b_scaler']
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
@@ -221,7 +268,8 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
              'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
              'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run', 'scal']
+             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run', 'scal',
+             'chi_b_scal', 'chi_b_scaler']
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]

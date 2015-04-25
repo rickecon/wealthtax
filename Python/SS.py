@@ -606,10 +606,10 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     if (bq_guesses_init <= 0.0).any():
         output += 1e9
     weighting_mat = np.eye(2*J + S)
-    weighting_mat[10:10] = 10.0
-    weighting_mat[11:11] = 10.0
-    weighting_mat[12:12] = 10.0
-    weighting_mat[13:13] = 10.0
+    # weighting_mat[10:10] = 10.0
+    # weighting_mat[11:11] = 10.0
+    # weighting_mat[12:12] = 10.0
+    # weighting_mat[13:13] = 10.0
     scaling_val = 100.0
     value = np.dot(scaling_val * np.dot(output.reshape(1, 2*J+S), weighting_mat), scaling_val * output.reshape(2*J+S, 1))
     print value.sum()
@@ -637,11 +637,12 @@ else:
 
 
 
-if 'final_bq_params' in globals():
+if 'final_bq_params' in globals() and chi_b_scaler is False:
     bq_guesses = final_bq_params
 else:
     bq_guesses = np.ones(S+J)
-    bq_guesses[0:J] = np.array([5, 10, 90, 220, 250, 250, 250])
+    bq_guesses[0:J] = np.array([5, 10, 90, 250, 250, 250, 250]) + chi_b_scal
+    print 'Chi_b:', bq_guesses[0:J]
     bq_guesses[J:] = chi_n_guess
     bq_guesses = list(bq_guesses)
 func_to_min_X = lambda x: func_to_min(x, guesses)
@@ -660,6 +661,42 @@ if 'solutions_pre' in globals():
 else:
     solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
     print np.array(Steady_State_X2(solutions)).max()
+
+#Calculate the fits
+K_seefit = solutions[0: S * J].reshape((S, J))
+K_see_fit = K_seefit[:-1, :]
+factor_see_fit = solutions[-1]
+# Wealth Calibration Euler
+p25_sim = K_see_fit[:, 0] * factor_see_fit
+p50_sim = K_see_fit[:, 1] * factor_see_fit
+p70_sim = K_see_fit[:, 2] * factor_see_fit
+p80_sim = K_see_fit[:, 3] * factor_see_fit
+p90_sim = K_see_fit[:, 4] * factor_see_fit
+p99_sim = K_see_fit[:, 5] * factor_see_fit
+p100_sim = K_see_fit[:, 6] * factor_see_fit
+bq_perc_diff_25 = [perc_dif_func(np.mean(p25_sim[:24]), np.mean(top25[2:26]))] + [perc_dif_func(np.mean(p25_sim[24:45]), np.mean(top25[26:47]))]
+bq_perc_diff_50 = [perc_dif_func(np.mean(p50_sim[:24]), np.mean(top50[2:26]))] + [perc_dif_func(np.mean(p50_sim[24:45]), np.mean(top50[26:47]))]
+bq_perc_diff_70 = [perc_dif_func(np.mean(p70_sim[:24]), np.mean(top70[2:26]))] + [perc_dif_func(np.mean(p70_sim[24:45]), np.mean(top70[26:47]))]
+bq_perc_diff_80 = [perc_dif_func(np.mean(p80_sim[:24]), np.mean(top80[2:26]))] + [perc_dif_func(np.mean(p80_sim[24:45]), np.mean(top80[26:47]))]
+bq_perc_diff_90 = [perc_dif_func(np.mean(p90_sim[:24]), np.mean(top90[2:26]))] + [perc_dif_func(np.mean(p90_sim[24:45]), np.mean(top90[26:47]))]
+bq_perc_diff_99 = [perc_dif_func(np.mean(p99_sim[:24]), np.mean(top99[2:26]))] + [perc_dif_func(np.mean(p99_sim[24:45]), np.mean(top99[26:47]))]
+bq_perc_diff_100 = [perc_dif_func(np.mean(p100_sim[:24]), np.mean(top100[2:26]))] + [perc_dif_func(np.mean(p100_sim[24:45]), np.mean(top100[26:47]))]
+chi_fits = bq_perc_diff_25 + bq_perc_diff_50 + bq_perc_diff_70 + bq_perc_diff_80 + bq_perc_diff_90 + bq_perc_diff_99 + bq_perc_diff_100
+
+if os.path.isfile("OUTPUT/Nothing/chi_b_fits.pkl"):
+    variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    chi_fits_old = chi_fits_new
+else:
+    chi_fits_old = np.copy(chi_fits)
+chi_fits_new = np.copy(chi_fits)
+chi_b_vals_for_fit = bq_guesses[0:J]
+var_names = ['chi_fits_old', 'chi_fits_new', 'chi_b_vals_for_fit']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("OUTPUT/Nothing/chi_b_fits.pkl", "w"))
 
 # Save the solutions of SS
 if thetas_simulation is False:
