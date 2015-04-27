@@ -185,19 +185,28 @@ print 'getting a high chi_b'
 
 name_of_last = which_iterations[-1]
 
-bumps = np.array([0, 0, 1, 5, 20, 50, 50])
+bumps = np.array([0, 0, 0, 10, 20, 50, 50])
 chi_b_init_guesses = np.array([5, 10, 90, 250, 250, 250, 250])
+keep_changing = np.array([False, False, False, True, True, True, True])
 
-for i in xrange(1, 4000):
+i = 1
+
+
+while keep_changing.any() and i < 3000:
     variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
     for key in variables:
-        globals()[key] = variables[key]
+        locals()[key] = variables[key]
     print chi_fits_old
-    chi_b_scal = bumps * i
+    chi_b_scal[keep_changing] = bumps[keep_changing] * i
     print "Iteration: ", i
     for b in xrange(J):
-        if (chi_fits_old[2*b] + chi_fits_old[2*b + 1])/2.0 < .1:
+        if (chi_fits_old[2*b] + chi_fits_old[2*b + 1])/2.0 < .2:
             chi_b_scal[b] = chi_b_vals_for_fit[b] - chi_b_init_guesses[b]
+            if keep_changing[b] is True:
+                chi_b_scal[b] -= bumps[b]
+            keep_changing[b] = False
+    i += 1
+
     var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
                  'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
                  'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
@@ -218,6 +227,14 @@ for i in xrange(1, 4000):
     del sys.modules['demographics']
     del sys.modules['income']
     del sys.modules['SS']
+    # Delete variables
+    del chi_fits_old
+    del chi_fits_new
+    del chi_b_vals_for_fit
+    del variables
+    del var_names
+    del dictionary
+
 
 print 'done getting it'
 chi_b_scaler = False

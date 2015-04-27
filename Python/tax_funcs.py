@@ -273,3 +273,7 @@ def total_taxes_path(r, b, w, e, n, BQ, bins, factor, Tinit):
     T_L = Tinit.reshape(T, 1, 1)
     tot = T_I + T_P + T_BQ + T_W - T_L
     return tot
+
+
+for var in globals():
+    del var

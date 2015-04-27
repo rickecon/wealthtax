@@ -222,8 +222,10 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     # for j in xrange(2):
     #     j += 5
     #     e_final[60:, j] = exp_fit(e_final[59, j], one[j], two[j], three[j], towhat[j], init_guesses[j])
-    graph_income(S, J, e_final, starting_age, ending_age, bin_weights)
+    # graph_income(S, J, e_final, starting_age, ending_age, bin_weights)
     e_final /= (e_final * omega_SS).sum()
     return e_final
   
 # get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
+for var in globals():
+    del var

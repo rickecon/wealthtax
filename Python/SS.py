@@ -835,3 +835,6 @@ if thetas_simulation is True or 'SS_initial_run' in globals():
                 dictionary[key] = globals()[key]
             pickle.dump(dictionary, open("OUTPUT/SS/ss_vars.pkl", "w"))
             pickle.dump(Tss, open("OUTPUT/SS/Tss_var.pkl", "w"))
+
+for var in globals():
+    del var
