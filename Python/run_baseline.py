@@ -21,11 +21,14 @@ This py-file creates the following other file(s):
 Import Packages
 '''
 
-import numpy as np
 import pickle
 import os
 from glob import glob
 import sys
+from subprocess import call
+
+import numpy as np
+
 import wealth_data
 import labor_data
 
@@ -192,7 +195,9 @@ keep_changing = np.array([False, False, False, True, True, True, True])
 i = 1
 
 
-while keep_changing.any() and i < 3000:
+dictionary = {}
+
+while keep_changing.any() and i < 4000:
     variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
     for key in variables:
         locals()[key] = variables[key]
@@ -206,34 +211,11 @@ while keep_changing.any() and i < 3000:
                 chi_b_scal[b] -= bumps[b]
             keep_changing[b] = False
     i += 1
-
-    var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
-                 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-                 'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-                 'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-                 'a_tax_income',
-                 'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-                 'tau_payroll', 'tau_bq', 'tau_lump',
-                 'theta_tax', 'retire', 'mean_income',
-                 'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_it',
-                 'name_of_last', 'thetas_simulation', 'chi_b_scal', 'chi_b_scaler']
-    dictionary = {}
     os.remove("OUTPUT/given_params.pkl")
     for key in var_names:
         dictionary[key] = globals()[key]
     pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-    import SS
-    del sys.modules['tax_funcs']
-    del sys.modules['demographics']
-    del sys.modules['income']
-    del sys.modules['SS']
-    # Delete variables
-    del chi_fits_old
-    del chi_fits_new
-    del chi_b_vals_for_fit
-    del variables
-    del var_names
-    del dictionary
+    call(['python', 'SS.py'])
 
 
 print 'done getting it'

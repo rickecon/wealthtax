@@ -52,6 +52,7 @@ plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/wealth_fit_graph_50')
 
+
 variables = pickle.load(open("Nothing/wealth_data_moments_fit_70.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
