@@ -14,7 +14,7 @@ p5
 tp6
 Rp7
 (I1
-(L80L
+(I80
 tp8
 cnumpy
 dtype
