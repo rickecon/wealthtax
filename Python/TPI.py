@@ -393,7 +393,28 @@ def MUb2(bq, chi_b):
     return output
 
 
-def Euler_Error(guesses, winit, rinit, Binit, T, t):
+# def Euler_Error_firstgroup(guesses, winit, rinit, Binit, Tinit):
+#     K2 = float(guesses[0])
+#     l1 = float(guesses[1])
+#     print l1
+#     K1 = float(initial_K[-2, j])
+#     # Euler 1 equations
+#     tax11 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
+#     cons11 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax11)
+#     bequest_ut = (1-surv_rate[-1]) * np.exp(-sigma * g_y) * chi_b[-1, j] * K2 ** (-sigma)
+#     error1 = MUc(cons11) - bequest_ut
+#     # Euler 2 equations
+#     tax2 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
+#     cons2 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax2)
+#     wealth2 = (rinit * K1 + winit * e[-1, j] * l1) * factor_ss
+#     deriv2 = 1 - tau_payroll - tax.tau_income(rinit, K1, winit, e[
+#         -1, j], l1, factor_ss) - tax.tau_income_deriv(
+#         rinit, K1, winit, e[-1, j], l1, factor_ss) * wealth2
+#     error2 = MUc(cons2) * winit * e[-1, j] * deriv2 - MUl2(l1, chi_n[-1])
+
+#     return [error1] + [error2]
+
+def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     '''
     Parameters:
         guesses = distribution of capital and labor in period t
@@ -458,21 +479,19 @@ def Euler_Error(guesses, winit, rinit, Binit, T, t):
     deriv2 = 1 - tau_payroll - tax.tau_income(r, K1_2, w, e[
         -(length):, j], L_guess, factor_ss) - tax.tau_income_deriv(
         r, K1_2, w, e[-(length):, j], L_guess, factor_ss) * wealth2
-    error2 = (MUc(cons2)/(
-        1+tau_sales)) * w * e[-(length):, j] * deriv2 - MUl2(
-        L_guess, chi_n[-length:])
+    error2 = MUc(cons2) * w * e[-(length):, j] * deriv2 - MUl2(L_guess, chi_n[-length:])
     # Euler 3 equations
     tax3 = tax.total_taxes_eul3_TPI(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], B[-1], bin_weights[j], factor_ss, Tl[-1], j)
     cons3 = get_cons(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], (1+r[-1])*B[-1], bin_weights[j], K_guess[-1], g_y, tax3)
     error3 = MUc(cons3) - np.exp(
         -sigma * g_y) * MUb2(K_guess[-1], chi_b[:, j])
     # Check and punish constraint violations
-    # mask1 = L_guess < 0
-    # error2[mask1] += 1e9
-    # mask2 = L_guess > ltilde
-    # error2[mask2] += 1e9
-    # cons = (1 + r) * K1_2 + w * e[
-    #     -(length):, j] * L_guess + (1+r)*B/bin_weights[j] - K2_2 * np.exp(g_y)
+    mask1 = L_guess < 0
+    error2[mask1] += 1e9
+    mask2 = L_guess > ltilde
+    error2[mask2] += 1e9
+    # cons = get_cons(r, K1_2, w,  e[
+    #     -(length):, j], L_guess, (1+r)*B, bin_weights[j], K2_2, g_y, T1)
     # mask3 = cons < 0
     # error2[mask3] += 1e9
     # bin1 = bin_weights[j]
@@ -543,10 +562,12 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             inputs = list(solutions)
             euler_errors[t, :, j] = np.abs(Euler_Error(
                 inputs, winit, rinit, Binit[:, j], Tinit, t))
-
+        # K_mat[1, -1, j], L_mat[0, -1, j] = np.array(opt.fsolve(Euler_Error_firstgroup, [K_mat[1, -2, j], L_mat[0, -2, j]],
+        #     args=(winit[1], rinit[1], Binit[1, j], Tinit[1])))
+    
     K_mat[0, :, :] = initial_K
-    K_mat[1, -1, :] = initial_K[-1, :]
-    L_mat[0, -1, :] = initial_L[-1, :]
+    K_mat[1, -1, :]= K_mat[1, -2, :]
+    L_mat[0, -1, :] = L_mat[0, -2, :
     Knew = (omega_stationary[:T, :, :] * K_mat[:T, :, :]).sum(2).sum(1)
     Lnew = (omega_stationary[1:T+1, :, :] * e.reshape(
         1, S, J) * L_mat[:T, :, :]).sum(2).sum(1)
@@ -559,10 +580,10 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
         np.abs(Knew - Kinit)) + list(np.abs(Bnew - Binit[
             :T]).flatten()) + list(np.abs(Lnew - Linit))).max()
     TPIdist_vec[TPIiter] = TPIdist
-    # After T=7, if cycling occurs, drop the value of nu
-    # wait til after T=7 or so, because sometimes there is a jump up
+    # After T=10, if cycling occurs, drop the value of nu
+    # wait til after T=10 or so, because sometimes there is a jump up
     # in the first couple iterations
-    if TPIiter > 7:
+    if TPIiter > 10:
         if TPIdist_vec[TPIiter] - TPIdist_vec[TPIiter-1] > 0:
             nu_current /= 2
             print 'New Value of nu:', nu_current

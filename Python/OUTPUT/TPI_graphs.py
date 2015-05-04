@@ -74,7 +74,7 @@ K_ut_init = np.zeros((S, S, J))
 for s in xrange(S):
     K_ut_init[:, s, :] = K_mat_init[s:s+S, s, :]
 
-beq_ut = chi_b.reshape(1, S, 1) * (mort_rate.reshape(1, S, 1)) * (K_ut_init[:S]**(1-sigma)-1)/(1-sigma)
+beq_ut = chi_b.reshape(1, S, J) * (mort_rate.reshape(1, S, 1)) * (K_ut_init[:S]**(1-sigma)-1)/(1-sigma)
 utility = ((c_ut_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(1, S, 1) * (
     b_ellipse * (1-(L_ut_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
@@ -89,7 +89,7 @@ utility *= cum_morts.reshape(1, S, 1)
 utility_lifetime_init = utility.sum(1)
 
 # Period Utility Graphs
-beq_ut_period = chi_b.reshape(1, S, 1) * (mort_rate.reshape(1, S, 1)) * (K_mat_init[:S]**(1-sigma)-1)/(1-sigma)
+beq_ut_period = chi_b.reshape(1, S, J) * (mort_rate.reshape(1, S, 1)) * (K_mat_init[:S]**(1-sigma)-1)/(1-sigma)
 utility_period = ((cinitbase[:S] ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(1, S, 1) * (
     b_ellipse * (1-(L_mat_init[:S]/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility_period += beq_ut_period

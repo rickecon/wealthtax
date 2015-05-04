@@ -91,7 +91,7 @@ theta_tax    = payback value for payroll tax (scalar)
 # Parameters
 S = 80
 J = 7
-T = int(2 * S)
+T = int(2.5 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 wealth_data.get_highest_wealth_data(bin_weights)
 which_iterations = np.array(['nine_one'])
