@@ -651,7 +651,7 @@ func_to_min_X = lambda x: func_to_min(x, guesses)
 bnds = tuple([(1e-6, None)] * (S + J))
 
 if thetas_simulation:
-    final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='TNC', tol=1e-6, bounds=bnds).x
+    final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='TNC', tol=1e-7, bounds=bnds).x
     print 'The final bequest parameter values:', final_bq_params
 else:
     final_bq_params = bq_guesses

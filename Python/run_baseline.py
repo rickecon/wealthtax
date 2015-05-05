@@ -128,8 +128,8 @@ c_tax_income = 133261.0
 d_tax_income = .219
 retire = np.round(9.0 * S / 16.0) - 1
 # Wealth tax params
-h_wealth = 1.43837993119209
-m_wealth = 1.335450933549
+h_wealth = 0.277470036398397
+m_wealth = 2.40486776796377
 p_wealth = 0.025
 # Tax parameters that are zeroed out for SS
 # Initial taxes below

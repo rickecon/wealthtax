@@ -36,6 +36,8 @@ name_of_it = 'initial_guesses_for_SS'
 chi_b_scaler = False
 chi_b_scal = np.zeros(J)
 
+h_wealth = 0.277470036398397
+m_wealth = 2.40486776796377
 
 
 print 'Getting SS distribution for wealth tax.'

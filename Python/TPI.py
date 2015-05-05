@@ -490,10 +490,9 @@ def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     error2[mask1] += 1e9
     mask2 = L_guess > ltilde
     error2[mask2] += 1e9
-    # cons = get_cons(r, K1_2, w,  e[
-    #     -(length):, j], L_guess, (1+r)*B, bin_weights[j], K2_2, g_y, T1)
-    # mask3 = cons < 0
-    # error2[mask3] += 1e9
+    cons = get_cons(r, K1_2, w,  e[-(length):, j], L_guess, (1+r)*B, bin_weights[j], K2_2, g_y, Tl)
+    mask3 = cons < 0
+    error2[mask3] += 1e9
     # bin1 = bin_weights[j]
     # b_min = np.zeros(length-1)
     # b_min[-1] = (ctilde + bqtilde - w1[-1] * e1[-1] * ltilde - B1[-1] / bin1) / (1 + r1[-1])
@@ -567,7 +566,7 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
     
     K_mat[0, :, :] = initial_K
     K_mat[1, -1, :]= K_mat[1, -2, :]
-    L_mat[0, -1, :] = L_mat[0, -2, :
+    L_mat[0, -1, :] = L_mat[0, -2, :]
     Knew = (omega_stationary[:T, :, :] * K_mat[:T, :, :]).sum(2).sum(1)
     Lnew = (omega_stationary[1:T+1, :, :] * e.reshape(
         1, S, J) * L_mat[:T, :, :]).sum(2).sum(1)
