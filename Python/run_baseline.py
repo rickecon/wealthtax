@@ -91,11 +91,11 @@ theta_tax    = payback value for payroll tax (scalar)
 # Parameters
 S = 80
 J = 7
-T = int(2.5 * S)
+T = int(2 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 wealth_data.get_highest_wealth_data(bin_weights)
 which_iterations = np.array(['nine_one'])
-scal = 1.0
+scal = np.ones(J)
 starting_age = 20
 ending_age = 100
 E = int(starting_age * (S / float(ending_age-starting_age)))
@@ -175,11 +175,7 @@ os.remove("OUTPUT/given_params.pkl")
 for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['income']
-del sys.modules['SS']
+call(['python', 'SS.py'])
 
 print '\tFinished'
 
@@ -194,10 +190,9 @@ keep_changing = np.array([False, False, False, True, True, True, True])
 
 i = 1
 
-
 dictionary = {}
 
-while keep_changing.any() and i < 4000:
+while keep_changing.any() and i < 3300:
     variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
     for key in variables:
         locals()[key] = variables[key]
@@ -241,11 +236,7 @@ for key in var_names:
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 
 print 'Getting Thetas'
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['income']
-del sys.modules['SS']
+call(['python', 'SS.py'])
 
 import payroll
 theta_tax_orig = payroll.vals()
@@ -254,7 +245,6 @@ print '\tFinished.'
 
 # Run SS with replacement rates, and baseline taxes
 SS_initial_run = True
-scal = 1.0
 thetas_simulation = False
 name_of_last = 'initial_guesses_for_SS'
 name_of_it = 'initial_guesses_for_SS'
@@ -273,10 +263,7 @@ dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['SS']
+call(['python', 'SS.py'])
 print '\tFinished'
 
 # Run the baseline TPI simulation
@@ -286,9 +273,7 @@ dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
-import TPI
-del sys.modules['tax_funcs']
-del sys.modules['TPI']
+call(['python', 'TPI.py'])
 
 
 

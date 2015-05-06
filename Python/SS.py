@@ -621,7 +621,7 @@ if name_of_last != 'none':
     variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
     for key in variables:
         globals()[key] = variables[key]
-    guesses = list((solutions[:S*J].reshape(S, J) * scal).flatten()) + list(
+    guesses = list((solutions[:S*J].reshape(S, J) * scal.reshape(1, J)).flatten()) + list(
         solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
 else:
     K_guess_init = np.ones((S, J)) * .01
@@ -740,7 +740,7 @@ if thetas_simulation is True or 'SS_initial_run' in globals():
     B = Bss * (1+rss)
     Tss = tax.tax_lump(rss, Kssmat2, wss, e, Lssmat, B, bin_weights, factor_ss, omega_SS)
     taxss = tax.total_taxes_SS(rss, Kssmat2, wss, e, Lssmat, B, bin_weights, factor_ss, Tss)
-    cssmat = get_cons(rss, Kssmat2, wss, e, Lssmat, (1+rss)*B.reshape(1, J), bin_weights.reshape(1, J), Kssmat3, g_y, taxss)
+    cssmat = get_cons(rss, Kssmat2, wss, e, Lssmat, B.reshape(1, J), bin_weights.reshape(1, J), Kssmat3, g_y, taxss)
 
     constraint_checker(Kssmat, Lssmat, wss, rss, e, cssmat, BQ)
 

@@ -174,7 +174,7 @@ def constraint_checker1(k_dist, l_dist, w, r, e, c_dist, BQ):
     if flag2 is False:
         print '\tThere were no violations of the constraints on labor supply.'
     if (c_dist < 0).any():
-        print '\tWARNING: Consumption volates nonnegativity constraints.'
+        print '\tWARNING: Consumption violates nonnegativity constraints.'
     else:
         print '\tThere were no violations of the constraints on consumption.'
 
@@ -203,7 +203,7 @@ def constraint_checker2(k_dist, l_dist, w, r, e, c_dist, t):
         print '\tWARNING: Labor suppy violates the ltilde constraint in '\
             'period %.f.' % t
     if (c_dist < 0).any():
-        print '\tWARNING: Consumption volates nonnegativity constraints in ' \
+        print '\tWARNING: Consumption violates nonnegativity constraints in ' \
             'period %.f.' % t
 
 
@@ -487,22 +487,14 @@ def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
         -sigma * g_y) * MUb2(K_guess[-1], chi_b[:, j])
     # Check and punish constraint violations
     mask1 = L_guess < 0
-    error2[mask1] += 1e9
+    error2[mask1] += 1e12
     mask2 = L_guess > ltilde
-    error2[mask2] += 1e9
+    error2[mask2] += 1e12
     cons = get_cons(r, K1_2, w,  e[-(length):, j], L_guess, (1+r)*B, bin_weights[j], K2_2, g_y, Tl)
     mask3 = cons < 0
-    error2[mask3] += 1e9
-    # bin1 = bin_weights[j]
-    # b_min = np.zeros(length-1)
-    # b_min[-1] = (ctilde + bqtilde - w1[-1] * e1[-1] * ltilde - B1[-1] / bin1) / (1 + r1[-1])
-    # for i in xrange(length - 2):
-    #     b_min[-(i+2)] = (ctilde + np.exp(
-    #         g_y) * b_min[-(i+1)] - w1[-(i+2)] * e1[
-    #         -(i+2)] * ltilde - B1[-(i+2)] / bin1) / (1 + r1[-(i+2)])
-    # difference = K_guess[:-1] - b_min
-    # mask4 = difference < 0
-    # error1[mask4] += 1e9
+    error2[mask3] += 1e12
+    mask4 = K_guess <= 0
+    error2[mask4] += 1e12
     return list(error1.flatten()) + list(
         error2.flatten()) + list(error3.flatten())
 

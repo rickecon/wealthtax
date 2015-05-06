@@ -36,7 +36,6 @@ N_tilde = omega.sum(1).sum(1)
 omega_stationary_init = omega / N_tilde.reshape(T+S, 1, 1)
 omega_stationary_init = omega_stationary_init[:T]
 
-
 Kpath_TPIbase = Kpath_TPI
 Lpath_TPIbase = Lpath_TPI
 w_base = winit
