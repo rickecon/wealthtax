@@ -188,7 +188,7 @@ i = 1
 
 dictionary = {}
 
-while keep_changing.any() and i < 10:
+while keep_changing.any() and i < 2300:
     variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
     for key in variables:
         locals()[key] = variables[key]
