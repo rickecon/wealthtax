@@ -1,2 +1,4 @@
-import run_baseline
-import run_tax_experiments
+from subprocess import call
+
+call(['python', 'run_baseline.py'])
+call(['python', 'run_tax_experiments.py'])

@@ -39,8 +39,9 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
-import income
 from scipy import stats
+
+import income
 import demographics
 import tax_funcs as tax
 
@@ -95,8 +96,8 @@ thetas_simulation = is this the last simulation before getting
                 replacement rates
 scal         = value to scale the initial guesses by in order to get the
                fsolve to converge
-name_of_last = name of last simulation that ran
-name_of_it   = name of current simulation
+which_pickle_to_draw_from = name of last simulation that ran
+which_pickle_to_save_to   = name of current simulation
 ------------------------------------------------------------------------
 '''
 
@@ -168,10 +169,21 @@ mort_rate    = S x 1 array of mortality rates
 ------------------------------------------------------------------------
 '''
 
-omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
-    S, J, T, bin_weights, starting_age, ending_age, E)
-e = income.get_e(S, J, starting_age, ending_age, bin_weights, omega_SS)
-mort_rate = 1-surv_rate
+if SS_stage == 'first_run_for_guesses':
+    omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
+        S, J, T, bin_weights, starting_age, ending_age, E)
+    e = income.get_e(S, J, starting_age, ending_age, bin_weights, omega_SS)
+    mort_rate = 1-surv_rate
+    var_names = ['omega', 'g_n', 'omega_SS', 'children', 'surv_rate', 'e', 'mort_rate']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/income_demo_vars.pkl", "w"))
+else:
+    variables = pickle.load(open("OUTPUT/income_demo_vars.pkl", "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+
 
 chi_n_guess = np.array([47.12000874 , 22.22762421 , 14.34842241 , 10.67954008 ,  8.41097278
  ,  7.15059004 ,  6.46771332 ,  5.85495452 ,  5.46242013 ,  5.00364263
@@ -189,24 +201,6 @@ chi_n_guess = np.array([47.12000874 , 22.22762421 , 14.34842241 , 10.67954008 , 
  , 24.38166073 , 25.22395387 , 26.21419653 , 27.05246704 , 27.86896121
  , 28.90029708 , 29.83586775 , 30.87563699 , 31.91207845 , 33.07449767
  , 34.27919965 , 35.57195873 , 36.95045988 , 38.62308152])
-
-# chi_n_guess = np.array([49.00057044  , 23.90365341  , 17.14681801  , 11.50124121  ,  9.85755664
-#   ,  8.7154879   ,  7.15767215  ,  7.34394601  ,  6.80093094  ,  6.34735901
-#   ,  5.9709501   ,  5.70412058  ,  5.38934339  ,  5.16113379  ,  4.69055998
-#   ,  4.59601432  ,  4.38514552  ,  4.18661524  ,  4.06472044  ,  3.90976962
-#   ,  3.83179291  ,  3.61879469  ,  3.45820069  ,  3.35436721  ,  3.19234473
-#   ,  3.2402056   ,  2.98682084  ,  3.00407025  ,  2.89165622  ,  2.82876018
-#   ,  2.82565226  ,  3.05320397  ,  2.99272344  ,  3.94641226  ,  3.59595253
-#   ,  4.53070335  ,  4.55173119  ,  4.46714411  ,  4.70800298  ,  4.63891818
-#   ,  4.7195259   ,  5.07892881  ,  5.19755713  ,  4.5080705   ,  4.16051791
-#   ,  3.84712716  ,  4.18776844  ,  4.42981219  ,  6.07681143  ,  7.37181048
-#   ,  8.04228608  ,  9.58393307  , 10.10896949  , 10.5037945   , 11.25913451
-#   , 11.94928161  , 12.06471667  , 12.2993765   , 12.67719795  , 13.03637563
-#   , 13.95367841  , 13.64963561  , 14.00865863  , 14.39030832  , 14.88669406
-#   , 15.97365137  , 15.73642619  , 15.77177401  , 16.15049186  , 16.35159685
-#   , 17.20394299  , 16.84850293  , 17.4477147   , 17.55336631  , 17.94471645
-#   , 18.36101388  , 19.19443834  , 19.16986825  , 19.88847746  , 20.09786858])
-
 
 
 surv_rate[-1] = 0.0
@@ -564,7 +558,7 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     print bq_guesses_init
     Steady_State_X = lambda x: Steady_State(x, bq_guesses_init)
 
-    variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
+    variables = pickle.load(open("OUTPUT/Nothing/minimization_solutions.pkl", "r"))
     for key in variables:
         globals()[key+'_pre'] = variables[key]
     solutions = opt.fsolve(Steady_State_X, solutions_pre, xtol=1e-13)
@@ -603,7 +597,7 @@ def func_to_min(bq_guesses_init, other_guesses_init):
         dictionary = {}
         for key in var_names:
             dictionary[key] = locals()[key]
-        pickle.dump(dictionary, open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "w"))
+        pickle.dump(dictionary, open("OUTPUT/Nothing/minimization_solutions.pkl", "w"))
     if (bq_guesses_init <= 0.0).any():
         output += 1e9
     weighting_mat = np.eye(2*J + S)
@@ -616,14 +610,9 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     print value.sum()
     return value.sum()
 
-starttime = time.time()
-if name_of_last != 'none':
-    variables = pickle.load(open("OUTPUT/Nothing/{}.pkl".format(name_of_last), "r"))
-    for key in variables:
-        globals()[key] = variables[key]
-    guesses = list((solutions[:S*J].reshape(S, J) * scal.reshape(1, J)).flatten()) + list(
-        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
-else:
+bnds = tuple([(1e-6, None)] * (S + J))
+
+if SS_stage == 'first_run_for_guesses':
     K_guess_init = np.ones((S, J)) * .01
     L_guess_init = np.ones((S, J)) * .99 * ltilde
     Kg = (omega_SS * K_guess_init).sum()
@@ -635,31 +624,64 @@ else:
     factor_guess = [mean_income / avIguess]
     guesses = list(K_guess_init.flatten()) + list(L_guess_init.flatten()) + factor_guess
 
-
-
-
-if 'final_bq_params' in globals() and chi_b_scaler is False:
-    bq_guesses = final_bq_params
-else:
     bq_guesses = np.ones(S+J)
     bq_guesses[0:J] = np.array([5, 10, 90, 250, 250, 250, 250]) + chi_b_scal
     print 'Chi_b:', bq_guesses[0:J]
     bq_guesses[J:] = chi_n_guess
     bq_guesses = list(bq_guesses)
-func_to_min_X = lambda x: func_to_min(x, guesses)
-
-bnds = tuple([(1e-6, None)] * (S + J))
-
-if thetas_simulation:
+    final_bq_params = bq_guesses
+    Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
+    solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
+    print np.array(Steady_State_X2(solutions)).max()
+elif SS_stage == 'loop_calibration':
+    variables = pickle.load(open("OUTPUT/Nothing/loop_calibration_solutions.pkl", "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    guesses = list((solutions[:S*J].reshape(S, J) * scal.reshape(1, J)).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+    bq_guesses = np.ones(S+J)
+    bq_guesses[0:J] = np.array([5, 10, 90, 250, 250, 250, 250]) + chi_b_scal
+    print 'Chi_b:', bq_guesses[0:J]
+    bq_guesses[J:] = chi_n_guess
+    bq_guesses = list(bq_guesses)
+    final_bq_params = bq_guesses
+    Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
+    solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
+    print np.array(Steady_State_X2(solutions)).max()
+elif SS_stage == 'constrained_minimization':
+    variables = pickle.load(open("OUTPUT/Nothing/loop_calibration_solutions.pkl", "r"))
+    dictionary = {}
+    for key in variables:
+        globals()[key] = variables[key]
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/minimization_solutions.pkl", "w"))
+    guesses = list((solutions[:S*J].reshape(S, J) * scal.reshape(1, J)).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+    bq_guesses = final_bq_params
+    func_to_min_X = lambda x: func_to_min(x, guesses)
     final_bq_params = opt.minimize(func_to_min_X, bq_guesses, method='TNC', tol=1e-7, bounds=bnds).x
     print 'The final bequest parameter values:', final_bq_params
-else:
-    final_bq_params = bq_guesses
-Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
-if 'solutions_pre' in globals():
+    Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
     solutions = opt.fsolve(Steady_State_X2, solutions_pre, xtol=1e-13)
     print np.array(Steady_State_X2(solutions)).max()
-else:
+elif SS_stage == 'SS_init':
+    variables = pickle.load(open("OUTPUT/Nothing/minimization_solutions.pkl", "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    guesses = list((solutions[:S*J].reshape(S, J) * scal.reshape(1, J)).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+    bq_guesses = final_bq_params
+    Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
+    solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
+    print np.array(Steady_State_X2(solutions)).max()
+elif SS_stage == 'SS_tax':
+    variables = pickle.load(open("OUTPUT/Nothing/SS_init_solutions.pkl", "r"))
+    for key in variables:
+        globals()[key] = variables[key]
+    guesses = list((solutions[:S*J].reshape(S, J) * scal.reshape(1, J)).flatten()) + list(
+        solutions[S*J:-1].reshape(S, J).flatten()) + [solutions[-1]]
+    bq_guesses = final_bq_params
+    Steady_State_X2 = lambda x: Steady_State(x, final_bq_params)
     solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
     print np.array(Steady_State_X2(solutions)).max()
 
@@ -683,7 +705,6 @@ bq_perc_diff_90 = [perc_dif_func(np.mean(p90_sim[:24]), np.mean(top90[2:26]))] +
 bq_perc_diff_99 = [perc_dif_func(np.mean(p99_sim[:24]), np.mean(top99[2:26]))] + [perc_dif_func(np.mean(p99_sim[24:45]), np.mean(top99[26:47]))]
 bq_perc_diff_100 = [perc_dif_func(np.mean(p100_sim[:24]), np.mean(top100[2:26]))] + [perc_dif_func(np.mean(p100_sim[24:45]), np.mean(top100[26:47]))]
 chi_fits = bq_perc_diff_25 + bq_perc_diff_50 + bq_perc_diff_70 + bq_perc_diff_80 + bq_perc_diff_90 + bq_perc_diff_99 + bq_perc_diff_100
-
 if os.path.isfile("OUTPUT/Nothing/chi_b_fits.pkl"):
     variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
     for key in variables:
@@ -700,23 +721,41 @@ for key in var_names:
 pickle.dump(dictionary, open("OUTPUT/Nothing/chi_b_fits.pkl", "w"))
 
 # Save the solutions of SS
-if thetas_simulation is False:
+
+if SS_stage == 'first_run_for_guesses':
     var_names = ['solutions', 'final_bq_params']
     dictionary = {}
     for key in var_names:
         dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/Nothing/{}.pkl".format(name_of_it), "w"))
-else:
+    pickle.dump(dictionary, open("OUTPUT/Nothing/first_run_solutions.pkl", "w"))
+    pickle.dump(dictionary, open("OUTPUT/Nothing/loop_calibration_solutions.pkl", "w"))
+elif SS_stage == 'loop_calibration':
     var_names = ['solutions', 'final_bq_params']
     dictionary = {}
     for key in var_names:
         dictionary[key] = globals()[key]
-    pickle.dump(dictionary, open("OUTPUT/Nothing/initial_guesses_for_SS.pkl", "w"))
-if thetas_simulation is True or 'SS_initial_run' in globals():
-    runtime = time.time() - starttime
-    hours = runtime / 3600
-    minutes = (runtime / 60) % 60
-    seconds = runtime % 60
+    pickle.dump(dictionary, open("OUTPUT/Nothing/loop_calibration_solutions.pkl", "w"))
+elif SS_stage == 'constrained_minimization':
+    var_names = ['solutions', 'final_bq_params']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/minimization_solutions.pkl", "w"))
+elif SS_stage == 'SS_init':
+    var_names = ['solutions', 'final_bq_params']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/SS_init_solutions.pkl", "w"))
+elif SS_stage == 'SS_tax':
+    var_names = ['solutions', 'final_bq_params']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/SS_tax_solutions.pkl", "w"))
+
+
+if SS_stage != 'first_run_for_guesses' and SS_stage != 'loop_calibration':
     Kssmat = solutions[0:(S-1) * J].reshape(S-1, J)
     BQ = solutions[(S-1)*J:S*J]
     Bss = (np.array(list(Kssmat) + list(BQ.reshape(1, J))).reshape(
@@ -773,66 +812,66 @@ if thetas_simulation is True or 'SS_initial_run' in globals():
     euler2 = Euler2(wss, rss, e, Lssmat, k1_2, k2_2, B, factor_ss, Tss, chi_n)
     euler3 = Euler3(wss, rss, e, Lssmat, K_eul3, B, factor_ss, chi_b, Tss)
 
-    '''
-    ------------------------------------------------------------------------
-    Save variables/values so they can be used in other modules
-    ------------------------------------------------------------------------
-    '''
-    if 'thetas_simulation' in globals() and thetas_simulation is True:
-        Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-        Lssmat_init = Lssmat
-        var_names = ['retire', 'Lssmat_init', 'wss', 'factor_ss', 'e',
-                     'J', 'omega_SS']
-        dictionary = {}
-        for key in var_names:
-            dictionary[key] = globals()[key]
-        pickle.dump(dictionary, open("OUTPUT/Nothing/payroll_inputs.pkl", "w"))
-    if 'SS_initial_run' in globals():
-        if SS_initial_run is True:
-            Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-            Lssmat_init = Lssmat
+'''
+------------------------------------------------------------------------
+Save variables/values so they can be used in other modules
+------------------------------------------------------------------------
+'''
+if SS_stage == 'constrained_minimization':
+    Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+    Lssmat_init = Lssmat
+    var_names = ['retire', 'Lssmat_init', 'wss', 'factor_ss', 'e',
+                 'J', 'omega_SS']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Nothing/payroll_inputs.pkl", "w"))
+elif SS_stage == 'SS_init':
+    Kssmat_init = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+    Lssmat_init = Lssmat
 
-            var_names = ['Kssmat_init', 'Lssmat_init']
-            dictionary = {}
-            for key in var_names:
-                dictionary[key] = globals()[key]
-            pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init_tpi.pkl", "w"))
+    var_names = ['Kssmat_init', 'Lssmat_init']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init_tpi.pkl", "w"))
 
-            var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
-                         'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
-                         'Yss', 'wss', 'rss', 'runtime', 'hours', 'minutes', 'omega',
-                         'seconds', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
-                         'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
-                         'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
-                         'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
-                         'factor_ss',  'a_tax_income', 'b_tax_income',
-                         'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
-                         'tau_bq', 'tau_lump', 'theta_tax', 'retire',
-                         'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
-                         'starting_age',
-                         'ending_age', 'Tss', 'euler1', 'euler2', 'euler3',
-                         'h_wealth', 'p_wealth', 'm_wealth']
-            dictionary = {}
-            for key in var_names:
-                dictionary[key] = globals()[key]
-            pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init.pkl", "w"))
-        else:
-            var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
-                         'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
-                         'Yss', 'wss', 'rss', 'runtime', 'hours', 'minutes', 'omega',
-                         'seconds', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
-                         'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
-                         'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
-                         'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
-                         'factor_ss',  'a_tax_income', 'b_tax_income',
-                         'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
-                         'tau_bq', 'tau_lump', 'theta_tax', 'retire',
-                         'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
-                         'starting_age',
-                         'ending_age', 'euler1', 'euler2', 'euler3', 'Tss',
-                         'h_wealth', 'p_wealth', 'm_wealth']
-            dictionary = {}
-            for key in var_names:
-                dictionary[key] = globals()[key]
-            pickle.dump(dictionary, open("OUTPUT/SS/ss_vars.pkl", "w"))
-            pickle.dump(Tss, open("OUTPUT/SS/Tss_var.pkl", "w"))
+    var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
+                 'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
+                 'Yss', 'wss', 'rss', 'omega', 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
+                 'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
+                 'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
+                 'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
+                 'factor_ss',  'a_tax_income', 'b_tax_income',
+                 'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
+                 'tau_bq', 'tau_lump', 'theta_tax', 'retire',
+                 'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
+                 'starting_age',
+                 'ending_age', 'Tss', 'euler1', 'euler2', 'euler3',
+                 'h_wealth', 'p_wealth', 'm_wealth']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/SSinit/ss_init.pkl", "w"))
+elif SS_stage == 'SS_tax':
+    var_names = ['S', 'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'e', 'E',
+                 'J', 'Kss', 'Kssvec', 'Kssmat', 'Lss', 'Lssvec', 'Lssmat',
+                 'Yss', 'wss', 'rss', 'omega',
+                 'chi_n', 'chi_b', 'ltilde', 'ctilde', 'T',
+                 'g_n', 'g_y', 'omega_SS', 'TPImaxiter', 'TPImindist', 'BQ',
+                 'children', 'surv_rate', 'mort_rate', 'Bss', 'bin_weights',
+                 'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
+                 'factor_ss',  'a_tax_income', 'b_tax_income',
+                 'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
+                 'tau_bq', 'tau_lump', 'theta_tax', 'retire',
+                 'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
+                 'starting_age',
+                 'ending_age', 'euler1', 'euler2', 'euler3', 'Tss',
+                 'h_wealth', 'p_wealth', 'm_wealth']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/SS/ss_vars.pkl", "w"))
+    pickle.dump(Tss, open("OUTPUT/SS/Tss_var.pkl", "w"))
+
+            

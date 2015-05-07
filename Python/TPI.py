@@ -109,8 +109,6 @@ else:
     for key in variables:
         globals()[key] = variables[key]
 
-start_time = time.time()  # Start timer
-
 '''
 ------------------------------------------------------------------------
 Set other parameters, objects, and functions
@@ -648,13 +646,6 @@ for t in xrange(T):
 borrowing_constraints2(K_mat, winit, rinit, e, Binit)
 print '\tFinished.'
 
-elapsed_time = time.time() - start_time
-hours = elapsed_time / 3600
-minutes = (elapsed_time / 60) % 60
-seconds = elapsed_time % 60
-print 'TPI took %.0f hours, %.0f minutes, and %.0f seconds.' % (
-    abs(hours - .5), abs(minutes - .5), seconds)
-
 '''
 ------------------------------------------------------------------------
 Generate values for TPI graphs
@@ -677,8 +668,7 @@ Save variables/values so they can be used in other modules
 print 'Saving TPI variable values.'
 
 if TPI_initial_run:
-    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'elapsed_time',
-                 'hours', 'minutes', 'seconds', 'T', 'K_mat',
+    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'T', 'K_mat',
                  'eul1', 'eul2', 'eul3', 'Lpath_TPI', 'Bpath_TPI',
                  'L_mat', 'rinit', 'winit', 'Yinit', 'Tinit', 'taxinit',
                  'cinit']
@@ -687,8 +677,7 @@ if TPI_initial_run:
         dictionary[key] = globals()[key]
     pickle.dump(dictionary, open("OUTPUT/TPIinit/TPIinit_vars.pkl", "w"))
 else:
-    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'elapsed_time',
-                 'hours', 'minutes', 'seconds', 'T', 'K_mat',
+    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'T', 'K_mat',
                  'eul1', 'eul2', 'eul3', 'Lpath_TPI', 'Bpath_TPI',
                  'L_mat', 'rinit', 'winit', 'Yinit', 'Tinit', 'taxinit2',
                  'cinit']

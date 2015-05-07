@@ -29,13 +29,8 @@ for key in variables:
 
 # New Tax Parameters
 p_wealth = 0.025
-SS_initial_run = False
-name_of_last = 'initial_guesses_for_SS'
-thetas_simulation = False
 scal[-1] = .5
-name_of_it = 'initial_guesses_for_SS'
 
-chi_b_scaler = False
 chi_b_scal = np.zeros(J)
 
 h_wealth = 0.277470036398397
@@ -46,11 +41,11 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'scal', 'thetas_simulation',
+             'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run', 'chi_b_scal', 'chi_b_scaler']
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
@@ -86,11 +81,11 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'scal', 'thetas_simulation',
+             'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run', 'chi_b_scal', 'chi_b_scaler']
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 
 dictionary = {}
 for key in var_names:
@@ -122,11 +117,11 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'scal', 'thetas_simulation',
+             'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run', 'chi_b_scal', 'chi_b_scaler']
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 
 dictionary = {}
 for key in var_names:
