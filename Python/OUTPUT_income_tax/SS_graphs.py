@@ -35,7 +35,7 @@ savings = np.zeros((S, J))
 savings[:-1, :] = Kssmat2_init[1:, :]
 savings[-1, :] = BQ_init
 
-beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
+beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
 beta_string = np.ones(S) * beta
@@ -209,7 +209,7 @@ for key in variables:
 savings = np.zeros((S, J))
 savings[:-1, :] = Kssmat2[1:, :]
 savings[-1, :] = BQ
-beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
+beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
 beta_string = np.ones(S) * beta
@@ -363,8 +363,8 @@ box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
 # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 # ax.set_xlabel(r'age-$s$')
-# ax.set_ylabel(r'% change in $\bar{b}_{j,s}$')
-ax.set_title('Income Tax')
+ax.set_ylabel(r'% change in $\bar{b}_{j,s}$')
+ax.set_title('Wealth Tax')
 
 ax = plt.subplot(312)
 ax.plot(domain, cssmat_percdif[:, 0], label='0 - 24%', linestyle='-', color='black')
@@ -376,9 +376,9 @@ ax.plot(domain, cssmat_percdif[:, 5], label='90 - 99%', marker='v', color='black
 ax.plot(domain, cssmat_percdif[:, 6], label='99 - 100%', marker='1', color='black')
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+# ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
 # ax.set_xlabel(r'age-$s$')
-# ax.set_ylabel(r'% change in $\bar{c}_{j,s}$')
+ax.set_ylabel(r'% change in $\bar{c}_{j,s}$')
 
 ax = plt.subplot(313)
 ax.plot(domain, Lssmat_percdif[:, 0], label='0 - 24%', linestyle='-', color='black')
@@ -392,7 +392,7 @@ box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
 # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel(r'age-$s$')
-# ax.set_ylabel(r'% change in $\bar{l}_{j,s}$')
+ax.set_ylabel(r'% change in $\bar{l}_{j,s}$')
 
 
 plt.savefig('SS/combograph')

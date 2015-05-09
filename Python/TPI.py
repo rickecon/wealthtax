@@ -317,8 +317,10 @@ if TPI_initial_run:
     initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
     initial_L = Lssmat
 else:
-    initial_K = Kssmat_init
-    initial_L = Lssmat_init
+    # initial_K = Kssmat_init
+    # initial_L = Lssmat_init
+    initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+    initial_L = Lssmat
 K0 = (omega_stationary[0] * initial_K[:, :]).sum()
 K1_2init = np.array(list(np.zeros(J).reshape(1, J)) + list(initial_K[:-1]))
 K2_2init = initial_K
@@ -327,7 +329,8 @@ Y0 = get_Y(K0, L0)
 w0 = get_w(Y0, L0)
 r0 = get_r(Y0, K0)
 B0 = (initial_K * omega_stationary[0] * mort_rate.reshape(S, 1)).sum(0)
-tax0 = tax.total_taxes_SS(r0, initial_K, w0, e, initial_L, B0, bin_weights, factor_ss, omega_stationary[0])
+tau_lump_0 = tax.tax_lump(r0, K1_2init, w0, e, initial_L, B0, bin_weights, factor_ss, omega_stationary[0])
+tax0 = tax.total_taxes_SS(r0, K1_2init, w0, e, initial_L, B0, bin_weights, factor_ss, tau_lump_0)
 c0 = get_cons(r0, K1_2init, w0, e, initial_L, (1+r0)*Bss.reshape(1, J), bin_weights.reshape(1, J), K2_2init, g_y, tax0)
 constraint_checker1(initial_K[:-1], initial_L, w0, r0, e, c0, B0)
 
@@ -488,8 +491,7 @@ def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     error2[mask1] += 1e12
     mask2 = L_guess > ltilde
     error2[mask2] += 1e12
-    cons = get_cons(r, K1_2, w,  e[-(length):, j], L_guess, (1+r)*B, bin_weights[j], K2_2, g_y, Tl)
-    mask3 = cons < 0
+    mask3 = cons2 < 0
     error2[mask3] += 1e12
     mask4 = K_guess <= 0
     error2[mask4] += 1e12

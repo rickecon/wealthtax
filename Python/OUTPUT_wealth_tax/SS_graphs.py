@@ -35,7 +35,7 @@ savings = np.zeros((S, J))
 savings[:-1, :] = Kssmat2_init[1:, :]
 savings[-1, :] = BQ_init
 
-beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
+beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
 beta_string = np.ones(S) * beta
@@ -209,7 +209,7 @@ for key in variables:
 savings = np.zeros((S, J))
 savings[:-1, :] = Kssmat2[1:, :]
 savings[-1, :] = BQ
-beq_ut = chi_b.reshape(S, 1) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
+beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
 beta_string = np.ones(S) * beta

@@ -29,12 +29,19 @@ for key in variables:
 
 # New Tax Parameters
 p_wealth = 0.025
+scal = np.ones(J) * 1.1
 scal[-1] = .5
+scal[-2] = .7
+
+SS_stage = 'SS_tax'
 
 chi_b_scal = np.zeros(J)
 
-h_wealth = 0.277470036398397
-m_wealth = 2.40486776796377
+h_wealth = 0.305509008443123
+m_wealth = 2.16050687852062
+
+d_tax_income = .219
+
 
 print 'Getting SS distribution for wealth tax.'
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
@@ -66,15 +73,15 @@ for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
 
-call(['python', 'TPI.py'])
+# call(['python', 'TPI.py'])
 
 
-shutil.rmtree('OUTPUT_wealth_tax')
-shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
+# shutil.rmtree('OUTPUT_wealth_tax')
+# shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
 
-'''
-Run Steady State Solver and TPI for wealth tax
-'''
+# '''
+# Run Steady State Solver and TPI for wealth tax
+# '''
 p_wealth = 0.0
 
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
@@ -100,7 +107,7 @@ def matcher(d_inc_guess):
     call(['python', 'SS.py'])
     lump_new = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
     error = abs(lump_to_match - lump_new)
-    # print error
+    print 'Error in taxes:', error
     return error
 
 print 'Computing new income tax to match wealth tax'
