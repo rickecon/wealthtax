@@ -21,11 +21,14 @@ This py-file creates the following other file(s):
 Import Packages
 '''
 
-import numpy as np
 import pickle
 import os
 from glob import glob
 import sys
+from subprocess import call
+
+import numpy as np
+
 import wealth_data
 import labor_data
 
@@ -91,8 +94,7 @@ J = 7
 T = int(2 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 wealth_data.get_highest_wealth_data(bin_weights)
-which_iterations = np.array(['nine_one'])
-scal = 1.0
+scal = np.ones(J)
 starting_age = 20
 ending_age = 100
 E = int(starting_age * (S / float(ending_age-starting_age)))
@@ -125,8 +127,8 @@ c_tax_income = 133261.0
 d_tax_income = .219
 retire = np.round(9.0 * S / 16.0) - 1
 # Wealth tax params
-h_wealth = 1.43837993119209
-m_wealth = 1.335450933549
+h_wealth = 0.277470036398397
+m_wealth = 2.40486776796377
 p_wealth = 0.025
 # Tax parameters that are zeroed out for SS
 # Initial taxes below
@@ -148,10 +150,102 @@ tau_payroll = 0.15
 theta_tax = np.zeros(J)
 
 
-print 'Getting initial SS distribution, not calibrating bequests, to speed up SS.'
-thetas_simulation = False
-name_of_last = 'none'
-name_of_it = which_iterations[-1]
+chi_b_scal = np.zeros(J)
+
+# SS_stage = 'first_run_for_guesses'
+
+
+# print 'Getting initial SS distribution, not calibrating bequests, to speed up SS.'
+
+# var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+#              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+#              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+#              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+#              'a_tax_income',
+#              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+#              'tau_payroll', 'tau_bq', 'tau_lump',
+#              'theta_tax', 'retire', 'mean_income',
+#              'h_wealth', 'p_wealth', 'm_wealth', 'scal',
+#              'chi_b_scal', 'SS_stage']
+# dictionary = {}
+# for key in var_names:
+#     dictionary[key] = globals()[key]
+# pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+# call(['python', 'SS.py'])
+
+# print '\tFinished'
+
+# print 'getting a high chi_b'
+
+# SS_stage = 'loop_calibration'
+
+
+# bumps = np.array([0, 0, 0, 10, 20, 50, 50])
+# chi_b_init_guesses = np.array([5, 10, 90, 250, 250, 250, 250])
+# keep_changing = np.array([False, False, False, True, True, True, True])
+
+# i = 1
+
+# dictionary = {}
+
+# while keep_changing.any() and i < 2300:
+#     variables = pickle.load(open("OUTPUT/Nothing/chi_b_fits.pkl", "r"))
+#     for key in variables:
+#         locals()[key] = variables[key]
+#     print chi_fits_old
+#     chi_b_scal[keep_changing] = bumps[keep_changing] * i
+#     print "Iteration: ", i
+#     for b in xrange(J):
+#         if (chi_fits_old[2*b] + chi_fits_old[2*b + 1])/2.0 < .2:
+#             chi_b_scal[b] = chi_b_vals_for_fit[b] - chi_b_init_guesses[b]
+#             if keep_changing[b] is True:
+#                 chi_b_scal[b] -= bumps[b]
+#             keep_changing[b] = False
+#     i += 1
+#     os.remove("OUTPUT/given_params.pkl")
+#     for key in var_names:
+#         dictionary[key] = globals()[key]
+#     pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+#     call(['python', 'SS.py'])
+
+
+# print 'done getting it'
+
+# os.remove("OUTPUT/Nothing/chi_b_fits.pkl")
+
+# # This is the simulation to get the replacement rate values
+
+# SS_stage = 'constrained_minimization'
+
+# thetas_simulation = True
+# var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+#              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+#              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+#              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+#              'a_tax_income',
+#              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+#              'tau_payroll', 'tau_bq', 'tau_lump',
+#              'theta_tax', 'retire', 'mean_income',
+#              'h_wealth', 'p_wealth', 'm_wealth', 'scal',
+#              'chi_b_scal', 'SS_stage']
+# dictionary = {}
+# for key in var_names:
+#     dictionary[key] = globals()[key]
+# pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+
+# print 'Getting Thetas'
+# call(['python', 'SS.py'])
+
+# import payroll
+# theta_tax = payroll.vals()
+# del sys.modules['payroll']
+# print '\tFinished.'
+
+# # Run SS with replacement rates, and baseline taxes
+# print 'Getting initial distribution.'
+
+SS_stage = 'SS_init'
+
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
@@ -160,77 +254,15 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
              'tau_payroll', 'tau_bq', 'tau_lump',
              'theta_tax', 'retire', 'mean_income',
-             'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_it',
-             'name_of_last', 'thetas_simulation']
+             'h_wealth', 'p_wealth', 'm_wealth', 'scal',
+             'chi_b_scal', 'SS_stage']
 dictionary = {}
-os.remove("OUTPUT/given_params.pkl")
 for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['income']
-del sys.modules['SS']
-
+call(['python', 'SS.py'])
 print '\tFinished'
 
-
-name_of_last = which_iterations[-1]
-# This is the simulation to get the replacement rate values
-thetas_simulation = True
-var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
-             'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-             'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-             'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income',
-             'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
-             'theta_tax', 'retire', 'mean_income',
-             'h_wealth', 'p_wealth', 'm_wealth', 'scal', 'name_of_last',
-             'thetas_simulation']
-dictionary = {}
-for key in var_names:
-    dictionary[key] = globals()[key]
-pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-
-print 'Getting Thetas'
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['income']
-del sys.modules['SS']
-
-import payroll
-theta_tax_orig = payroll.vals()
-del sys.modules['payroll']
-print '\tFinished.'
-
-# Run SS with replacement rates, and baseline taxes
-SS_initial_run = True
-scal = 1.0
-thetas_simulation = False
-name_of_last = 'initial_guesses_for_SS'
-name_of_it = 'initial_guesses_for_SS'
-print 'Getting initial distribution.'
-var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
-             'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-             'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-             'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'thetas_simulation',
-             'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run', 'scal']
-dictionary = {}
-for key in var_names:
-    dictionary[key] = globals()[key]
-pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['SS']
-print '\tFinished'
 
 # Run the baseline TPI simulation
 TPI_initial_run = True
@@ -239,9 +271,7 @@ dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
-import TPI
-del sys.modules['tax_funcs']
-del sys.modules['TPI']
+call(['python', 'TPI.py'])
 
 
 

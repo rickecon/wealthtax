@@ -5,7 +5,7 @@ Last updated 3/17/2015
 Computes the average labor participation rate for each age cohort.
 
 This py-file calls the following other file(s):
-            data\labor\cps_hours_by_age_hourspct.txt
+            data/labor/cps_hours_by_age_hourspct.txt
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
@@ -25,7 +25,6 @@ import pandas as pd
 from scipy import stats
 import pickle
 import matplotlib
-matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
@@ -33,7 +32,7 @@ S = 60
 J = 99
 
 data = pd.read_table(
-    "data\labor\cps_hours_by_age_hourspct.txt", header=0)
+    "data/labor/cps_hours_by_age_hourspct.txt", header=0)
 
 piv = data.pivot(index='age', columns='hours_pct', values='mean_hrs')
 lab_mat_basic = np.array(piv)
@@ -61,10 +60,13 @@ X, Y = np.meshgrid(domain, Jgrid)
 cmap2 = matplotlib.cm.get_cmap('summer')
 
 
-plt.plot(domain, weighted)
-plt.plot(np.linspace(76, 100, 23), extension, color='red')
-plt.plot(np.linspace(65, 76, 11), to_dot, linestyle='--', color='red')
-plt.axvline(x=76, color='green', linestyle='--')
+plt.plot(domain, weighted, color='black', label='Data')
+plt.plot(np.linspace(76, 100, 23), extension, color='black', linestyle='-.', label='Extrapolation')
+plt.plot(np.linspace(65, 76, 11), to_dot, linestyle='--', color='black')
+plt.axvline(x=76, color='black', linestyle='--')
+plt.xlabel(r'age-$s$')
+plt.ylabel(r'individual labor supply $/bar{l}_s$')
+plt.legend()
 plt.savefig('OUTPUT/Demographics/labor_dist_data_withfit.png')
 
 fig10 = plt.figure()

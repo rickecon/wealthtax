@@ -19,6 +19,8 @@ import os
 import sys
 import scipy.optimize as opt
 import shutil
+from subprocess import call
+
 
 # Import Parameters from initial simulations
 variables = pickle.load(open("OUTPUT/given_params.pkl", "r"))
@@ -27,11 +29,18 @@ for key in variables:
 
 # New Tax Parameters
 p_wealth = 0.025
-SS_initial_run = False
-name_of_last = 'initial_guesses_for_SS'
-thetas_simulation = False
-scal = 1.0
-name_of_it = 'initial_guesses_for_SS'
+scal = np.ones(J) * 1.1
+scal[-1] = .5
+scal[-2] = .7
+
+SS_stage = 'SS_tax'
+
+chi_b_scal = np.zeros(J)
+
+h_wealth = 0.305509008443123
+m_wealth = 2.16050687852062
+
+d_tax_income = .219
 
 
 print 'Getting SS distribution for wealth tax.'
@@ -39,11 +48,11 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'scal', 'thetas_simulation',
+             'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
@@ -54,10 +63,7 @@ pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 '''
 Run steady state solver and TPI (according to given variables) for wealth tax
 '''
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['SS']
+call(['python', 'SS.py'])
 
 
 TPI_initial_run = False
@@ -67,28 +73,27 @@ for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
 
-import TPI
-del sys.modules['TPI']
-del sys.modules['tax_funcs']
+# call(['python', 'TPI.py'])
 
 
-shutil.rmtree('OUTPUT_wealth_tax')
-shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
+# shutil.rmtree('OUTPUT_wealth_tax')
+# shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
 
-'''
-Run Steady State Solver and TPI for wealth tax
-'''
+# '''
+# Run Steady State Solver and TPI for wealth tax
+# '''
 p_wealth = 0.0
 
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'scal', 'thetas_simulation',
+             'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
+
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
@@ -99,13 +104,10 @@ lump_to_match = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
 
 def matcher(d_inc_guess):
     pickle.dump(d_inc_guess, open("OUTPUT/SS/d_inc_guess.pkl", "w"))
-    import SS
-    del sys.modules['tax_funcs']
-    del sys.modules['demographics']
-    del sys.modules['SS']
+    call(['python', 'SS.py'])
     lump_new = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
     error = abs(lump_to_match - lump_new)
-    # print error
+    print 'Error in taxes:', error
     return error
 
 print 'Computing new income tax to match wealth tax'
@@ -117,27 +119,25 @@ os.remove("OUTPUT/SS/d_inc_guess.pkl")
 os.remove("OUTPUT/SS/Tss_var.pkl")
 
 d_tax_income = new_d_inc
+
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income', 'scal', 'thetas_simulation',
+             'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump', 'name_of_it',
-             'theta_tax', 'retire', 'mean_income', 'name_of_last',
-             'h_wealth', 'p_wealth', 'm_wealth', 'SS_initial_run']
+             'tau_payroll', 'tau_bq', 'tau_lump',
+             'theta_tax', 'retire', 'mean_income',
+             'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
+
 dictionary = {}
 for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 print 'Getting SS distribution for income tax.'
-import SS
-del sys.modules['tax_funcs']
-del sys.modules['demographics']
-del sys.modules['SS']
+call(['python', 'SS.py'])
 
-import TPI
-del sys.modules['tax_funcs']
+call(['python', 'TPI.py'])
 
 shutil.rmtree('OUTPUT_income_tax')
 shutil.copytree('OUTPUT', 'OUTPUT_income_tax')

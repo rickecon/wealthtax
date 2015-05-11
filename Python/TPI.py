@@ -109,8 +109,6 @@ else:
     for key in variables:
         globals()[key] = variables[key]
 
-start_time = time.time()  # Start timer
-
 '''
 ------------------------------------------------------------------------
 Set other parameters, objects, and functions
@@ -174,7 +172,7 @@ def constraint_checker1(k_dist, l_dist, w, r, e, c_dist, BQ):
     if flag2 is False:
         print '\tThere were no violations of the constraints on labor supply.'
     if (c_dist < 0).any():
-        print '\tWARNING: Consumption volates nonnegativity constraints.'
+        print '\tWARNING: Consumption violates nonnegativity constraints.'
     else:
         print '\tThere were no violations of the constraints on consumption.'
 
@@ -203,7 +201,7 @@ def constraint_checker2(k_dist, l_dist, w, r, e, c_dist, t):
         print '\tWARNING: Labor suppy violates the ltilde constraint in '\
             'period %.f.' % t
     if (c_dist < 0).any():
-        print '\tWARNING: Consumption volates nonnegativity constraints in ' \
+        print '\tWARNING: Consumption violates nonnegativity constraints in ' \
             'period %.f.' % t
 
 
@@ -301,7 +299,7 @@ def MUb(bq):
 
     Returns:    Marginal Utility of Bequest
     '''
-    output = chi_b[-1] * (bq ** (-sigma))
+    output = chi_b[-1].reshape(1, J) * (bq ** (-sigma))
     return output
 
 
@@ -319,8 +317,10 @@ if TPI_initial_run:
     initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
     initial_L = Lssmat
 else:
-    initial_K = Kssmat_init
-    initial_L = Lssmat_init
+    # initial_K = Kssmat_init
+    # initial_L = Lssmat_init
+    initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+    initial_L = Lssmat
 K0 = (omega_stationary[0] * initial_K[:, :]).sum()
 K1_2init = np.array(list(np.zeros(J).reshape(1, J)) + list(initial_K[:-1]))
 K2_2init = initial_K
@@ -329,7 +329,8 @@ Y0 = get_Y(K0, L0)
 w0 = get_w(Y0, L0)
 r0 = get_r(Y0, K0)
 B0 = (initial_K * omega_stationary[0] * mort_rate.reshape(S, 1)).sum(0)
-tax0 = tax.total_taxes_SS(r0, initial_K, w0, e, initial_L, B0, bin_weights, factor_ss, omega_stationary[0])
+tau_lump_0 = tax.tax_lump(r0, K1_2init, w0, e, initial_L, B0, bin_weights, factor_ss, omega_stationary[0])
+tax0 = tax.total_taxes_SS(r0, K1_2init, w0, e, initial_L, B0, bin_weights, factor_ss, tau_lump_0)
 c0 = get_cons(r0, K1_2init, w0, e, initial_L, (1+r0)*Bss.reshape(1, J), bin_weights.reshape(1, J), K2_2init, g_y, tax0)
 constraint_checker1(initial_K[:-1], initial_L, w0, r0, e, c0, B0)
 
@@ -383,7 +384,38 @@ def MUl2(n, chi_n1):
     return output
 
 
-def Euler_Error(guesses, winit, rinit, Binit, T, t):
+def MUb2(bq, chi_b):
+    '''
+    Parameters: Intentional bequests
+
+    Returns:    Marginal Utility of Bequest
+    '''
+    output = chi_b[-1] * (bq ** (-sigma))
+    return output
+
+
+# def Euler_Error_firstgroup(guesses, winit, rinit, Binit, Tinit):
+#     K2 = float(guesses[0])
+#     l1 = float(guesses[1])
+#     print l1
+#     K1 = float(initial_K[-2, j])
+#     # Euler 1 equations
+#     tax11 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
+#     cons11 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax11)
+#     bequest_ut = (1-surv_rate[-1]) * np.exp(-sigma * g_y) * chi_b[-1, j] * K2 ** (-sigma)
+#     error1 = MUc(cons11) - bequest_ut
+#     # Euler 2 equations
+#     tax2 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
+#     cons2 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax2)
+#     wealth2 = (rinit * K1 + winit * e[-1, j] * l1) * factor_ss
+#     deriv2 = 1 - tau_payroll - tax.tau_income(rinit, K1, winit, e[
+#         -1, j], l1, factor_ss) - tax.tau_income_deriv(
+#         rinit, K1, winit, e[-1, j], l1, factor_ss) * wealth2
+#     error2 = MUc(cons2) * winit * e[-1, j] * deriv2 - MUl2(l1, chi_n[-1])
+
+#     return [error1] + [error2]
+
+def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     '''
     Parameters:
         guesses = distribution of capital and labor in period t
@@ -424,7 +456,7 @@ def Euler_Error(guesses, winit, rinit, Binit, T, t):
     cons12 = get_cons(r2, K2, w2, e2, l2, (1+r2)*B2, bin_weights[j], K3, g_y, tax12)
     wealth1 = (r2 * K2 + w2 * e2 * l2) * factor_ss
     bequest_ut = (
-        1-surv_rate[-(length):-1]) * np.exp(-sigma * g_y) * chi_b[-(length):-1] * K2 ** (-sigma)
+        1-surv_rate[-(length):-1]) * np.exp(-sigma * g_y) * chi_b[-(length):-1, j] * K2 ** (-sigma)
     deriv1 = 1 + r2 * (1 - tax.tau_income(
         r2, K2, w2, e2, l2, factor_ss) - tax.tau_income_deriv(
         r2, K2, w2, e2, l2, factor_ss) * wealth1) - tax.tau_w_prime(
@@ -448,33 +480,21 @@ def Euler_Error(guesses, winit, rinit, Binit, T, t):
     deriv2 = 1 - tau_payroll - tax.tau_income(r, K1_2, w, e[
         -(length):, j], L_guess, factor_ss) - tax.tau_income_deriv(
         r, K1_2, w, e[-(length):, j], L_guess, factor_ss) * wealth2
-    error2 = (MUc(cons2)/(
-        1+tau_sales)) * w * e[-(length):, j] * deriv2 - MUl2(
-        L_guess, chi_n[-length:])
+    error2 = MUc(cons2) * w * e[-(length):, j] * deriv2 - MUl2(L_guess, chi_n[-length:])
     # Euler 3 equations
     tax3 = tax.total_taxes_eul3_TPI(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], B[-1], bin_weights[j], factor_ss, Tl[-1], j)
     cons3 = get_cons(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], (1+r[-1])*B[-1], bin_weights[j], K_guess[-1], g_y, tax3)
     error3 = MUc(cons3) - np.exp(
-        -sigma * g_y) * MUb(K_guess[-1])
+        -sigma * g_y) * MUb2(K_guess[-1], chi_b[:, j])
     # Check and punish constraint violations
-    # mask1 = L_guess < 0
-    # error2[mask1] += 1e9
-    # mask2 = L_guess > ltilde
-    # error2[mask2] += 1e9
-    # cons = (1 + r) * K1_2 + w * e[
-    #     -(length):, j] * L_guess + (1+r)*B/bin_weights[j] - K2_2 * np.exp(g_y)
-    # mask3 = cons < 0
-    # error2[mask3] += 1e9
-    # bin1 = bin_weights[j]
-    # b_min = np.zeros(length-1)
-    # b_min[-1] = (ctilde + bqtilde - w1[-1] * e1[-1] * ltilde - B1[-1] / bin1) / (1 + r1[-1])
-    # for i in xrange(length - 2):
-    #     b_min[-(i+2)] = (ctilde + np.exp(
-    #         g_y) * b_min[-(i+1)] - w1[-(i+2)] * e1[
-    #         -(i+2)] * ltilde - B1[-(i+2)] / bin1) / (1 + r1[-(i+2)])
-    # difference = K_guess[:-1] - b_min
-    # mask4 = difference < 0
-    # error1[mask4] += 1e9
+    mask1 = L_guess < 0
+    error2[mask1] += 1e12
+    mask2 = L_guess > ltilde
+    error2[mask2] += 1e12
+    mask3 = cons2 < 0
+    error2[mask3] += 1e12
+    mask4 = K_guess <= 0
+    error2[mask4] += 1e12
     return list(error1.flatten()) + list(
         error2.flatten()) + list(error3.flatten())
 
@@ -533,10 +553,12 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             inputs = list(solutions)
             euler_errors[t, :, j] = np.abs(Euler_Error(
                 inputs, winit, rinit, Binit[:, j], Tinit, t))
-
+        # K_mat[1, -1, j], L_mat[0, -1, j] = np.array(opt.fsolve(Euler_Error_firstgroup, [K_mat[1, -2, j], L_mat[0, -2, j]],
+        #     args=(winit[1], rinit[1], Binit[1, j], Tinit[1])))
+    
     K_mat[0, :, :] = initial_K
-    K_mat[1, -1, :] = initial_K[-1, :]
-    L_mat[0, -1, :] = initial_L[-1, :]
+    K_mat[1, -1, :]= K_mat[1, -2, :]
+    L_mat[0, -1, :] = L_mat[0, -2, :]
     Knew = (omega_stationary[:T, :, :] * K_mat[:T, :, :]).sum(2).sum(1)
     Lnew = (omega_stationary[1:T+1, :, :] * e.reshape(
         1, S, J) * L_mat[:T, :, :]).sum(2).sum(1)
@@ -549,10 +571,10 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
         np.abs(Knew - Kinit)) + list(np.abs(Bnew - Binit[
             :T]).flatten()) + list(np.abs(Lnew - Linit))).max()
     TPIdist_vec[TPIiter] = TPIdist
-    # After T=7, if cycling occurs, drop the value of nu
-    # wait til after T=7 or so, because sometimes there is a jump up
+    # After T=10, if cycling occurs, drop the value of nu
+    # wait til after T=10 or so, because sometimes there is a jump up
     # in the first couple iterations
-    if TPIiter > 7:
+    if TPIiter > 10:
         if TPIdist_vec[TPIiter] - TPIdist_vec[TPIiter-1] > 0:
             nu_current /= 2
             print 'New Value of nu:', nu_current
@@ -626,13 +648,6 @@ for t in xrange(T):
 borrowing_constraints2(K_mat, winit, rinit, e, Binit)
 print '\tFinished.'
 
-elapsed_time = time.time() - start_time
-hours = elapsed_time / 3600
-minutes = (elapsed_time / 60) % 60
-seconds = elapsed_time % 60
-print 'TPI took %.0f hours, %.0f minutes, and %.0f seconds.' % (
-    abs(hours - .5), abs(minutes - .5), seconds)
-
 '''
 ------------------------------------------------------------------------
 Generate values for TPI graphs
@@ -655,8 +670,7 @@ Save variables/values so they can be used in other modules
 print 'Saving TPI variable values.'
 
 if TPI_initial_run:
-    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'elapsed_time',
-                 'hours', 'minutes', 'seconds', 'T', 'K_mat',
+    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'T', 'K_mat',
                  'eul1', 'eul2', 'eul3', 'Lpath_TPI', 'Bpath_TPI',
                  'L_mat', 'rinit', 'winit', 'Yinit', 'Tinit', 'taxinit',
                  'cinit']
@@ -665,8 +679,7 @@ if TPI_initial_run:
         dictionary[key] = globals()[key]
     pickle.dump(dictionary, open("OUTPUT/TPIinit/TPIinit_vars.pkl", "w"))
 else:
-    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'elapsed_time',
-                 'hours', 'minutes', 'seconds', 'T', 'K_mat',
+    var_names = ['Kpath_TPI', 'TPIiter', 'TPIdist', 'T', 'K_mat',
                  'eul1', 'eul2', 'eul3', 'Lpath_TPI', 'Bpath_TPI',
                  'L_mat', 'rinit', 'winit', 'Yinit', 'Tinit', 'taxinit2',
                  'cinit']

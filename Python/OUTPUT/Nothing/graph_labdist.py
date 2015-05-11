@@ -9,7 +9,11 @@ J = 7
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
 
 
-variables = pickle.load(open("initial_guesses_for_SS.pkl", "r"))
+variables = pickle.load(open("SS_init_solutions.pkl", "r"))
+for key in variables:
+    globals()[key] = variables[key]
+
+variables = pickle.load(open("labor_data_moments.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
@@ -44,5 +48,9 @@ plt.savefig('labor_dist')
 
 onedlab = (Lssmat * bin_weights).sum(1)
 fig6 = plt.figure()
-plt.plot(np.arange(80)+20, onedlab)
-plt.savefig('lab_1d')
+plt.plot(np.arange(80)+20, onedlab, label='Model', color='black', linestyle='--')
+plt.plot(np.arange(80)+20, labor_dist_data, label='Data', color='black', linestyle='-')
+plt.legend()
+plt.ylabel(r'individual labor supply $\bar{l}_{s}$')
+plt.xlabel(r'age-$s$')
+plt.savefig('labor_dist_comparison')
