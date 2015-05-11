@@ -601,6 +601,26 @@ plt.ylabel(r"Gini for $\hat{c}$")
 plt.legend(loc=0)
 plt.savefig("TPIinit/gini_c_nocol")
 
+# Pickle some gini's
+wealth_baseline = gini_nocol(K_mat_init[:T], omega_stationary_init)
+wealth_income = gini_nocol(K_mat[:T], omega_stationary)
+income_baseline = gini_nocol(Y_mat_init[:T], omega_stationary_init)
+income_income = gini_nocol(Y_mat[:T], omega_stationary)
+cons_baseline = gini_nocol(cinitbase[:T], omega_stationary_init)
+cons_income = gini_nocol(cinit[:T], omega_stationary)
+lab_baseline = gini_nocol(L_mat_init[:T], omega_stationary_init)
+lab_income = gini_nocol(L_mat[:T], omega_stationary)
+
+vars_to_pickle = ['wealth_baseline', 'wealth_income',
+                  'income_baseline', 'income_income',
+                  'cons_baseline', 'cons_income',
+                  'lab_baseline', 'lab_income',
+                  'T', 'S', 'J']
+dictionary = {}
+for key in vars_to_pickle:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("TPI/gini_vectors.pkl", "w"))
+
 # Wealth, income, consumption
 
 # '''
