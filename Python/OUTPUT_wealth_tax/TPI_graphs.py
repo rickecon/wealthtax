@@ -341,7 +341,7 @@ GINI
 def gini_cols(path, omega):
     mask = path < 0
     path[mask] = 0
-    collapseS = (path).sum(1)
+    collapseS = path.sum(1)
     total = collapseS.sum(1)
     collapseS /= total.reshape(T, 1)
     omega1 = omega.sum(1).reshape(T, J)
@@ -355,7 +355,13 @@ def gini_cols(path, omega):
     for j in xrange(1, J):
         cum_levels[:, j] = collapseS2[:, j] + cum_levels[:, j-1]
         cum_omega[:, j] = omega_sorted[:, j] + cum_omega[:, j-1]
-    G = 2 * ((cum_omega - cum_levels) * omega_sorted).sum(1)
+    # plt.figure()
+    # plt.plot(cum_omega[10], cum_levels[10])
+    # plt.plot(cum_omega[10], cum_omega[10])
+    # plt.savefig('gini_test.png')
+    cum_levels[:, 1:] = cum_levels[:, :-1]
+    cum_levels[:, 0] = 0
+    G = 2 * (.5-(cum_levels * omega_sorted).sum(1))
     print G[-1]
     return G
 
@@ -363,7 +369,7 @@ def gini_cols(path, omega):
 def gini_colj(path, omega):
     mask = path < 0
     path[mask] = 0
-    collapseJ = (path).sum(2)
+    collapseJ = path.sum(2)
     total = collapseJ.sum(1)
     collapseJ /= total.reshape(T, 1)
     omega1 = omega.sum(2).reshape(T, S)
@@ -377,7 +383,9 @@ def gini_colj(path, omega):
     for s in xrange(1, S):
         cum_levels[:, s] = collapseJ2[:, s] + cum_levels[:, s-1]
         cum_omega[:, s] = omega_sorted[:, s] + cum_omega[:, s-1]
-    G = 2 * ((cum_omega - cum_levels) * omega_sorted).sum(1)
+    cum_levels[:, 1:] = cum_levels[:, :-1]
+    cum_levels[:, 0] = 0
+    G = 2 * (.5-(cum_levels * omega_sorted).sum(1))
     print G[-1]
     return G
 
@@ -399,7 +407,9 @@ def gini_nocol(path, omega):
     for i in xrange(1, S*J):
         cum_levels[:, i] = path2[:, i] + cum_levels[:, i-1]
         cum_omega[:, i] = omega_sorted[:, i] + cum_omega[:, i-1]
-    G = 2 * ((cum_omega - cum_levels) * omega_sorted).sum(1)
+    cum_levels[:, 1:] = cum_levels[:, :-1]
+    cum_levels[:, 0] = 0
+    G = 2 * (.5-(cum_levels * omega_sorted).sum(1))
     print G[-1]
     return G
 
@@ -591,6 +601,27 @@ plt.ylabel(r"Gini for $\hat{c}$")
 plt.legend(loc=0)
 plt.savefig("TPIinit/gini_c_nocol")
 
+# Pickle some gini's
+wealth_baseline = gini_nocol(K_mat_init[:T], omega_stationary_init)
+wealth_wealth = gini_nocol(K_mat[:T], omega_stationary)
+income_baseline = gini_nocol(Y_mat_init[:T], omega_stationary_init)
+income_wealth = gini_nocol(Y_mat[:T], omega_stationary)
+cons_baseline = gini_nocol(cinitbase[:T], omega_stationary_init)
+cons_wealth = gini_nocol(cinit[:T], omega_stationary)
+lab_baseline = gini_nocol(L_mat_init[:T], omega_stationary_init)
+lab_wealth = gini_nocol(L_mat[:T], omega_stationary)
+
+vars_to_pickle = ['wealth_baseline', 'wealth_wealth',
+                  'income_baseline', 'income_wealth',
+                  'cons_baseline', 'cons_wealth',
+                  'lab_baseline', 'lab_wealth',
+                  'T', 'S', 'J']
+dictionary = {}
+for key in vars_to_pickle:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("TPI/gini_vectors.pkl", "w"))
+
+
 # Wealth, income, consumption
 
 # '''
@@ -633,71 +664,71 @@ X, Y = np.meshgrid(domain, Jgrid)
 #     ax9.set_title('Steady State Distribution of Consumption')
 #     plt.savefig('TPI/cons_T{}_percdif'.format(i))
 
-'''
-Gen graphs for movies
-'''
-print 'Starting movies'
-# top zlim is for the income tax, bottom zlim is for the wealth tax
+# '''
+# Gen graphs for movies
+# '''
+# print 'Starting movies'
+# # top zlim is for the income tax, bottom zlim is for the wealth tax
 
-for t in xrange(60):
+# for t in xrange(60):
 
-    fig5 = plt.figure()
-    ax5 = fig5.gca(projection='3d')
-    ax5.set_xlabel(r'age-$s$')
-    ax5.set_ylabel(r'ability-$j$')
-    ax5.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
-    # ax5.set_zlim([-.30, .05])
-    ax5.set_zlim([-.25, .05])
-    ax5.set_title('T = {}'.format(t))
-    ax5.plot_surface(X, Y, ((K_mat[t] - K_mat_init[t])/K_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
-    name = "%03d" % t
-    plt.savefig('TPI/movies/b_dif/b_dif_T{}'.format(name))
+#     fig5 = plt.figure()
+#     ax5 = fig5.gca(projection='3d')
+#     ax5.set_xlabel(r'age-$s$')
+#     ax5.set_ylabel(r'ability-$j$')
+#     ax5.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
+#     # ax5.set_zlim([-.30, .05])
+#     ax5.set_zlim([-.25, .05])
+#     ax5.set_title('T = {}'.format(t))
+#     ax5.plot_surface(X, Y, ((K_mat[t] - K_mat_init[t])/K_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
+#     name = "%03d" % t
+#     plt.savefig('TPI/movies/b_dif/b_dif_T{}'.format(name))
 
-    fig5 = plt.figure()
-    ax5 = fig5.gca(projection='3d')
-    ax5.set_xlabel(r'age-$s$')
-    ax5.set_ylabel(r'ability-$j$')
-    ax5.set_zlabel(r'individual labor supply $l_{j,s}$')
-    # ax5.set_zlim([-.15, .15])
-    ax5.set_zlim([-.1, .2])
-    ax5.set_title('T = {}'.format(t))
-    ax5.plot_surface(X, Y, ((L_mat[t] - L_mat_init[t])/L_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
-    name = "%03d" % t
-    plt.savefig('TPI/movies/l_dif/l_dif_T{}'.format(name))
+#     fig5 = plt.figure()
+#     ax5 = fig5.gca(projection='3d')
+#     ax5.set_xlabel(r'age-$s$')
+#     ax5.set_ylabel(r'ability-$j$')
+#     ax5.set_zlabel(r'individual labor supply $l_{j,s}$')
+#     # ax5.set_zlim([-.15, .15])
+#     ax5.set_zlim([-.1, .2])
+#     ax5.set_title('T = {}'.format(t))
+#     ax5.plot_surface(X, Y, ((L_mat[t] - L_mat_init[t])/L_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
+#     name = "%03d" % t
+#     plt.savefig('TPI/movies/l_dif/l_dif_T{}'.format(name))
 
-    fig5 = plt.figure()
-    ax5 = fig5.gca(projection='3d')
-    ax5.set_xlabel(r'age-$s$')
-    ax5.set_ylabel(r'ability-$j$')
-    ax5.set_zlabel(r'Consumption $c_{j,s}$')
-    # ax5.set_zlim([-.20, .15])
-    ax5.set_zlim([-.20, .05])
-    ax5.set_title('T = {}'.format(t))
-    ax5.plot_surface(X, Y, ((cinit[t] - cinitbase[t])/cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
-    name = "%03d" % t
-    plt.savefig('TPI/movies/c_dif/c_dif_T{}'.format(name))
+#     fig5 = plt.figure()
+#     ax5 = fig5.gca(projection='3d')
+#     ax5.set_xlabel(r'age-$s$')
+#     ax5.set_ylabel(r'ability-$j$')
+#     ax5.set_zlabel(r'Consumption $c_{j,s}$')
+#     # ax5.set_zlim([-.20, .15])
+#     ax5.set_zlim([-.20, .05])
+#     ax5.set_title('T = {}'.format(t))
+#     ax5.plot_surface(X, Y, ((cinit[t] - cinitbase[t])/cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
+#     name = "%03d" % t
+#     plt.savefig('TPI/movies/c_dif/c_dif_T{}'.format(name))
 
-    fig5 = plt.figure()
-    ax5 = fig5.gca(projection='3d')
-    ax5.set_xlabel(r'age-$s$')
-    ax5.set_ylabel(r'ability-$j$')
-    ax5.set_zlabel(r'Income $y_{j,s}$')
-    # ax5.set_zlim([-.2, .15])
-    ax5.set_zlim([-.15, 0.1])
-    ax5.set_title('T = {}'.format(t))
-    ax5.plot_surface(X, Y, ((Y_mat[t] - Y_mat_init[t])/Y_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
-    name = "%03d" % t
-    plt.savefig('TPI/movies/y_dif/y_dif_T{}'.format(name))
+#     fig5 = plt.figure()
+#     ax5 = fig5.gca(projection='3d')
+#     ax5.set_xlabel(r'age-$s$')
+#     ax5.set_ylabel(r'ability-$j$')
+#     ax5.set_zlabel(r'Income $y_{j,s}$')
+#     # ax5.set_zlim([-.2, .15])
+#     ax5.set_zlim([-.15, 0.1])
+#     ax5.set_title('T = {}'.format(t))
+#     ax5.plot_surface(X, Y, ((Y_mat[t] - Y_mat_init[t])/Y_mat_init[t]).T, rstride=1, cstride=1, cmap=cmap2)
+#     name = "%03d" % t
+#     plt.savefig('TPI/movies/y_dif/y_dif_T{}'.format(name))
 
-    fig5 = plt.figure()
-    ax5 = fig5.gca(projection='3d')
-    ax5.set_xlabel(r'age-$s$')
-    ax5.set_ylabel(r'ability-$j$')
-    ax5.set_zlabel(r'Log Consumption $log(c_{j,s})$')
-    # ax5.set_zlim([-2.5, 1.1])
-    ax5.set_zlim([-2.5, 1.1])
-    ax5.set_title('T = {}'.format(t))
-    ax5.plot_surface(X, Y, np.log(cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
-    name = "%03d" % t
-    plt.savefig('TPI/movies/cons_base/c_base_T{}'.format(name))
+#     fig5 = plt.figure()
+#     ax5 = fig5.gca(projection='3d')
+#     ax5.set_xlabel(r'age-$s$')
+#     ax5.set_ylabel(r'ability-$j$')
+#     ax5.set_zlabel(r'Log Consumption $log(c_{j,s})$')
+#     # ax5.set_zlim([-2.5, 1.1])
+#     ax5.set_zlim([-2.5, 1.1])
+#     ax5.set_title('T = {}'.format(t))
+#     ax5.plot_surface(X, Y, np.log(cinitbase[t]).T, rstride=1, cstride=1, cmap=cmap2)
+#     name = "%03d" % t
+#     plt.savefig('TPI/movies/cons_base/c_base_T{}'.format(name))
 
