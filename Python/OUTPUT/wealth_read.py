@@ -10,10 +10,10 @@ for key in variables:
     globals()[key] = variables[key]
 
 
-print bin_weights
-print (Kssmat2*omega_SS).sum(0)/bin_weights
+# print bin_weights
+# print (Kssmat2*omega_SS).sum(0)/bin_weights
 
-print factor_ss
+# print factor_ss
 
 # print chi_b
 
@@ -23,6 +23,11 @@ print factor_ss
 #     print factor_ss*(Kssmat2*omega_SS)[21:46, j].sum()/omega_SS[21:46, j].sum()
 #     print factor_ss*(Kssmat2*omega_SS)[46:, j].sum()/omega_SS[46:, j].sum()
 
+# variables = pickle.load(open("Nothing/chi_b_fits.pkl", "r"))
+# for key in variables:
+#     globals()[key] = variables[key]
+
+# print chi_fits_new
 
 import matplotlib
 import matplotlib.pyplot as plt
@@ -33,8 +38,8 @@ for key in variables:
     globals()[key] = variables[key]
 domain = np.linspace(20, 95, 76)
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 0]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 0]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -45,8 +50,8 @@ variables = pickle.load(open("Nothing/wealth_data_moments_fit_50.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 1]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 1]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -57,8 +62,8 @@ variables = pickle.load(open("Nothing/wealth_data_moments_fit_70.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 2]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 2]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -68,8 +73,8 @@ variables = pickle.load(open("Nothing/wealth_data_moments_fit_80.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 3]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 3]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -79,8 +84,8 @@ variables = pickle.load(open("Nothing/wealth_data_moments_fit_90.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 4]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 4]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -90,8 +95,8 @@ variables = pickle.load(open("Nothing/wealth_data_moments_fit_99.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 5]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 5]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -101,8 +106,8 @@ variables = pickle.load(open("Nothing/wealth_data_moments_fit_100.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 plt.figure()
-plt.plot(domain, highest_wealth_data_new[2:]/10000000, label='Data')
-plt.plot(domain, factor_ss * Kssmat[:76, 6]/10000000, label='Model', linestyle='--')
+plt.plot(domain, highest_wealth_data_new[2:]/1000000, label='Data')
+plt.plot(domain, factor_ss * Kssmat[:76, 6]/1000000, label='Model', linestyle='--')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual savings, in millions of dollars')
 plt.legend(loc=0)
@@ -136,5 +141,3 @@ plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual income, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/income_fit')
-
-print chi_n
