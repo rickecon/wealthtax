@@ -319,8 +319,6 @@ if TPI_initial_run:
 else:
     initial_K = Kssmat_init
     initial_L = Lssmat_init
-    # initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-    # initial_L = Lssmat
 K0 = (omega_stationary[0] * initial_K[:, :]).sum()
 K1_2init = np.array(list(np.zeros(J).reshape(1, J)) + list(initial_K[:-1]))
 K2_2init = initial_K
@@ -452,8 +450,8 @@ def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     # Euler 1 equations
     tax11 = tax.total_taxes_TPI1(r1, K1, w1, e1, l1, B1, bin_weights[j], factor_ss, T1, j)
     tax12 = tax.total_taxes_TPI1_2(r2, K2, w2, e2, l2, B2, bin_weights[j], factor_ss, T2, j)
-    cons11 = get_cons(r1, K1, w1, e1, l1, (1+r1)*B1, bin_weights[j], K2, g_y, tax11)
-    cons12 = get_cons(r2, K2, w2, e2, l2, (1+r2)*B2, bin_weights[j], K3, g_y, tax12)
+    cons11 = get_cons(r1, K1, w1, e1, l1, B1, bin_weights[j], K2, g_y, tax11)
+    cons12 = get_cons(r2, K2, w2, e2, l2, B2, bin_weights[j], K3, g_y, tax12)
     wealth1 = (r2 * K2 + w2 * e2 * l2) * factor_ss
     bequest_ut = (
         1-surv_rate[-(length):-1]) * np.exp(-sigma * g_y) * chi_b[-(length):-1, j] * K2 ** (-sigma)
@@ -475,7 +473,7 @@ def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     B = Binit[t:t+length]
     Tl = Tinit[t:t+length]
     tax2 = tax.total_taxes_TPI2(r, K1_2, w, e[-(length):, j], L_guess, B, bin_weights[j], factor_ss, Tl, j)
-    cons2 = get_cons(r, K1_2, w, e[-(length):, j], L_guess, (1+r)*B, bin_weights[j], K2_2, g_y, tax2)
+    cons2 = get_cons(r, K1_2, w, e[-(length):, j], L_guess, B, bin_weights[j], K2_2, g_y, tax2)
     wealth2 = (r * K1_2 + w * e[-(length):, j] * L_guess) * factor_ss
     deriv2 = 1 - tau_payroll - tax.tau_income(r, K1_2, w, e[
         -(length):, j], L_guess, factor_ss) - tax.tau_income_deriv(
@@ -483,7 +481,7 @@ def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     error2 = MUc(cons2) * w * e[-(length):, j] * deriv2 - MUl2(L_guess, chi_n[-length:])
     # Euler 3 equations
     tax3 = tax.total_taxes_eul3_TPI(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], B[-1], bin_weights[j], factor_ss, Tl[-1], j)
-    cons3 = get_cons(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], (1+r[-1])*B[-1], bin_weights[j], K_guess[-1], g_y, tax3)
+    cons3 = get_cons(r[-1], K_guess[-2], w[-1], e[-1, j], L_guess[-1], B[-1], bin_weights[j], K_guess[-1], g_y, tax3)
     error3 = MUc(cons3) - np.exp(
         -sigma * g_y) * MUb2(K_guess[-1], chi_b[:, j])
     # Check and punish constraint violations
@@ -550,7 +548,7 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             l_guesses_to_use = np.diag(guesses_L[:S, :, j], S-(s+2))
             solutions = opt.fsolve(Euler_Error, list(
                 k_guesses_to_use) + list(l_guesses_to_use), args=(
-                winit, rinit, Binit[:, j], Tinit, 0), xtol=1e-13)
+                winit, rinit, (1+rinit) * Binit[:, j], Tinit, 0), xtol=1e-13)
             K_vec = solutions[:len(solutions)/2]
             K_mat[1:S+1, :, j] += np.diag(K_vec, S-(s+2))
             L_vec = solutions[len(solutions)/2:]
@@ -561,7 +559,7 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             l_guesses_to_use = np.diag(guesses_L[t:t+S, :, j])
             solutions = opt.fsolve(Euler_Error, list(
                 k_guesses_to_use) + list(l_guesses_to_use), args=(
-                winit, rinit, Binit[:, j], Tinit, t), xtol=1e-13)
+                winit, rinit, (1+rinit) * Binit[:, j], Tinit, t), xtol=1e-13)
             K_vec = solutions[:S]
             K_mat[t+1:t+S+1, :, j] += np.diag(K_vec)
             L_vec = solutions[S:]
@@ -597,6 +595,24 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             nu_current /= 2
             print 'New Value of nu:', nu_current
     TPIiter += 1
+
+    # find cons bug
+    K1 = np.zeros((T, S, J))
+    K1[:, 1:, :] = K_mat[:T, :-1, :]
+    K2 = np.zeros((T, S, J))
+    K2[:, :, :] = K_mat[:T, :, :]
+    taxinit2 = tax.total_taxes_path(rinit[:T], K1, winit[:T], e.reshape(
+        1, S, J), L_mat[:T], Binit[:T, :].reshape(T, 1, J), bin_weights, factor_ss, Tinit[:T])
+    cinit = get_cons(rinit[:T].reshape(T, 1, 1), K1, winit[:T].reshape(T, 1, 1), e.reshape(1, S, J), L_mat[:T], (
+        1 + rinit[:T].reshape(T, 1, 1)) * Bnew.reshape(T, 1, J), bin_weights.reshape(1, 1, J), K2, g_y, taxinit2)
+    plt.figure()
+    plt.axhline(
+        y=cssmat[0, -1], color='black', linewidth=2, label=r"Steady State $\hat{K}$", ls='--')
+    plt.plot(np.arange(
+        T), cinit[:T, 0, -1], 'b', linewidth=2, label=r"TPI time path $\hat{K}_t$")
+    plt.savefig("OUTPUT/TPI_c")
+
+
     print '\tIteration:', TPIiter
     print '\t\tDistance:', TPIdist
     if (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
@@ -610,7 +626,11 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             list((1-alpha) * Yinit / Linit) + list(np.ones(S)*wss))
         rinit = np.array(list((alpha * Yinit / Kinit) - delta) + list(
             np.ones(S)*rss))
-
+    if TPIdist < TPImindist:
+        Binit[:T] = Bnew
+        Kinit[:T] = Knew
+        Linit[:T] = Lnew
+    
 
 Kpath_TPI = list(Kinit) + list(np.ones(10)*Kss)
 Lpath_TPI = list(Linit) + list(np.ones(10)*Lss)
