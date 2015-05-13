@@ -595,24 +595,6 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             nu_current /= 2
             print 'New Value of nu:', nu_current
     TPIiter += 1
-
-    # find cons bug
-    K1 = np.zeros((T, S, J))
-    K1[:, 1:, :] = K_mat[:T, :-1, :]
-    K2 = np.zeros((T, S, J))
-    K2[:, :, :] = K_mat[:T, :, :]
-    taxinit2 = tax.total_taxes_path(rinit[:T], K1, winit[:T], e.reshape(
-        1, S, J), L_mat[:T], Binit[:T, :].reshape(T, 1, J), bin_weights, factor_ss, Tinit[:T])
-    cinit = get_cons(rinit[:T].reshape(T, 1, 1), K1, winit[:T].reshape(T, 1, 1), e.reshape(1, S, J), L_mat[:T], (
-        1 + rinit[:T].reshape(T, 1, 1)) * Bnew.reshape(T, 1, J), bin_weights.reshape(1, 1, J), K2, g_y, taxinit2)
-    plt.figure()
-    plt.axhline(
-        y=cssmat[0, -1], color='black', linewidth=2, label=r"Steady State $\hat{K}$", ls='--')
-    plt.plot(np.arange(
-        T), cinit[:T, 0, -1], 'b', linewidth=2, label=r"TPI time path $\hat{K}_t$")
-    plt.savefig("OUTPUT/TPI_c")
-
-
     print '\tIteration:', TPIiter
     print '\t\tDistance:', TPIdist
     if (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
