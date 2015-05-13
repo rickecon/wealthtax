@@ -317,10 +317,10 @@ if TPI_initial_run:
     initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
     initial_L = Lssmat
 else:
-    # initial_K = Kssmat_init
-    # initial_L = Lssmat_init
-    initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-    initial_L = Lssmat
+    initial_K = Kssmat_init
+    initial_L = Lssmat_init
+    # initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+    # initial_L = Lssmat
 K0 = (omega_stationary[0] * initial_K[:, :]).sum()
 K1_2init = np.array(list(np.zeros(J).reshape(1, J)) + list(initial_K[:-1]))
 K2_2init = initial_K
@@ -394,26 +394,26 @@ def MUb2(bq, chi_b):
     return output
 
 
-# def Euler_Error_firstgroup(guesses, winit, rinit, Binit, Tinit):
-#     K2 = float(guesses[0])
-#     l1 = float(guesses[1])
-#     print l1
-#     K1 = float(initial_K[-2, j])
-#     # Euler 1 equations
-#     tax11 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
-#     cons11 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax11)
-#     bequest_ut = (1-surv_rate[-1]) * np.exp(-sigma * g_y) * chi_b[-1, j] * K2 ** (-sigma)
-#     error1 = MUc(cons11) - bequest_ut
-#     # Euler 2 equations
-#     tax2 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
-#     cons2 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax2)
-#     wealth2 = (rinit * K1 + winit * e[-1, j] * l1) * factor_ss
-#     deriv2 = 1 - tau_payroll - tax.tau_income(rinit, K1, winit, e[
-#         -1, j], l1, factor_ss) - tax.tau_income_deriv(
-#         rinit, K1, winit, e[-1, j], l1, factor_ss) * wealth2
-#     error2 = MUc(cons2) * winit * e[-1, j] * deriv2 - MUl2(l1, chi_n[-1])
-
-#     return [error1] + [error2]
+def Euler_Error_firstgroup(guesses, winit, rinit, Binit, Tinit):
+    K2 = float(guesses[0])
+    l1 = float(guesses[1])
+    K1 = float(initial_K[-2, j])
+    # Euler 1 equations
+    tax11 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
+    cons11 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax11)
+    bequest_ut = (1-surv_rate[-1]) * np.exp(-sigma * g_y) * chi_b[-1, j] * K2 ** (-sigma)
+    error1 = MUc(cons11) - bequest_ut
+    # Euler 2 equations
+    tax2 = tax.total_taxes_eul3_TPI(rinit, K1, winit, e[-1, j], l1, Binit, bin_weights[j], factor_ss, Tinit, j)
+    cons2 = get_cons(rinit, K1, winit, e[-1, j], l1, (1+rinit)*Binit, bin_weights[j], K2, g_y, tax2)
+    wealth2 = (rinit * K1 + winit * e[-1, j] * l1) * factor_ss
+    deriv2 = 1 - tau_payroll - tax.tau_income(rinit, K1, winit, e[
+        -1, j], l1, factor_ss) - tax.tau_income_deriv(
+        rinit, K1, winit, e[-1, j], l1, factor_ss) * wealth2
+    error2 = MUc(cons2) * winit * e[-1, j] * deriv2 - MUl2(l1, chi_n[-1])
+    if l1 <= 0:
+        error2 += 1e12
+    return [error1] + [error2]
 
 def Euler_Error(guesses, winit, rinit, Binit, Tinit, t):
     '''
@@ -503,7 +503,7 @@ domain = np.linspace(0, T, T)
 Kinit = (-1/(domain + 1)) * (Kss-K0) + Kss
 Kinit[-1] = Kss
 Kinit = np.array(list(Kinit) + list(np.ones(S)*Kss))
-Linit = np.ones(T + S) * Lss
+Linit = np.ones(T+S) * Lss
 Yinit = A*(Kinit**alpha) * (Linit**(1-alpha))
 winit = (1-alpha) * Yinit / Linit
 rinit = (alpha * Yinit / Kinit) - delta
@@ -512,6 +512,18 @@ for j in xrange(J):
     Binit[:, j] = list(np.linspace(B0[j], Bss[j], T)) + [Bss[j]]*S
 Binit = np.array(Binit)
 Tinit = np.ones(T+S) * Tss
+
+# Make array of initial guesses
+domain2 = np.tile(domain.reshape(T, 1, 1), (1, S, J))
+ending_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+guesses_K = (-1/(domain2 + 1)) * (ending_K-initial_K) + ending_K
+ending_K_tail = np.tile(ending_K.reshape(1, S, J), (S, 1, 1))
+guesses_K = np.append(guesses_K, ending_K_tail, axis=0)
+
+domain3 = np.tile(np.linspace(0, 1, T).reshape(T, 1, 1), (1, S, J))
+guesses_L = domain3 * (Lssmat - initial_L) + initial_L
+ending_L_tail = np.tile(Lssmat.reshape(1, S, J), (S, 1, 1))
+guesses_L = np.append(guesses_L, ending_L_tail, axis=0)
 
 TPIiter = 0
 TPIdist = 10
@@ -534,8 +546,10 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
     plt.savefig("OUTPUT/TPI_K")
     for j in xrange(J):
         for s in xrange(S-2):  # Upper triangle
+            k_guesses_to_use = np.diag(guesses_K[1:S+1, :, j], S-(s+2))
+            l_guesses_to_use = np.diag(guesses_L[:S, :, j], S-(s+2))
             solutions = opt.fsolve(Euler_Error, list(
-                initial_K[-(s+2):, j]) + list(initial_L[-(s+2):, j]), args=(
+                k_guesses_to_use) + list(l_guesses_to_use), args=(
                 winit, rinit, Binit[:, j], Tinit, 0), xtol=1e-13)
             K_vec = solutions[:len(solutions)/2]
             K_mat[1:S+1, :, j] += np.diag(K_vec, S-(s+2))
@@ -543,8 +557,10 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             L_mat[:S, :, j] += np.diag(L_vec, S-(s+2))
 
         for t in xrange(0, T):
+            k_guesses_to_use = np.diag(guesses_K[t+1:t+S+1, :, j])
+            l_guesses_to_use = np.diag(guesses_L[t:t+S, :, j])
             solutions = opt.fsolve(Euler_Error, list(
-                initial_K[:, j]) + list(initial_L[:, j]), args=(
+                k_guesses_to_use) + list(l_guesses_to_use), args=(
                 winit, rinit, Binit[:, j], Tinit, t), xtol=1e-13)
             K_vec = solutions[:S]
             K_mat[t+1:t+S+1, :, j] += np.diag(K_vec)
@@ -567,6 +583,8 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
     Kinit = nu*Knew + (1-nu)*Kinit[:T]
     Linit = nu*Lnew + (1-nu)*Linit[:T]
     Binit[:T] = nu*Bnew + (1-nu)*Binit[:T]
+    guesses_K = nu * K_mat + (1-nu) * guesses_K
+    guesses_L = nu * L_mat + (1-nu) * guesses_L
     TPIdist = np.array(list(
         np.abs(Knew - Kinit)) + list(np.abs(Bnew - Binit[
             :T]).flatten()) + list(np.abs(Lnew - Linit))).max()
@@ -592,6 +610,7 @@ while (TPIiter < TPImaxiter) and (TPIdist >= TPImindist):
             list((1-alpha) * Yinit / Linit) + list(np.ones(S)*wss))
         rinit = np.array(list((alpha * Yinit / Kinit) - delta) + list(
             np.ones(S)*rss))
+
 
 Kpath_TPI = list(Kinit) + list(np.ones(10)*Kss)
 Lpath_TPI = list(Linit) + list(np.ones(10)*Lss)

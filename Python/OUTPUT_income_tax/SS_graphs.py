@@ -362,8 +362,9 @@ ax.plot(domain2, Kssmat_percdif[:, 6], label='99 - 100%', marker='1', color='bla
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
 # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+# ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'% change in $\bar{b}_{j,s}$')
-ax.set_title('Income Tax')
+ax.set_title('Wealth Tax')
 
 ax = plt.subplot(312)
 ax.plot(domain, cssmat_percdif[:, 0], label='0 - 24%', linestyle='-', color='black')
@@ -376,6 +377,7 @@ ax.plot(domain, cssmat_percdif[:, 6], label='99 - 100%', marker='1', color='blac
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
 # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+# ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'% change in $\bar{c}_{j,s}$')
 
 ax = plt.subplot(313)

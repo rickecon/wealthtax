@@ -73,11 +73,11 @@ for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
 
-# call(['python', 'TPI.py'])
+call(['python', 'TPI.py'])
 
 
-# shutil.rmtree('OUTPUT_wealth_tax')
-# shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
+shutil.rmtree('OUTPUT_wealth_tax')
+shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
 
 # '''
 # Run Steady State Solver and TPI for wealth tax
