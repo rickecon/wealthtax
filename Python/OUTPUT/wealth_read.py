@@ -29,6 +29,8 @@ for key in variables:
 
 # print chi_fits_new
 
+print chi_b[0]
+
 import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
@@ -240,3 +242,10 @@ plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual income, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/income_fit')
+
+print np.mean(pct_100_model[:24] * 1000000)
+print np.mean(pct_100_data[2:26] * 1000000)
+
+print np.mean(pct_100_model[24:45] * 1000000)
+print np.mean(pct_100_data[26:47] * 1000000)
+
