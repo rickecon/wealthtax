@@ -150,9 +150,8 @@ plt.savefig('Nothing/wealth_fit_graph_100')
 # get rid of age label and/or x tick marks except bottom row?
 # get rid of dollar label and/or y tick marks except left column?
 
-plt.figure()
 
-f, ((ax1, ax2), (ax3, ax4), (ax5, ax6), (ax7, ax8)) = plt.subplots(4, 2, sharex=True, sharey='row')
+f, ((ax1, ax2), (ax3, ax4), (ax5, ax6), (ax7, ax8)) = plt.subplots(4, 2, sharex=True, sharey='row', figsize=(9, 9))
 
 ax1.plot(domain, pct_100_data, color='black', label='Data')
 ax1.plot(domain, pct_100_model, color='black', label='Model', linestyle='--')
@@ -161,7 +160,7 @@ ax1.plot(domain, pct_100_model, color='black', label='Model', linestyle='--')
 # ax1.set_ylim([0, 6])
 box = ax1.get_position()
 ax1.set_position([box.x0, box.y0, box.width, box.height])
-ax1.legend(loc='center right', bbox_to_anchor=(2.2, .85), ncol=2)
+ax1.legend(loc='center right', bbox_to_anchor=(2.15, .5), ncol=2)
 ax1.set_title(r'$100^{th}$ Percentile')
 
 ax2.axis('off')
@@ -169,7 +168,7 @@ ax2.axis('off')
 ax3.plot(domain, pct_99_data, color='black', label='Data')
 ax3.plot(domain, pct_99_model, color='black', label='Model', linestyle='--')
 # ax3.set_xlabel(r'age-$s$')
-ax3.set_ylabel(r'$b_s$, in millions of dollars')
+# ax3.set_ylabel(r'$b_s$, in millions of dollars')
 # ax3.set_ylim([0, 6])
 ax3.set_title(r'$90-99^{th}$ Percentile')
 
@@ -197,7 +196,7 @@ ax6.set_title(r'$50-69^{th}$ Percentile')
 ax7.plot(domain, pct_50_data, color='black', label='Data')
 ax7.plot(domain, pct_50_model, color='black', label='Model', linestyle='--')
 ax7.set_xlabel(r'age-$s$')
-# ax7.set_ylabel(r'$b_s$, in millions of dollars')
+ax7.set_ylabel(r'$b_s$, in millions of dollars')
 # ax7.set_ylim([0, 6])
 ax7.set_title(r'$25-49^{th}$ Percentile')
 
