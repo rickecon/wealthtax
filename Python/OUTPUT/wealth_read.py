@@ -10,6 +10,8 @@ for key in variables:
     globals()[key] = variables[key]
 
 
+
+
 # print bin_weights
 # print (Kssmat2*omega_SS).sum(0)/bin_weights
 
@@ -77,6 +79,7 @@ for key in variables:
     globals()[key] = variables[key]
 
 pct_100_data = highest_wealth_data_new[2:]/1000000
+
 
 pct_25_model = factor_ss * Kssmat[:76, 0]/1000000
 pct_50_model = factor_ss * Kssmat[:76, 1]/1000000
@@ -249,6 +252,6 @@ plt.savefig('Nothing/income_fit')
 # print np.mean(pct_100_model[24:45] * 1000000)
 # print np.mean(pct_100_data[26:47] * 1000000)
 
-print (np.mean(pct_25_model[:24] * 1000000) - np.mean(pct_25_data[2:26] * 1000000)) / np.mean(pct_25_data[2:26] * 1000000)
+print (np.mean(pct_100_model[:24] * 1000000) - np.mean(pct_100_data[2:26] * 1000000)) / np.mean(pct_100_data[2:26] * 1000000)
 
-print (np.mean(pct_25_model[24:45] * 1000000) - np.mean(pct_25_data[26:47] * 1000000)) / np.mean(pct_25_data[26:47] * 1000000)
+print (np.mean(pct_100_model[24:45] * 1000000) - np.mean(pct_100_data[26:47] * 1000000)) / np.mean(pct_100_data[26:47] * 1000000)
