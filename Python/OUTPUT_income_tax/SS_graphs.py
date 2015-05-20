@@ -58,10 +58,10 @@ Css = (cssmat * omega_SS).sum()
 # print (utility_init * omega_SS).sum()
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
 yss = cssmat + delta * Kssmat3
-print np.var(np.log(cssmat * omega_SS))
-print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
-print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
-print (cssmat[:, -1]*omega_SS[:, -1]).sum() / (cssmat * omega_SS).sum()
+print np.var(np.log(Kssmat3 * omega_SS))
+print (Kssmat3[:, 5]).sum() / (Kssmat3[:, 0]).sum()
+print (Kssmat3[:, 5:]*omega_SS[:, 5:]).sum() / (Kssmat3 * omega_SS).sum()
+print (Kssmat3[:, -1]*omega_SS[:, -1]).sum() / (Kssmat3 * omega_SS).sum()
 
 
 '''
@@ -246,10 +246,10 @@ Css = (cssmat * omega_SS).sum()
 
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
 yss = cssmat + delta * Kssmat3
-print np.var(np.log(cssmat * omega_SS))
-print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
-print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
-print (cssmat[:, -1]*omega_SS[:, -1]).sum() / (cssmat * omega_SS).sum()
+print np.var(np.log(Kssmat3 * omega_SS))
+print (Kssmat3[:, 5]).sum() / (Kssmat3[:, 0]).sum()
+print (Kssmat3[:, 5:]*omega_SS[:, 5:]).sum() / (Kssmat3 * omega_SS).sum()
+print (Kssmat3[:, -1]*omega_SS[:, -1]).sum() / (Kssmat3 * omega_SS).sum()
 
 
 plt.figure()
