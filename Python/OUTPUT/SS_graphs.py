@@ -38,17 +38,8 @@ savings[-1, :] = BQ_init
 beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
-# beta_string = np.ones(S) * beta
-# for i in xrange(S):
-#     beta_string[i] = beta_string[i] ** i
-# utility *= beta_string.reshape(S, 1)
-# cum_morts = np.zeros(S)
-# for i in xrange(S):
-#     cum_morts[i] = np.prod(1-mort_rate[:i])
-# utility *= cum_morts.reshape(S, 1)
 utility_init = utility.sum(0)
 
-income_init = rss * Kssmat2 + wss * e * Lssmat + rss * Bss / bin_weights -Tss
 
 Css = (cssmat * omega_SS).sum()
 # print Css + delta * Kss
@@ -57,7 +48,7 @@ Css = (cssmat * omega_SS).sum()
 # print Css
 # print (utility_init * omega_SS).sum()
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-yss = cssmat + delta * Kssmat3
+income_init = cssmat + delta * Kssmat3
 print np.var(np.log(cssmat * omega_SS))
 print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
 print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
@@ -225,17 +216,8 @@ savings[-1, :] = BQ
 beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
-# beta_string = np.ones(S) * beta
-# for i in xrange(S):
-#     beta_string[i] = beta_string[i] ** i
-# utility *= beta_string.reshape(S, 1)
-# cum_morts = np.zeros(S)
-# for i in xrange(S):
-#     cum_morts[i] = np.prod(1-mort_rate[:i])
-# utility *= cum_morts.reshape(S, 1)
 utility = utility.sum(0)
 
-income = rss * Kssmat2 + wss * e * Lssmat + (rss) * Bss / bin_weights -Tss
 
 Css = (cssmat * omega_SS).sum()
 # print Css + delta * Kss
@@ -245,7 +227,7 @@ Css = (cssmat * omega_SS).sum()
 # print (utility * omega_SS).sum()
 
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-yss = cssmat + delta * Kssmat3
+income = cssmat + delta * Kssmat3
 print np.var(np.log(cssmat * omega_SS))
 print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
 print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
