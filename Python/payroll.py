@@ -1,12 +1,11 @@
 '''
 ------------------------------------------------------------------------
-Last updated 1/29/2015
+Last updated 5/21/2015
 
 Gives the reimbursement rates for the payroll tax.
 
 This py-file calls the following other file(s):
             OUTPUT/Nothing/payroll_inputs.pkl
-            data/e_vec_data/cwhs_earn_rate_age_profile.csv
 ------------------------------------------------------------------------
 '''
 
@@ -19,10 +18,21 @@ This py-file calls the following other file(s):
 import pickle
 import numpy as np
 
+'''
+------------------------------------------------------------------------
+    Import data need to compute replacement rates, outputed from SS.py
+------------------------------------------------------------------------
+'''
+
 variables = pickle.load(open("OUTPUT/Nothing/payroll_inputs.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
+'''
+------------------------------------------------------------------------
+    Compute replacement rates
+------------------------------------------------------------------------
+'''
 
 def vals():
     A = ((wss * factor_ss * e * Lssmat_init)*omega_SS).sum(0) / 12.0
