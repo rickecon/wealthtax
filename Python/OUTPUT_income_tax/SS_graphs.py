@@ -38,17 +38,21 @@ savings[-1, :] = BQ_init
 beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
-beta_string = np.ones(S) * beta
-for i in xrange(S):
-    beta_string[i] = beta_string[i] ** i
-utility *= beta_string.reshape(S, 1)
-cum_morts = np.zeros(S)
-for i in xrange(S):
-    cum_morts[i] = np.prod(1-mort_rate[:i])
-utility *= cum_morts.reshape(S, 1)
 utility_init = utility.sum(0)
 
-income_init = rss * Kssmat2 + wss * e * Lssmat + rss * BQ / bin_weights -Tss
+
+Css = (cssmat * omega_SS).sum()
+# print Css + delta * Kss
+# print Kss
+# print Lss
+# print Css
+# print (utility_init * omega_SS).sum()
+Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+income_init = cssmat + delta * Kssmat3
+print np.var(np.log(cssmat * omega_SS))
+print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
+print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
+print (cssmat[:, -1]*omega_SS[:, -1]).sum() / (cssmat * omega_SS).sum()
 
 
 '''
@@ -212,17 +216,22 @@ savings[-1, :] = BQ
 beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1)/(1-sigma)
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
-beta_string = np.ones(S) * beta
-for i in xrange(S):
-    beta_string[i] = beta_string[i] ** i
-utility *= beta_string.reshape(S, 1)
-cum_morts = np.zeros(S)
-for i in xrange(S):
-    cum_morts[i] = np.prod(1-mort_rate[:i])
-utility *= cum_morts.reshape(S, 1)
 utility = utility.sum(0)
 
-income = rss * Kssmat2 + wss * e * Lssmat + rss * BQ / bin_weights -Tss
+
+Css = (cssmat * omega_SS).sum()
+# print Css + delta * Kss
+# print Kss
+# print Lss
+# print Css
+# print (utility * omega_SS).sum()
+
+Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+income = cssmat + delta * Kssmat3
+print np.var(np.log(cssmat * omega_SS))
+print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
+print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
+print (cssmat[:, -1]*omega_SS[:, -1]).sum() / (cssmat * omega_SS).sum()
 
 
 plt.figure()
@@ -362,8 +371,9 @@ ax.plot(domain2, Kssmat_percdif[:, 6], label='99 - 100%', marker='1', color='bla
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
 # ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+# ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'% change in $\bar{b}_{j,s}$')
-ax.set_title('Income Tax')
+ax.set_title('Wealth Tax')
 
 ax = plt.subplot(312)
 ax.plot(domain, cssmat_percdif[:, 0], label='0 - 24%', linestyle='-', color='black')
@@ -376,6 +386,7 @@ ax.plot(domain, cssmat_percdif[:, 6], label='99 - 100%', marker='1', color='blac
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * .4, box.height])
 # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+# ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'% change in $\bar{c}_{j,s}$')
 
 ax = plt.subplot(313)
