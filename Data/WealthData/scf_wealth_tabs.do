@@ -13,20 +13,24 @@ set more off;
 capture clear all;
 capture log close;
 set memory 8000m;
-cd "~/Econ/Research/PikettyWealthTax/data/" ;
-log using "~/Econ/Research/PikettyWealthTax/data/scf_wealth_tabs.log", replace ;
+cd "~/repos/wealthtax/Data/WealthData/" ;
+log using "~/repos/wealthtax/Data/WealthData/scf_wealth_tabs.log", replace ;
 
-local datapath "~/Econ/Research/PikettyWealthTax/data/" ;
+local datapath "~/repos/wealthtax/Data/WealthData/" ;
 
 
 set matsize 800 ;
 
 use "`datapath'/rscfp2013.dta", clear ;
+gen year = 2013 ;
 append using "`datapath'/rscfp2010.dta" ; /* append 2010 data  - note it's already in 2013 dollars*/
+replace year = 2010 if year == . ;
 append using "`datapath'/rscfp2007.dta" ; /* append 2007 data  - note it's already in 2013 dollars*/
+replace year = 2007 if year == . ;
 
 
 /* calculate the distribution of wealth by age */
+preserve ;
 collapse (mean) mean_wealth=networth (sd) sd_wealth=networth (median) median_wealth=networth (p10) p10_wealth=networth (p90) p90_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=networth (p98) p98_wealth=networth (p99) p99_wealth=networth (count) num_obs=networth[aweight=wgt], by(age) ;
 format * %23.5f ;
 outsheet using "`datapath'/scf2007to2013_wealth_age.csv", comma replace ;
@@ -83,5 +87,18 @@ twoway (connected mean_wealth age, msize(small) mcolor(blue) lcolor(blue) msymbo
 	scheme(s1mono) 
 	saving(graph1, replace); 
 graph export "`datapath'/LCP_wealth_scf_top5.pdf", replace;
+
+/* calculate some statistics of interest */
+restore ;
+egen p99w = wpctile(networth), p(99) weights(wgt) by(year) ;
+egen p90w = wpctile(networth), p(90) weights(wgt) by(year) ;
+gen wealth99 = 0 ;
+replace wealth99 = networth if networth>p99w ;
+gen wealth90 = 0 ;
+replace wealth90 = networth if networth>p90w ;
+gen ln_wealth = ln(networth) ;
+collapse (mean) mean_wealth=networth (sd) sd_wealth=networth sd_ln_wealth=ln_wealth (median) median_wealth=networth (p10) p10_wealth=networth (p90) p90_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=networth (p98) p98_wealth=networth (p99) p99_wealth=networth (sum) tot_wealth=networth p99_tot_wealth=wealth99 p90_tot_wealth=wealth90 (count) num_obs=networth [aweight=wgt], by(year) ;
+format * %23.5f ;
+outsheet using "`datapath'/scf2007to2013_wealth_inequality_measures.csv", comma replace ;
 
 capture log close ;

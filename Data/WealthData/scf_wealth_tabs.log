@@ -1,14 +1,16 @@
 --------------------------------------------------------------------------------------------------------------
       name:  <unnamed>
-       log:  /Users/jasondebacker/Econ/Research/PikettyWealthTax/data/scf_wealth_tabs.log
+       log:  /Users/jasondebacker/repos/wealthtax/Data/WealthData/scf_wealth_tabs.log
   log type:  text
- opened on:  23 Jan 2015, 17:16:36
+ opened on:  20 May 2015, 22:07:09
 
-. local datapath "~/Econ/Research/PikettyWealthTax/data/" ;
+. local datapath "~/repos/wealthtax/Data/WealthData/" ;
 
 . set matsize 800 ;
 
 . use "`datapath'/rscfp2013.dta", clear ;
+
+. gen year = 2013 ;
 
 . append using "`datapath'/rscfp2010.dta" ;
 checking was long now double
@@ -96,17 +98,23 @@ LLOAN11 was long now double
 LLOAN12 was long now double
 
 .  /* append 2010 data  - note it's already in 2013 dollars*/
-> append using "`datapath'/rscfp2007.dta" ;
+> replace year = 2010 if year == . ;
+(32410 real changes made)
+
+. append using "`datapath'/rscfp2007.dta" ;
 MORT3 was byte now double
 PAYORE3 was byte now double
 PAYPEN3 was byte now double
 PAYPEN6 was byte now double
 
 .  /* append 2007 data  - note it's already in 2013 dollars*/
-> 
-> 
-> /* calculate the distribution of wealth by age */
-> collapse (mean) mean_wealth=networth (sd) sd_wealth=networth (median) median_wealth=networth (p10) p10_wealt
+> replace year = 2007 if year == . ;
+(22085 real changes made)
+
+. /* calculate the distribution of wealth by age */
+> preserve ;
+
+. collapse (mean) mean_wealth=networth (sd) sd_wealth=networth (median) median_wealth=networth (p10) p10_wealt
 > h=networth (p90) p90_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=networth (p98) p98_wealth=ne
 > tworth (p99) p99_wealth=networth (count) num_obs=networth[aweight=wgt], by(age) ;
 
@@ -166,7 +174,7 @@ PAYPEN6 was byte now double
 (file graph1.gph saved)
 
 .  graph export "`datapath'/LCP_wealth_scf.pdf", replace;
-(file ~/Econ/Research/PikettyWealthTax/data//LCP_wealth_scf.pdf written in PDF format)
+(file ~/repos/wealthtax/Data/WealthData//LCP_wealth_scf.pdf written in PDF format)
 
 . /* plot some graphs of the life-cycle profile of wealth */
 > /* plot life-cycle profiles in dollas per hour */
@@ -193,6 +201,35 @@ PAYPEN6 was byte now double
 (file graph1.gph saved)
 
 .  graph export "`datapath'/LCP_wealth_scf_top5.pdf", replace;
-(file ~/Econ/Research/PikettyWealthTax/data//LCP_wealth_scf_top5.pdf written in PDF format)
+(file ~/repos/wealthtax/Data/WealthData//LCP_wealth_scf_top5.pdf written in PDF format)
+
+. /* calculate some statistics of interest */
+> restore ;
+
+. egen p99w = wpctile(networth), p(99) weights(wgt) by(year) ;
+
+. egen p90w = wpctile(networth), p(90) weights(wgt) by(year) ;
+
+. gen wealth99 = 0 ;
+
+. replace wealth99 = networth if networth>p99w ;
+(9916 real changes made)
+
+. gen wealth90 = 0 ;
+
+. replace wealth90 = networth if networth>p90w ;
+(22396 real changes made)
+
+. gen ln_wealth = ln(networth) ;
+(8930 missing values generated)
+
+. collapse (mean) mean_wealth=networth (sd) sd_wealth=networth sd_ln_wealth=ln_wealth (median) median_wealth=n
+> etworth (p10) p10_wealth=networth (p90) p90_wealth=networth (p95) p95_wealth=networth (p96) p96_wealth=netwo
+> rth (p98) p98_wealth=networth (p99) p99_wealth=networth (sum) tot_wealth=networth p99_tot_wealth=wealth99 p9
+> 0_tot_wealth=wealth90 (count) num_obs=networth [aweight=wgt], by(year) ;
+
+. format * %23.5f ;
+
+. outsheet using "`datapath'/scf2007to2013_wealth_inequality_measures.csv", comma replace ;
 
 . capture log close ;
