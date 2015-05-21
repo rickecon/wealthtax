@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 9/24/2014
+Last updated 5/21/2015
 
 Functions for generating omega, the T x S x J array which describes the
 demographics of the population
@@ -111,6 +111,11 @@ fert_data = np.array(
 # are the midpoints of those groups
 age_midpoint = np.array([12, 17, 16, 18.5, 22, 27, 32, 37, 42, 49.5])
 
+'''
+------------------------------------------------------------------------
+    Define functions
+------------------------------------------------------------------------
+'''
 
 def fit_exp_right(params, point1, point2):
     # Fit exponentials to two points for right tail of distributions

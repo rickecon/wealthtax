@@ -5,10 +5,6 @@ variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
-variables = pickle.load(open("Nothing/wealth_data_moments.pkl", "r"))
-for key in variables:
-    globals()[key] = variables[key]
-
 
 
 

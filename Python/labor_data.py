@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 3/17/2015
+Last updated 5/21/2015
 
 Computes the average labor participation rate for each age cohort.
 
@@ -10,7 +10,7 @@ This py-file calls the following other file(s):
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
             OUTPUT/Demographics/labor_dist_data_withfit.png
-            OUTPUT/Demographics/data_labor_dist
+            OUTPUT/Demographics/data_labor_dist.png
             OUTPUT/Nothing/labor_data_moments.pkl
 ------------------------------------------------------------------------
 '''
@@ -20,6 +20,7 @@ This py-file creates the following other file(s):
     Packages
 ------------------------------------------------------------------------
 '''
+
 import numpy as np
 import pandas as pd
 from scipy import stats
@@ -28,6 +29,14 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 
+'''
+------------------------------------------------------------------------
+    Read in data, convert to numpy array, and weight
+------------------------------------------------------------------------
+'''
+
+# Create variables for number of age groups in data (S) and number
+# of percentiles (J)
 S = 60
 J = 99
 
@@ -43,7 +52,12 @@ weights = np.array(piv2)
 weights /= np.nansum(weights, axis=1).reshape(S, 1)
 weighted = np.nansum((lab_mat_basic * weights), axis=1)
 
-# Fit a line to the ages 80-100
+'''
+------------------------------------------------------------------------
+    Fit a line to ages 80-100
+------------------------------------------------------------------------
+'''
+
 slope = (weighted[56] - weighted[49])/(56-49)
 intercept = weighted[56] - slope * 56
 extension = slope * (np.linspace(56, 80, 23)) + intercept
@@ -53,6 +67,12 @@ labor_dist_data = np.zeros(80)
 labor_dist_data[:57] = weighted[:57]
 labor_dist_data[57:] = extension
 
+'''
+------------------------------------------------------------------------
+    Plot the distribution, with and without fit, and pickle the
+    data (Sx1 vector)
+------------------------------------------------------------------------
+'''
 
 domain = np.linspace(20, 80, S)
 Jgrid = np.linspace(1, 100, J)
