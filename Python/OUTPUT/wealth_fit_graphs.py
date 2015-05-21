@@ -1,37 +1,45 @@
+'''
+------------------------------------------------------------------------
+Last updated 5/21/2014
+
+Creates graphs for steady state values.
+
+This py-file calls the following other file(s):
+            SSinit/ss_init.pkl
+            SS/ss_vars.pkl
+------------------------------------------------------------------------
+'''
+
+'''
+------------------------------------------------------------------------
+    Import packages
+------------------------------------------------------------------------
+'''
+
 import pickle
 import numpy as np
+import matplotlib
+import matplotlib.pyplot as plt
+from mpl_toolkits.mplot3d import Axes3D
+
+
+'''
+------------------------------------------------------------------------
+    Import baseline SS values, and wealth moments
+------------------------------------------------------------------------
+'''
 
 variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
-
-
-
-# print bin_weights
+# If you want to see the average capital stock levels to calibrate the
+# wealth tax, uncomment the following:
 # print (Kssmat2*omega_SS).sum(0)/bin_weights
-
 # print factor_ss
 
-# print chi_b
 
-# for j in xrange(7):
-#     print 'j=', j+1
-#     print factor_ss*(Kssmat2*omega_SS)[1:21, j].sum()/omega_SS[1:21, j].sum()
-#     print factor_ss*(Kssmat2*omega_SS)[21:46, j].sum()/omega_SS[21:46, j].sum()
-#     print factor_ss*(Kssmat2*omega_SS)[46:, j].sum()/omega_SS[46:, j].sum()
 
-# variables = pickle.load(open("Nothing/chi_b_fits.pkl", "r"))
-# for key in variables:
-#     globals()[key] = variables[key]
-
-# print chi_fits_new
-
-print chi_b[0]
-
-import matplotlib
-import matplotlib.pyplot as plt
-from mpl_toolkits.mplot3d import Axes3D
 
 variables = pickle.load(open("Nothing/wealth_data_moments_fit_25.pkl", "r"))
 for key in variables:
@@ -85,7 +93,11 @@ pct_90_model = factor_ss * Kssmat[:76, 4]/1000000
 pct_99_model = factor_ss * Kssmat[:76, 5]/1000000
 pct_100_model = factor_ss * Kssmat[:76, 6]/1000000
 
-# Wealth fit graphs
+'''
+------------------------------------------------------------------------
+    Plot graphs of the wealth fit
+------------------------------------------------------------------------
+'''
 
 plt.figure()
 plt.plot(domain, pct_25_data, label='Data')
@@ -211,7 +223,11 @@ ax8.set_title(r'$0-24^{th}$ Percentile')
 
 plt.savefig('Nothing/wealth_fits_all.png')
 
-# Other Fit Graphs
+'''
+------------------------------------------------------------------------
+    Plot graphs of baseline SS consumption and income, in dollars
+------------------------------------------------------------------------
+'''
 
 domain = np.linspace(20, 100, 80)
 plt.figure()
@@ -227,7 +243,8 @@ plt.ylabel(r'Individual consumption, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/css_fit')
 
-income_ss = rss * Kssmat2 + wss * e * Lssmat
+Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+income_ss = cssmat + delta * Kssmat3
 
 plt.figure()
 plt.plot(domain, factor_ss * income_ss[:, 0], label='25%')
@@ -242,12 +259,22 @@ plt.ylabel(r'Individual income, in dollars')
 plt.legend(loc=0)
 plt.savefig('Nothing/income_fit')
 
+'''
+------------------------------------------------------------------------
+    Print dollar levels of wealth, model vs data, and percent differences
+------------------------------------------------------------------------
+'''
+
+# change percentile, as needed
+
+# For age 20-44:
 # print np.mean(pct_100_model[:24] * 1000000)
 # print np.mean(pct_100_data[2:26] * 1000000)
 
+# For age 45-65:
 # print np.mean(pct_100_model[24:45] * 1000000)
 # print np.mean(pct_100_data[26:47] * 1000000)
 
-print (np.mean(pct_100_model[:24] * 1000000) - np.mean(pct_100_data[2:26] * 1000000)) / np.mean(pct_100_data[2:26] * 1000000)
-
-print (np.mean(pct_100_model[24:45] * 1000000) - np.mean(pct_100_data[26:47] * 1000000)) / np.mean(pct_100_data[26:47] * 1000000)
+# Percent differences
+# print (np.mean(pct_100_model[:24] * 1000000) - np.mean(pct_100_data[2:26] * 1000000)) / np.mean(pct_100_data[2:26] * 1000000)
+# print (np.mean(pct_100_model[24:45] * 1000000) - np.mean(pct_100_data[26:47] * 1000000)) / np.mean(pct_100_data[26:47] * 1000000)

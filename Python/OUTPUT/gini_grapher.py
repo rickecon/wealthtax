@@ -1,6 +1,33 @@
+'''
+------------------------------------------------------------------------
+Last updated 5/21/2015
+
+Creates graphs for comparing baseline, wealth tax, and income tax
+    GINI graphs
+
+This py-file calls the following other file(s):
+            gini_vectors.pkl
+            gini_vectors_2.pkl         
+------------------------------------------------------------------------
+'''
+
+'''
+------------------------------------------------------------------------
+    Packages
+------------------------------------------------------------------------
+'''
+
 import numpy as np
 import pickle
 from matplotlib import pyplot as plt
+
+'''
+------------------------------------------------------------------------
+    Import data:  They will be outputed in OUTPUT/TPI in the income
+        tax and wealth tax folders, you will have to copy them into
+        this directory
+------------------------------------------------------------------------
+'''
 
 variables = pickle.load(open("gini_vectors.pkl", "r"))
 for key in variables:
@@ -10,6 +37,11 @@ variables = pickle.load(open("gini_vectors_2.pkl", "r"))
 for key in variables:
     globals()[key] = variables[key]
 
+'''
+------------------------------------------------------------------------
+    Generate gini graphs
+------------------------------------------------------------------------
+'''
 
 domain = np.linspace(1, T, T)
 

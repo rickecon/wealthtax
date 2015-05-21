@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 12/1/2014
+Last updated 5/21/2015
 
 Creates graphs for TPI values.
 
@@ -24,6 +24,11 @@ import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pickle
 
+'''
+------------------------------------------------------------------------
+    Create variables for baseline TPI graphs
+------------------------------------------------------------------------
+'''
 
 variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
 for key in variables:
@@ -94,6 +99,12 @@ utility_period += beq_ut_period
 utility_period *= beta_string.reshape(1, S, 1)
 utility_period *= cum_morts.reshape(1, S, 1)
 utility_period_init = utility_period.sum(1)
+
+'''
+------------------------------------------------------------------------
+    Create variables for tax experiment TPI graphs 
+------------------------------------------------------------------------
+'''
 
 
 variables = pickle.load(open("SS/ss_vars.pkl", "r"))
@@ -333,11 +344,14 @@ plt.title('Maximum Euler Error for each period across S and J')
 plt.savefig('TPI/euler_errors_TPI')
 
 '''
-GINI
+------------------------------------------------------------------------
+    Gini functions
+------------------------------------------------------------------------
 '''
 
 
 def gini_cols(path, omega):
+    # Inequality across ability type
     path2 = np.copy(path)
     mask = path2 < 0
     path2[mask] = 0
@@ -367,6 +381,7 @@ def gini_cols(path, omega):
 
 
 def gini_colj(path, omega):
+    # Inequality across age
     path2 = np.copy(path)
     mask = path2 < 0
     path2[mask] = 0
@@ -392,6 +407,7 @@ def gini_colj(path, omega):
 
 
 def gini_nocol(path, omega):
+    # Inequality across age and ability
     pathx = np.copy(path)
     mask = pathx < 0
     pathx[mask] = 0
@@ -416,7 +432,9 @@ def gini_nocol(path, omega):
     return G
 
 '''
-gini graphs showing both lines
+------------------------------------------------------------------------
+    GINI plots comparing the tax experiment to the baseline
+------------------------------------------------------------------------
 '''
 
 
@@ -518,7 +536,9 @@ plt.legend(loc=0)
 plt.savefig("TPI/gini_c_nocol")
 
 '''
-gini graphs showing one line
+------------------------------------------------------------------------
+    Baseline TPI graphs
+------------------------------------------------------------------------
 '''
 
 plt.figure()
@@ -607,7 +627,14 @@ plt.savefig("TPIinit/gini_c_nocol")
 
 
 
-# Pickle some gini's
+'''
+------------------------------------------------------------------------
+    Pickle gini timepaths, to be used by gini_grapher.py
+    (change names to be _income or _wealth, depending on whether
+        this is the income and wealth tax experiment)
+------------------------------------------------------------------------
+'''
+
 wealth_baseline = gini_nocol(K_mat_init[:T], omega_stationary_init)
 wealth_wealth = gini_nocol(K_mat[:T], omega_stationary)
 income_baseline = gini_nocol(Y_mat_init[:T], omega_stationary_init)
@@ -627,11 +654,11 @@ for key in vars_to_pickle:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("TPI/gini_vectors.pkl", "w"))
 
-# Wealth, income, consumption
-
-# '''
-# SS init graphs
-# '''
+'''
+------------------------------------------------------------------------
+    GIF graphs
+------------------------------------------------------------------------
+'''
 
 domain = np.linspace(starting_age, ending_age, S)
 Jgrid = np.zeros(J)
@@ -641,37 +668,7 @@ cmap1 = matplotlib.cm.get_cmap('summer')
 cmap2 = matplotlib.cm.get_cmap('jet')
 X, Y = np.meshgrid(domain, Jgrid)
 
-# glance = [10, 15, 20, 25]
-# for i in glance:
-#     fig5 = plt.figure()
-#     ax5 = fig5.gca(projection='3d')
-#     ax5.set_xlabel(r'age-$s$')
-#     ax5.set_ylabel(r'ability-$j$')
-#     ax5.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
-#     ax5.plot_surface(X, Y, (K_mat[i]-K_mat_init[i]).T, rstride=1, cstride=1, cmap=cmap2)
-#     plt.savefig('TPI/wealth_T{}_absolutedif'.format(i))
 
-
-#     fig4 = plt.figure()
-#     ax4 = fig4.gca(projection='3d')
-#     ax4.set_xlabel(r'age-$s$')
-#     ax4.set_ylabel(r'ability-$j$')
-#     ax4.set_zlabel(r'individual consumption $\bar{c}_{j,s}$')
-#     ax4.plot_surface(X, Y, ((Y_mat[i]-Y_mat_init[i])/Y_mat_init[i]).T, rstride=1, cstride=1, cmap=cmap1)
-#     plt.savefig('TPI/income_T{}_percdif'.format(i))
-
-#     fig9 = plt.figure()
-#     ax9 = fig9.gca(projection='3d')
-#     ax9.plot_surface(X, Y, ((cinit[i]-cinitbase[i])/cinitbase[i]).T, rstride=1, cstride=1, cmap=cmap2)
-#     ax9.set_xlabel(r'age-$s$')
-#     ax9.set_ylabel(r'ability-$j$')
-#     ax9.set_zlabel('Consumption')
-#     ax9.set_title('Steady State Distribution of Consumption')
-#     plt.savefig('TPI/cons_T{}_percdif'.format(i))
-
-'''
-Gen graphs for movies
-'''
 print 'Starting movies'
 # top zlim is for the income tax, bottom zlim is for the wealth tax
 

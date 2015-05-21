@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 12/1/2014
+Last updated 5/21/2015
 
 Creates graphs for steady state values.
 
@@ -21,6 +21,12 @@ import matplotlib
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import pickle
+
+'''
+------------------------------------------------------------------------
+    Create variables for SS baseline graphs
+------------------------------------------------------------------------
+'''
 
 variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
 for key in variables:
@@ -53,7 +59,9 @@ print (income_init*omega_SS).sum()
 
 
 '''
-SS init graphs
+------------------------------------------------------------------------
+    SS baseline graphs
+------------------------------------------------------------------------
 '''
 
 domain = np.linspace(starting_age, ending_age, S)
@@ -200,7 +208,9 @@ plt.savefig('SSinit/euler_errors_euler2_SS')
 
 
 '''
-SS graphs
+------------------------------------------------------------------------
+    Create variables for graphs for SS with tax experiments
+------------------------------------------------------------------------
 '''
 
 variables = pickle.load(open("SS/ss_vars.pkl", "r"))
@@ -226,7 +236,11 @@ print (income*omega_SS).sum()
 # print Css
 # print (utility * omega_SS).sum()
 
-
+'''
+------------------------------------------------------------------------
+    Graphs for SS with tax experiments
+------------------------------------------------------------------------
+'''
 
 
 plt.figure()
@@ -296,7 +310,9 @@ ax117.set_title('Euler Errors')
 plt.savefig('SS/euler_errors_euler2_SS')
 
 '''
-Combos of both graphs
+------------------------------------------------------------------------
+    Graphs comparing tax experments to the basline
+------------------------------------------------------------------------
 '''
 
 Kssmat_percdif = (Kssmat - kssmatinit)/ kssmatinit

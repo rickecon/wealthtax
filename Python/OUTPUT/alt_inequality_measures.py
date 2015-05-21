@@ -1,5 +1,17 @@
 '''
 ------------------------------------------------------------------------
+Last updated 5/21/2015
+
+Produces alternative inequality measures.
+
+This py-file calls the following other file(s):
+            SSinit/ss_init.pkl
+            SS/ss_vars.pkl
+------------------------------------------------------------------------
+'''
+
+'''
+------------------------------------------------------------------------
     Packages
 ------------------------------------------------------------------------
 '''
@@ -11,7 +23,7 @@ from mpl_toolkits.mplot3d import Axes3D
 import pickle
 
 '''
-baseline
+Baseline measures
 '''
 
 variables = pickle.load(open("SSinit/ss_init.pkl", "r"))
@@ -47,17 +59,13 @@ Kssmat2_init = Kssmat2
 BQ_init = BQ
 Lssmat_init = Lssmat
 cssmat_init = cssmat
-
 savings = np.zeros((S, J))
 savings[:-1, :] = Kssmat2_init[1:, :]
 savings[-1, :] = BQ_init
-
 beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma) -1)/(1-sigma)
 utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat_init/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
 utility_init = utility.sum(0)
-
-
 Css = (cssmat * omega_SS).sum()
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
 yss = cssmat + delta * Kssmat3
@@ -68,7 +76,7 @@ the_inequalizer(yss, omega_SS)
 
 
 '''
-with tax experiments
+With tax experiments measures
 '''
 
 variables = pickle.load(open("SS/ss_vars.pkl", "r"))
@@ -82,10 +90,7 @@ beq_ut = chi_b.reshape(S, J) * (mort_rate.reshape(S, 1)) * (savings**(1-sigma)-1
 utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_ellipse * (1-(Lssmat/ltilde)**upsilon) ** (1/upsilon) + k_ellipse)
 utility += beq_ut 
 utility = utility.sum(0)
-
 Css = (cssmat * omega_SS).sum()
-
-
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
 yss = cssmat + delta * Kssmat3
 
