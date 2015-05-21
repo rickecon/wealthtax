@@ -1,11 +1,12 @@
 '''
 ------------------------------------------------------------------------
-Last updated 3/1/2015
+Last updated 5/21/2015
 
 Functions for taxes in SS and TPI.
 
 This py-file calls the following other file(s):
             OUTPUT/given_params.pkl
+            OUTPUT/SS/d_inc_guess.pkl
 ------------------------------------------------------------------------
 '''
 
@@ -75,6 +76,15 @@ if os.path.isfile("OUTPUT/SS/d_inc_guess.pkl"):
 ------------------------------------------------------------------------
 Tax functions
 ------------------------------------------------------------------------
+    The first 4 functions are the wealth and income tax functions,
+        with their derivative functions.  The remaining functions
+        are used to get the total amount of taxes.  There are many
+        different versions because different euler equations (either
+        in SS.py or TPI.py) have different shapes of input arrays.
+        TPI tax functions, for example, process arrays of 3 dimensions,
+        SS ones with 2 dimensions, and both SS and TPI have a tax
+        function that just uses scalars.  Ideally, these will all be
+        consolidated to one function, with different methods.
 ------------------------------------------------------------------------
 '''
 
