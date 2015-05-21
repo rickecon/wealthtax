@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 2/13/2015
+Last updated 5/21/2015
 
 This program solves for transition path of the distribution of wealth
 and the aggregate capital stock using the time path iteration (TPI)
@@ -28,6 +28,7 @@ import matplotlib.pyplot as plt
 import time
 import pickle
 import scipy.optimize as opt
+
 import tax_funcs as tax
 
 '''
@@ -63,13 +64,6 @@ Yss      = steady state aggregate output: scalar
 wss      = steady state real wage: scalar
 rss      = steady state real rental rate: scalar
 K_agg    = Aggregate level of capital: scalar
-runtime  = total time (in seconds) that the steady state solver took to
-            run
-hours    = total hours that the steady state solver took to run
-minutes  = total minutes (minus the total hours) that the steady state
-            solver took to run
-seconds  = total seconds (minus the total hours and minutes) that the
-            steady state solver took to run
 T        = number of periods until the steady state
 TPImaxiter   = Maximum number of iterations that TPI will undergo
 TPImindist   = Cut-off distance between iterations for TPI
@@ -311,6 +305,12 @@ def get_cons(r, k1, w, e, lab, bq, bins, k2, gy, tax):
     '''
     cons = (1 + r)*k1 + w*e*lab + bq / bins - k2*np.exp(gy) - tax
     return cons
+
+'''
+------------------------------------------------------------------------
+    Set initial values
+------------------------------------------------------------------------
+'''
 
 if TPI_initial_run:
     initial_K = np.array(list(Kssmat) + list(BQ.reshape(1, J)))

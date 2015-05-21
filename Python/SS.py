@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated: 3/17/2015
+Last updated: 5/21/2015
 
 Calculates steady state of OLG model with S age cohorts, using simple
 bin_weights and no taxes in order to be able to converge in the steady
@@ -11,8 +11,10 @@ This py-file calls the following other file(s):
             demographics.py
             tax_funcs.py
             OUTPUT/given_params.pkl
-            OUTPUT/Nothing/wealth_data_moments.pkl
+            OUTPUT/Nothing/wealth_data_moments_fit_{}.pkl
+                name depends on which percentile
             OUTPUT/Nothing/labor_data_moments.pkl
+            OUTPUT/income_demo_vars.pkl
             OUTPUT/Nothing/{}.pkl
                 name depends on what iteration just ran
             OUTPUT/SS/d_inc_guess.pkl
@@ -20,9 +22,9 @@ This py-file calls the following other file(s):
 
 This py-file creates the following other file(s):
     (make sure that an OUTPUT folder exists)
+            OUTPUT/income_demo_vars.pkl
             OUTPUT/Nothing/{}.pkl
                 name depends on what iteration is being run
-            OUTPUT/Nothing/initial_guesses_for_SS.pkl
             OUTPUT/Nothing/payroll_inputs.pkl
             OUTPUT/SSinit/ss_init.pkl
             OUTPUT/SS/Tss_var.pkl
@@ -75,7 +77,6 @@ TPImaxiter   = Maximum number of iterations that TPI will undergo
 TPImindist   = Cut-off distance between iterations for TPI
 b_ellipse    = value of b for elliptical fit of utility function
 k_ellipse    = value of k for elliptical fit of utility function
-omega_ellipse= value of omega for elliptical fit of utility function
 slow_work    = time at which chi_n starts increasing from 1
 mean_income  = mean income from IRS data file used to calibrate income tax
                (scalar)
@@ -91,18 +92,10 @@ retire       = age in which individuals retire(scalar)
 h_wealth     = wealth tax parameter h
 p_wealth     = wealth tax parameter p
 m_wealth     = wealth tax parameter m
-thetas_simulation = is this the last simulation before getting
-                replacement rates
 scal         = value to scale the initial guesses by in order to get the
                fsolve to converge
-which_pickle_to_draw_from = name of last simulation that ran
-which_pickle_to_save_to   = name of current simulation
 ------------------------------------------------------------------------
 '''
-
-# variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments.pkl", "r"))
-# for key in variables:
-#     globals()[key] = variables[key]
 
 variables = pickle.load(open("OUTPUT/Nothing/wealth_data_moments_fit_25.pkl", "r"))
 for key in variables:
@@ -151,6 +144,7 @@ for key in variables:
     globals()[key] = variables[key]
 
 if os.path.isfile("OUTPUT/SS/d_inc_guess.pkl"):
+    # If calibrating the income tax to match the wealth tax, use the guess value
     d_tax_income = pickle.load(open("OUTPUT/SS/d_inc_guess.pkl", "r"))
 
 '''
@@ -169,6 +163,7 @@ mort_rate    = S x 1 array of mortality rates
 '''
 
 if SS_stage == 'first_run_for_guesses':
+    # These values never change, so only run it once
     omega, g_n, omega_SS, children, surv_rate = demographics.get_omega(
         S, J, T, bin_weights, starting_age, ending_age, E)
     e = income.get_e(S, J, starting_age, ending_age, bin_weights, omega_SS)
@@ -208,7 +203,7 @@ mort_rate[-1] = 1
 
 '''
 ------------------------------------------------------------------------
-Finding the Steady State
+    Define Function
 ------------------------------------------------------------------------
 K_guess_init = (S-1 x J) array for the initial guess of the distribution
                of capital
@@ -234,12 +229,6 @@ Yss          = steady state aggregate output
 wss          = steady state real wage
 rss          = steady state real rental rate
 cssmat       = SxJ array of consumption across age and ability groups
-runtime      = Time needed to find the steady state (seconds)
-hours        = Hours needed to find the steady state
-minutes      = Minutes needed to find the steady state, less the number
-               of hours
-seconds      = Seconds needed to find the steady state, less the number
-               of hours and minutes
 ------------------------------------------------------------------------
 '''
 
@@ -609,6 +598,12 @@ def func_to_min(bq_guesses_init, other_guesses_init):
     print value.sum()
     return value.sum()
 
+'''
+------------------------------------------------------------------------
+    Run SS in various ways, depending on the stage of the simulation
+------------------------------------------------------------------------
+'''
+
 bnds = tuple([(1e-6, None)] * (S + J))
 
 if SS_stage == 'first_run_for_guesses':
@@ -684,7 +679,12 @@ elif SS_stage == 'SS_tax':
     solutions = opt.fsolve(Steady_State_X2, guesses, xtol=1e-13)
     print np.array(Steady_State_X2(solutions)).max()
 
-#Calculate the fits
+'''
+------------------------------------------------------------------------
+    Calculate the fits of the wealth tax
+------------------------------------------------------------------------
+'''
+
 K_seefit = solutions[0: S * J].reshape((S, J))
 K_see_fit = K_seefit[:-1, :]
 factor_see_fit = solutions[-1]
@@ -719,7 +719,12 @@ for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Nothing/chi_b_fits.pkl", "w"))
 
-# Save the solutions of SS
+'''
+------------------------------------------------------------------------
+    Save the initial values in various ways, depending on the stage of
+        the simulation
+------------------------------------------------------------------------
+'''
 
 if SS_stage == 'first_run_for_guesses':
     var_names = ['solutions', 'final_bq_params']
@@ -813,7 +818,8 @@ if SS_stage != 'first_run_for_guesses' and SS_stage != 'loop_calibration':
 
 '''
 ------------------------------------------------------------------------
-Save variables/values so they can be used in other modules
+    Save the values in various ways, depending on the stage of
+        the simulation, to be used in TPI or graphing functions
 ------------------------------------------------------------------------
 '''
 if SS_stage == 'constrained_minimization':
@@ -872,5 +878,3 @@ elif SS_stage == 'SS_tax':
         dictionary[key] = globals()[key]
     pickle.dump(dictionary, open("OUTPUT/SS/ss_vars.pkl", "w"))
     pickle.dump(Tss, open("OUTPUT/SS/Tss_var.pkl", "w"))
-
-            
