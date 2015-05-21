@@ -51,4 +51,5 @@ def vals():
     # Set the maximum replacment rate to be $30,000
     maxpayment = 30000.0/(factor_ss * wss)
     theta[theta > maxpayment] = maxpayment
+    print theta
     return theta
