@@ -1,11 +1,12 @@
 '''
 ------------------------------------------------------------------------
-Last updated 3/17/2015
+Last updated 5/21/2015
 
 This will run the steady state solver as well as time path iteration.
 
 This py-file calls the following other file(s):
             wealth_data.py
+            labor_data.py
             SS.py
             payroll.py
             TPI.py
@@ -18,7 +19,9 @@ This py-file creates the following other file(s):
 '''
 
 '''
+------------------------------------------------------------------------
 Import Packages
+------------------------------------------------------------------------
 '''
 
 import pickle
@@ -41,9 +44,7 @@ S            = number of periods an individual lives
 J            = number of different ability groups
 T            = number of time periods until steady state is reached
 bin_weights  = desired percentiles of ability groups
-which_iterations = array of strings that label the bin weights in
-                   bin_weights_array, to be used for saving files
-scal = scalar multiplier used in SS files to make the initial value work
+scal         = scalar multiplier used in SS files to make the initial value work
 starting_age = age of first members of cohort
 ending age   = age of the last members of cohort
 E            = number of cohorts before S=1
@@ -70,7 +71,7 @@ nu           = contraction parameter in steady state iteration process
                representing the weight on the new distribution gamma_nu
 b_ellipse    = value of b for elliptical fit of utility function
 k_ellipse    = value of k for elliptical fit of utility function
-upsilon= value of omega for elliptical fit of utility function
+upsilon      = value of omega for elliptical fit of utility function
 mean_income  = mean income from IRS data file used to calibrate income tax
                (scalar)
 a_tax_income = used to calibrate income tax (scalar)
@@ -83,18 +84,16 @@ m_wealth     = wealth tax parameter m
 p_wealth     = wealth tax parameter p
 tau_sales    = sales tax (scalar)
 tau_bq       = bequest tax (scalar)
-tau_lump     = lump sum tax (scalar)
 tau_payroll  = payroll tax (scalar)
 theta_tax    = payback value for payroll tax (scalar)
 ------------------------------------------------------------------------
 '''
+
 # Parameters
 S = 80
 J = 7
 T = int(2 * S)
 bin_weights = np.array([.25, .25, .2, .1, .1, .09, .01])
-wealth_data.get_highest_wealth_data(bin_weights)
-scal = np.ones(J)
 starting_age = 20
 ending_age = 100
 E = int(starting_age * (S / float(ending_age-starting_age)))
@@ -127,30 +126,26 @@ c_tax_income = 133261.0
 d_tax_income = .219
 retire = np.round(9.0 * S / 16.0) - 1
 # Wealth tax params
-h_wealth = 0.277470036398397
-m_wealth = 2.40486776796377
-p_wealth = 0.025
+# These won't be used for the wealth tax, h and m just need
+# need to be nonzero to avoid errors
+h_wealth = 0.1
+m_wealth = 1.0
+p_wealth = 0.0
 # Tax parameters that are zeroed out for SS
 # Initial taxes below
-d_tax_income = 0.0
 tau_sales = 0.0
-tau_bq = 0.0
-tau_lump = 0.0
-tau_payroll = 0.0
-theta_tax = 0.0
-p_wealth = 0.0
-
-
-# Tax Parameters Initially
-d_tax_income = .219
 tau_bq = np.zeros(J)
-tau_wealth = np.zeros(J)
-tau_lump = 0.0
 tau_payroll = 0.15
 theta_tax = np.zeros(J)
-
-
+# Other parameters
 chi_b_scal = np.zeros(J)
+scal = np.ones(J)
+
+'''
+------------------------------------------------------------------------
+    Run SS without calibration, to get initial values
+------------------------------------------------------------------------
+'''
 
 SS_stage = 'first_run_for_guesses'
 
@@ -163,7 +158,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
              'a_tax_income',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'scal',
              'chi_b_scal', 'SS_stage']
@@ -175,8 +170,11 @@ call(['python', 'SS.py'])
 
 print '\tFinished'
 
-print 'getting a high chi_b'
-
+'''
+------------------------------------------------------------------------
+    Run loop calibration to fit chi_b values
+------------------------------------------------------------------------
+'''
 SS_stage = 'loop_calibration'
 
 
@@ -209,7 +207,11 @@ while keep_changing.any() and i < 2300:
     call(['python', 'SS.py'])
 
 
-print 'done getting it'
+'''
+------------------------------------------------------------------------
+    Run SS with minimization to fit chi_b and chi_n
+------------------------------------------------------------------------
+'''
 
 os.remove("OUTPUT/Nothing/chi_b_fits.pkl")
 
@@ -224,7 +226,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
              'a_tax_income',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'scal',
              'chi_b_scal', 'SS_stage']
@@ -236,12 +238,23 @@ pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 print 'Getting Thetas'
 call(['python', 'SS.py'])
 
+'''
+------------------------------------------------------------------------
+    Get replacement rates
+------------------------------------------------------------------------
+'''
+
 import payroll
 theta_tax = payroll.vals()
 del sys.modules['payroll']
 print '\tFinished.'
 
-# Run SS with replacement rates, and baseline taxes
+'''
+------------------------------------------------------------------------
+    Run SS with replacement rates, and baseline taxes
+------------------------------------------------------------------------
+'''
+
 print 'Getting initial distribution.'
 
 SS_stage = 'SS_init'
@@ -252,7 +265,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
              'a_tax_income',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'scal',
              'chi_b_scal', 'SS_stage']
@@ -264,7 +277,12 @@ call(['python', 'SS.py'])
 print '\tFinished'
 
 
-# Run the baseline TPI simulation
+'''
+------------------------------------------------------------------------
+    Run the baseline TPI simulation
+------------------------------------------------------------------------
+'''
+
 TPI_initial_run = True
 var_names = ['TPI_initial_run']
 dictionary = {}
@@ -273,10 +291,10 @@ for key in var_names:
 pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
 call(['python', 'TPI.py'])
 
-
-
 '''
+------------------------------------------------------------------------
 Delete all .pyc files that have been generated
+------------------------------------------------------------------------
 '''
 
 files = glob('*.pyc')

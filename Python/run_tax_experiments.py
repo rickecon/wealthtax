@@ -1,15 +1,29 @@
 '''
 ------------------------------------------------------------------------
-Last updated 3/17/2015
+Last updated 5/21/2015
 
 This will run the steady state solver as well as time path iteration,
 given that these have already run with run_model.py, with new tax
 policies (calibrating the income tax to match the wealth tax).
+
+This py-file calls the following other file(s):
+            OUTPUT/given_params.pkl
+            OUTPUT/SS/d_inc_guess.pkl
+            OUTPUT/SS/Tss_var.pkl
+
+This py-file creates the following other file(s):
+    (make sure that an OUTPUT folder exists)
+            OUTPUT/given_params.pkl
+            OUTPUT/Nothing/tpi_var.pkl
+            
+
 ------------------------------------------------------------------------
 '''
 
 '''
-Import Packages
+------------------------------------------------------------------------
+    Import Packages
+------------------------------------------------------------------------
 '''
 
 import numpy as np
@@ -21,6 +35,11 @@ import scipy.optimize as opt
 import shutil
 from subprocess import call
 
+'''
+------------------------------------------------------------------------
+    Import parameters from baseline, and alter the wealth tax parameters
+------------------------------------------------------------------------
+'''
 
 # Import Parameters from initial simulations
 variables = pickle.load(open("OUTPUT/given_params.pkl", "r"))
@@ -29,19 +48,23 @@ for key in variables:
 
 # New Tax Parameters
 p_wealth = 0.025
-scal = np.ones(J) * 1.1
-scal[-1] = .5
-scal[-2] = .7
-
-SS_stage = 'SS_tax'
-
-chi_b_scal = np.zeros(J)
-
 h_wealth = 0.305509008443123
 m_wealth = 2.16050687852062
 
+scal = np.ones(J) * 1.1
+scal[-1] = .5
+scal[-2] = .7
+chi_b_scal = np.zeros(J)
 d_tax_income = .219
 
+
+'''
+------------------------------------------------------------------------
+    Run SS with wealth tax
+------------------------------------------------------------------------
+'''
+
+SS_stage = 'SS_tax'
 
 print 'Getting SS distribution for wealth tax.'
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
@@ -50,7 +73,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
              'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 dictionary = {}
@@ -58,13 +81,13 @@ for key in var_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 
-
-
-'''
-Run steady state solver and TPI (according to given variables) for wealth tax
-'''
 call(['python', 'SS.py'])
 
+'''
+------------------------------------------------------------------------
+    Run TPI for wealth tax
+------------------------------------------------------------------------
+'''
 
 TPI_initial_run = False
 var_names = ['TPI_initial_run']
@@ -75,13 +98,17 @@ pickle.dump(dictionary, open("OUTPUT/Nothing/tpi_var.pkl", "w"))
 
 call(['python', 'TPI.py'])
 
-
+# Save entire output colder as OUTPUT_wealth_tax so that
+# the income tax experiment does not overwrite the pickles
 shutil.rmtree('OUTPUT_wealth_tax')
 shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
 
-# '''
-# Run Steady State Solver and TPI for wealth tax
-# '''
+'''
+------------------------------------------------------------------------
+    Calibrate the new income tax to match the wealth tax
+------------------------------------------------------------------------
+'''
+
 p_wealth = 0.0
 
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
@@ -90,7 +117,7 @@ var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
              'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 
@@ -120,13 +147,19 @@ os.remove("OUTPUT/SS/Tss_var.pkl")
 
 d_tax_income = new_d_inc
 
+'''
+------------------------------------------------------------------------
+    Run SS for income tax
+------------------------------------------------------------------------
+'''
+
 var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
              'a_tax_income', 'scal',
              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-             'tau_payroll', 'tau_bq', 'tau_lump',
+             'tau_payroll', 'tau_bq',
              'theta_tax', 'retire', 'mean_income',
              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
 
@@ -137,10 +170,23 @@ pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
 print 'Getting SS distribution for income tax.'
 call(['python', 'SS.py'])
 
+'''
+------------------------------------------------------------------------
+    Run TPI for income tax
+------------------------------------------------------------------------
+'''
+
 call(['python', 'TPI.py'])
 
+# Save entire output colder as OUTPUT_income_tax
 shutil.rmtree('OUTPUT_income_tax')
 shutil.copytree('OUTPUT', 'OUTPUT_income_tax')
+
+'''
+------------------------------------------------------------------------
+Delete all .pyc files that have been generated
+------------------------------------------------------------------------
+'''
 
 files = glob('*.pyc')
 for i in files:

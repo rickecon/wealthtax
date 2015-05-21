@@ -85,7 +85,6 @@ c_tax_income = used to calibrate income tax (scalar)
 d_tax_income = used to calibrate income tax (scalar)
 tau_sales    = sales tax (scalar)
 tau_bq       = bequest tax (scalar)
-tau_lump     = lump sum tax (scalar)
 tau_payroll  = payroll tax (scalar)
 theta_tax    = payback value for payroll tax (scalar)
 retire       = age in which individuals retire(scalar)
@@ -844,7 +843,7 @@ elif SS_stage == 'SS_init':
                  'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
                  'factor_ss',  'a_tax_income', 'b_tax_income',
                  'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
-                 'tau_bq', 'tau_lump', 'theta_tax', 'retire',
+                 'tau_bq', 'theta_tax', 'retire',
                  'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
                  'starting_age',
                  'ending_age', 'Tss', 'euler1', 'euler2', 'euler3',
@@ -863,7 +862,7 @@ elif SS_stage == 'SS_tax':
                  'bqtilde', 'b_ellipse', 'k_ellipse', 'upsilon',
                  'factor_ss',  'a_tax_income', 'b_tax_income',
                  'c_tax_income', 'd_tax_income', 'tau_sales', 'tau_payroll',
-                 'tau_bq', 'tau_lump', 'theta_tax', 'retire',
+                 'tau_bq', 'theta_tax', 'retire',
                  'mean_income', 'Kssavg', 'Kssmat2', 'Lssavg', 'cssmat',
                  'starting_age',
                  'ending_age', 'euler1', 'euler2', 'euler3', 'Tss',

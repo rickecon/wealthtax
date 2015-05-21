@@ -45,7 +45,6 @@ TPImaxiter   = Maximum number of iterations that TPI will undergo
 TPImindist   = Cut-off distance between iterations for TPI
 b_ellipse    = value of b for elliptical fit of utility function
 k_ellipse    = value of k for elliptical fit of utility function
-omega_ellipse= value of omega for elliptical fit of utility function
 slow_work    = time at which chi_n starts increasing from 1
 mean_income  = mean income from IRS data file used to calibrate income tax
                (scalar)
@@ -55,7 +54,6 @@ c_tax_income = used to calibrate income tax (scalar)
 d_tax_income = used to calibrate income tax (scalar)
 tau_sales    = sales tax (scalar)
 tau_bq       = bequest tax (scalar)
-tau_lump     = lump sum tax (scalar)
 tau_payroll  = payroll tax (scalar)
 theta_tax    = payback value for payroll tax (scalar)
 retire       = age in which individuals retire(scalar)

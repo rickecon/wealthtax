@@ -1,8 +1,11 @@
 '''
 ------------------------------------------------------------------------
-Last updated 3/17/2015
+Last updated 5/21/2015
 
-Functions for created the matrix of ability levels, e.
+Functions for created the matrix of ability levels, e.  This can
+    only be used for looking at the 25, 50, 70, 80, 90, 99, and 100th
+    percentiles, as it uses fitted polynomials to those percentiles.
+    For a more generic version, see income_nopoly.py.
 
 
 This py-file creates the following other file(s):
@@ -20,7 +23,6 @@ This py-file creates the following other file(s):
 
 import numpy as np
 import matplotlib
-# matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from mpl_toolkits.mplot3d import Axes3D
 import scipy.optimize as opt
@@ -226,4 +228,3 @@ def get_e(S, J, starting_age, ending_age, bin_weights, omega_SS):
     e_final /= (e_final * omega_SS).sum()
     return e_final
   
-# get_e(80, 7, 21, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), 0)
