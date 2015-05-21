@@ -57,7 +57,6 @@ utility = ((cssmat_init ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b
 utility += beq_ut 
 utility_init = utility.sum(0)
 
-income_init = rss * Kssmat2 + wss * e * Lssmat + rss * Bss / bin_weights -Tss
 
 Css = (cssmat * omega_SS).sum()
 Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
@@ -65,7 +64,7 @@ yss = cssmat + delta * Kssmat3
 
 print 'baseline:'
 
-the_inequalizer(cssmat, omega_SS)
+the_inequalizer(yss, omega_SS)
 
 
 '''
@@ -84,8 +83,6 @@ utility = ((cssmat ** (1-sigma) - 1)/(1- sigma)) + chi_n.reshape(S, 1) * (b_elli
 utility += beq_ut 
 utility = utility.sum(0)
 
-income = rss * Kssmat2 + wss * e * Lssmat + (rss) * Bss / bin_weights -Tss
-
 Css = (cssmat * omega_SS).sum()
 
 
@@ -93,4 +90,4 @@ Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
 yss = cssmat + delta * Kssmat3
 
 print 'With tax:'
-the_inequalizer(cssmat, omega_SS)
+the_inequalizer(yss, omega_SS)
