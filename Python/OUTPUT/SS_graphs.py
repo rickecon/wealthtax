@@ -42,17 +42,14 @@ utility_init = utility.sum(0)
 
 
 Css = (cssmat * omega_SS).sum()
+Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+income_init = cssmat + delta * Kssmat3
+print (income_init*omega_SS).sum()
 # print Css + delta * Kss
 # print Kss
 # print Lss
 # print Css
 # print (utility_init * omega_SS).sum()
-Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-income_init = cssmat + delta * Kssmat3
-print np.var(np.log(cssmat * omega_SS))
-print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
-print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
-print (cssmat[:, -1]*omega_SS[:, -1]).sum() / (cssmat * omega_SS).sum()
 
 
 '''
@@ -220,18 +217,16 @@ utility = utility.sum(0)
 
 
 Css = (cssmat * omega_SS).sum()
+Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
+income = cssmat + delta * Kssmat3
+print (income*omega_SS).sum()
 # print Css + delta * Kss
 # print Kss
 # print Lss
 # print Css
 # print (utility * omega_SS).sum()
 
-Kssmat3 = np.array(list(Kssmat) + list(BQ.reshape(1, J)))
-income = cssmat + delta * Kssmat3
-print np.var(np.log(cssmat * omega_SS))
-print (cssmat[:, :5]*omega_SS[:, :5]).sum() / (cssmat[:, 5:]*omega_SS[:, 5:]).sum()
-print (cssmat[:, 5:]*omega_SS[:, 5:]).sum() / (cssmat * omega_SS).sum()
-print (cssmat[:, -1]*omega_SS[:, -1]).sum() / (cssmat * omega_SS).sum()
+
 
 
 plt.figure()

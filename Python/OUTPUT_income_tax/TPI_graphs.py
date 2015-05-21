@@ -47,7 +47,6 @@ eul2_init = eul2
 eul3_init = eul3
 K_mat_init = K_mat
 L_mat_init = L_mat
-Y_mat_init = A * (K_mat_init.sum(1) ** alpha) * (L_mat_init.sum(1) ** (1-alpha))
 Tinitbase = Tinit
 
 
@@ -56,9 +55,8 @@ K1[:, 1:, :] = K_mat_init[:T, :-1, :]
 K2 = np.zeros((T, S, J))
 K2[:, :, :] = K_mat_init[:T, :, :]
 cinitbase = cinit
-Y_mat_init = r_base[:T].reshape(T, 1, 1) * K1[:T].reshape(T, S, J) + w_base[:T].reshape(
-    T, 1, 1) * e.reshape(1, S, J) * L_mat_init[:T].reshape(T, S, J) + r_base[:T].reshape(
-    T, 1, 1) * Bpath_TPIbase[:T].reshape(T, 1, J) / bin_weights.reshape(1, 1, J) - taxinit.reshape(T, S, J)
+
+Y_mat_init = cinitbase + K_mat_init[1:T+1] - (1-delta)*K_mat_init[:T]
 
 # Lifetime Utility Graphs:
 c_ut_init = np.zeros((S, S, J))
@@ -113,9 +111,9 @@ K1 = np.zeros((T, S, J))
 K1[:, 1:, :] = K_mat[:T, :-1, :]
 K2 = np.zeros((T, S, J))
 K2[:, :, :] = K_mat[:T, :, :]
-Y_mat = rinit[:T].reshape(T, 1, 1) * K1[:T].reshape(T, S, J) + winit[:T].reshape(T, 1, 1) * e.reshape(
-    1, S, J) * L_mat[:T].reshape(T, S, J) + rinit[:T].reshape(T, 1, 1) * Bpath_TPI[:T].reshape(
-    T, 1, J) / bin_weights.reshape(1, 1, J) - taxinit2.reshape(T, S, J)
+
+
+Y_mat = cinit + K_mat[1:T+1] - (1-delta)*K_mat[:T]
 
 # Lifetime Utility
 c_ut = np.zeros((S, S, J))
@@ -192,15 +190,15 @@ plt.legend(loc=0)
 plt.savefig("TPIinit/TPI_L")
 
 plt.figure()
-plt.plot(np.arange(T), Y_base[:T], 'b', linewidth=2, label='Baseline')
-plt.plot(np.arange(T), Yinit[:T], 'g--', linewidth=2, label="Tax")
+plt.plot(np.arange(T), (Y_mat_init*omega_stationary).sum(1).sum(1)[:T], 'b', linewidth=2, label='Baseline')
+plt.plot(np.arange(T), (Y_mat*omega_stationary).sum(1).sum(1)[:T], 'g--', linewidth=2, label="Tax")
 plt.xlabel(r"Time $t$")
 plt.ylabel(r"Aggregate Output $\hat{Y}$")
 plt.legend(loc=0)
 plt.savefig("TPI/TPI_Y")
 
 plt.figure()
-plt.plot(np.arange(T), Y_base[:T], 'b', linewidth=2, label='Baseline')
+plt.plot(np.arange(T), (Y_mat_init*omega_stationary).sum(1).sum(1)[:T], 'b', linewidth=2, label='Baseline')
 plt.xlabel(r"Time $t$")
 plt.ylabel(r"Aggregate Output $\hat{Y}$")
 plt.legend(loc=0)
@@ -437,7 +435,7 @@ plt.xlabel(r"Time $t$")
 plt.ylabel(r"Gini for $\hat{l}$")
 plt.legend(loc=0)
 plt.savefig("TPI/gini_l_cols")
-
+z
 plt.figure()
 plt.plot(np.arange(T), gini_cols(Y_mat_init[:T], omega_stationary_init), 'b', linewidth=2, label='Baseline')
 plt.plot(np.arange(T), gini_cols(Y_mat[:T], omega_stationary), 'g--', linewidth=2, label="Tax")
@@ -611,18 +609,18 @@ plt.savefig("TPIinit/gini_c_nocol")
 
 # Pickle some gini's
 wealth_baseline = gini_nocol(K_mat_init[:T], omega_stationary_init)
-wealth_income = gini_nocol(K_mat[:T], omega_stationary)
+wealth_wealth = gini_nocol(K_mat[:T], omega_stationary)
 income_baseline = gini_nocol(Y_mat_init[:T], omega_stationary_init)
-income_income = gini_nocol(Y_mat[:T], omega_stationary)
+income_wealth = gini_nocol(Y_mat[:T], omega_stationary)
 cons_baseline = gini_nocol(cinitbase[:T], omega_stationary_init)
-cons_income = gini_nocol(cinit[:T], omega_stationary)
+cons_wealth = gini_nocol(cinit[:T], omega_stationary)
 lab_baseline = gini_nocol(L_mat_init[:T], omega_stationary_init)
-lab_income = gini_nocol(L_mat[:T], omega_stationary)
+lab_wealth = gini_nocol(L_mat[:T], omega_stationary)
 
-vars_to_pickle = ['wealth_baseline', 'wealth_income',
-                  'income_baseline', 'income_income',
-                  'cons_baseline', 'cons_income',
-                  'lab_baseline', 'lab_income',
+vars_to_pickle = ['wealth_baseline', 'wealth_wealth',
+                  'income_baseline', 'income_wealth',
+                  'cons_baseline', 'cons_wealth',
+                  'lab_baseline', 'lab_wealth',
                   'T', 'S', 'J']
 dictionary = {}
 for key in vars_to_pickle:
