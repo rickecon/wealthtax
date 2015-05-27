@@ -35,8 +35,8 @@ for key in variables:
 
 # If you want to see the average capital stock levels to calibrate the
 # wealth tax, uncomment the following:
-# print (Kssmat2*omega_SS).sum(0)/bin_weights
-# print factor_ss
+print (Kssmat2*omega_SS).sum(0)/bin_weights
+print factor_ss
 
 
 
