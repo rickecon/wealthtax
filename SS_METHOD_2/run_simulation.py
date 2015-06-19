@@ -37,6 +37,9 @@ import demographics
 import wealth_data
 import labor_data
 
+import scipy.optimize as opt
+import shutil
+
 
 '''
 ------------------------------------------------------------------------
@@ -197,46 +200,112 @@ call(['python', 'SS.py'])
 ------------------------------------------------------------------------
 '''
 
-# call(['python', 'TPI.py'])
+call(['python', 'TPI.py'])
 # import TPI
 
 '''
 ------------------------------------------------------------------------
-    Alter desired tax parameters
+    Alter wealth tax parameters
 ------------------------------------------------------------------------
 '''
 
 # New Tax Parameters
 
-# get_baseline = False
-# d_tax_income = .42
+get_baseline = False
+# Change these depending on the baseline
+p_wealth = 0.025
+h_wealth = 0.305509008443123
+m_wealth = 2.16050687852062
 
 
-# var_names = ['get_baseline', 'd_tax_income']
-# dictionary = {}
-# for key in var_names:
-#     dictionary[key] = globals()[key]
-# pickle.dump(dictionary, open("OUTPUT/Saved_moments/params_changed.pkl", "w"))
-
-'''
-------------------------------------------------------------------------
-    Run SS with tax experiment
-------------------------------------------------------------------------
-'''
-
-
-# print 'Getting SS distribution for wealth tax.'
-# call(['python', 'SS.py'])
+var_names = ['get_baseline', 'p_wealth', 'h_wealth', 'm_wealth']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("OUTPUT/Saved_moments/params_changed.pkl", "w"))
 
 '''
 ------------------------------------------------------------------------
-    Run TPI for tax experiment
+    Run SS with wealth tax experiment
 ------------------------------------------------------------------------
 '''
 
-# call(['python', 'TPI.py'])
+call(['python', 'SS.py'])
+
+'''
+------------------------------------------------------------------------
+    Run TPI for wealth tax experiment
+------------------------------------------------------------------------
+'''
+
+call(['python', 'TPI.py'])
 # import TPI
 
+# Save entire output colder as OUTPUT_wealth_tax so that
+# the income tax experiment does not overwrite the pickles
+
+shutil.rmtree('OUTPUT_wealth_tax')
+shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
+
+'''
+------------------------------------------------------------------------
+    Alter income tax parameters
+------------------------------------------------------------------------
+'''
+
+# New Tax Parameters
+
+p_wealth = 0.0
+
+sols = pickle.load(open("OUTPUT/SS/ss_vars.pkl", "r"))
+lump_to_match = sols['T_Hss']
+
+def matcher(d_inc_guess):
+    var_names = ['get_baseline', 'p_wealth', 'd_tax_income']
+    dictionary = {}
+    for key in var_names:
+        dictionary[key] = globals()[key]
+    pickle.dump(dictionary, open("OUTPUT/Saved_moments/params_changed.pkl", "w"))
+    call(['python', 'SS.py'])
+    sols2 = pickle.load(open("OUTPUT/SS/ss_vars.pkl", "r"))
+    lump_new = sols2['T_Hss']
+    error = abs(lump_to_match - lump_new)
+    print 'Error in taxes:', error
+    return error
+
+print 'Computing new income tax to match wealth tax'
+new_d_inc = opt.fsolve(matcher, d_tax_income, xtol=1e-13)
+print '\tOld income tax:', d_tax_income
+print '\tNew income tax:', new_d_inc
+
+d_tax_income = new_d_inc
+
+var_names = ['get_baseline', 'p_wealth', 'd_tax_income']
+dictionary = {}
+for key in var_names:
+    dictionary[key] = globals()[key]
+pickle.dump(dictionary, open("OUTPUT/Saved_moments/params_changed.pkl", "w"))
+
+'''
+------------------------------------------------------------------------
+    Run SS with income tax experiment
+------------------------------------------------------------------------
+'''
+
+call(['python', 'SS.py'])
+
+'''
+------------------------------------------------------------------------
+    Run TPI for income tax experiment
+------------------------------------------------------------------------
+'''
+
+call(['python', 'TPI.py'])
+# import TPI
+
+# Save entire output colder as OUTPUT_income_tax
+shutil.rmtree('OUTPUT_income_tax')
+shutil.copytree('OUTPUT', 'OUTPUT_income_tax')
 
 '''
 ------------------------------------------------------------------------
