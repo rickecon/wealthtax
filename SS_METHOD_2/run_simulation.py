@@ -40,7 +40,6 @@ import labor_data
 import scipy.optimize as opt
 import shutil
 
-
 '''
 ------------------------------------------------------------------------
 Setting up the Model
@@ -92,7 +91,7 @@ theta    = payback value for payroll tax (scalar)
 e            = S x J matrix of age dependent possible working abilities
                e_s
 omega        = T x S x J array of demographics
-g_n          = steady state population growth rate
+g_n_ss          = steady state population growth rate
 omega_SS     = steady state population distribution
 surv_rate    = S x 1 array of survival rates
 rho    = S x 1 array of mortality rates
@@ -120,7 +119,7 @@ g_y = (1 + g_y_annual)**(float(ending_age-starting_age)/S) - 1
 # TPI parameters
 maxiter = 250
 mindist_SS = 1e-9
-mindist_TPI = 3 * 1e-6
+mindist_TPI = 1e-6
 nu = .40
 # Ellipse parameters
 b_ellipse = 25.6594
@@ -146,11 +145,30 @@ tau_payroll = 0.15
 # Flag to prevent graphing from occuring in demographic, income, wealth, and labor files
 flag_graphs = False
 # Generate Income and Demographic parameters
-omega, g_n, omega_SS, surv_rate = demographics.get_omega(
-    S, J, T, lambdas, starting_age, ending_age, E, flag_graphs)
+omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector = demographics.get_omega(
+    S, T, starting_age, ending_age, E, flag_graphs)
+
 e = income.get_e(S, J, starting_age, ending_age, lambdas, omega_SS, flag_graphs)
-rho = 1-surv_rate
-rho[-1] = 1.0
+
+# Calibration parameters
+calibrate_model = False
+chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
+chi_n_guess = np.array([47.12000874 , 22.22762421 , 14.34842241 , 10.67954008 ,  8.41097278
+                         ,  7.15059004 ,  6.46771332 ,  5.85495452 ,  5.46242013 ,  5.00364263
+                         ,  4.57322063 ,  4.53371545 ,  4.29828515 ,  4.10144524 ,  3.8617942  ,  3.57282
+                         ,  3.47473172 ,  3.31111347 ,  3.04137299 ,  2.92616951 ,  2.58517969
+                         ,  2.48761429 ,  2.21744847 ,  1.9577682  ,  1.66931057 ,  1.6878927
+                         ,  1.63107201 ,  1.63390543 ,  1.5901486  ,  1.58143606 ,  1.58005578
+                         ,  1.59073213 ,  1.60190899 ,  1.60001831 ,  1.67763741 ,  1.70451784
+                         ,  1.85430468 ,  1.97291208 ,  1.97017228 ,  2.25518398 ,  2.43969757
+                         ,  3.21870602 ,  4.18334822 ,  4.97772026 ,  6.37663164 ,  8.65075992
+                         ,  9.46944758 , 10.51634777 , 12.13353793 , 11.89186997 , 12.07083882
+                         , 13.2992811  , 14.07987878 , 14.19951571 , 14.97943562 , 16.05601334
+                         , 16.42979341 , 16.91576867 , 17.62775142 , 18.4885405  , 19.10609921
+                         , 20.03988031 , 20.86564363 , 21.73645892 , 22.6208256  , 23.37786072
+                         , 24.38166073 , 25.22395387 , 26.21419653 , 27.05246704 , 27.86896121
+                         , 28.90029708 , 29.83586775 , 30.87563699 , 31.91207845 , 33.07449767
+                         , 34.27919965 , 35.57195873 , 36.95045988 , 38.62308152])
 
 # Generate Wealth data moments
 wealth_data.get_wealth_data(lambdas, J, flag_graphs)
@@ -159,9 +177,6 @@ wealth_data.get_wealth_data(lambdas, J, flag_graphs)
 
 labor_data.labor_data_moments(flag_graphs)
 
-# Remove pickle of altered parameters -- reset the experiment
-if os.path.exists("OUTPUT/Saved_moments/params_changed.pkl"):
-    os.remove("OUTPUT/Saved_moments/params_changed.pkl")
 
 get_baseline = True
 
@@ -171,12 +186,12 @@ param_names = ['S', 'J', 'T', 'lambdas', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'Z', 'delta', 'E',
              'ltilde', 'g_y', 'maxiter', 'mindist_SS', 'mindist_TPI',
              'b_ellipse', 'k_ellipse', 'upsilon',
-             'a_tax_income',
+             'a_tax_income', 'chi_b_guess', 'chi_n_guess',
              'b_tax_income', 'c_tax_income', 'd_tax_income',
-             'tau_payroll', 'tau_bq',
-             'retire', 'mean_income_data',
+             'tau_payroll', 'tau_bq', 'calibrate_model',
+             'retire', 'mean_income_data', 'g_n_vector',
              'h_wealth', 'p_wealth', 'm_wealth', 'get_baseline',
-             'omega', 'g_n', 'omega_SS', 'surv_rate', 'e', 'rho']
+             'omega', 'g_n_ss', 'omega_SS', 'surv_rate', 'e', 'rho']
 
 '''
 ------------------------------------------------------------------------
@@ -191,8 +206,7 @@ for key in param_names:
     dictionary[key] = globals()[key]
 pickle.dump(dictionary, open("OUTPUT/Saved_moments/params_given.pkl", "w"))
 
-call(['python', 'SS.py'])
-
+import SS
 
 '''
 ------------------------------------------------------------------------
@@ -200,12 +214,11 @@ call(['python', 'SS.py'])
 ------------------------------------------------------------------------
 '''
 
-call(['python', 'TPI.py'])
-# import TPI
+import TPI
 
 '''
 ------------------------------------------------------------------------
-    Alter wealth tax parameters
+    Alter desired tax parameters
 ------------------------------------------------------------------------
 '''
 
@@ -217,7 +230,6 @@ p_wealth = 0.025
 h_wealth = 0.305509008443123
 m_wealth = 2.16050687852062
 
-
 var_names = ['get_baseline', 'p_wealth', 'h_wealth', 'm_wealth']
 dictionary = {}
 for key in var_names:
@@ -226,7 +238,7 @@ pickle.dump(dictionary, open("OUTPUT/Saved_moments/params_changed.pkl", "w"))
 
 '''
 ------------------------------------------------------------------------
-    Run SS with wealth tax experiment
+    Run SS with tax experiment
 ------------------------------------------------------------------------
 '''
 
@@ -234,18 +246,18 @@ call(['python', 'SS.py'])
 
 '''
 ------------------------------------------------------------------------
-    Run TPI for wealth tax experiment
+    Run TPI for tax experiment
 ------------------------------------------------------------------------
 '''
 
 call(['python', 'TPI.py'])
-# import TPI
 
 # Save entire output colder as OUTPUT_wealth_tax so that
 # the income tax experiment does not overwrite the pickles
 
 shutil.rmtree('OUTPUT_wealth_tax')
 shutil.copytree('OUTPUT', 'OUTPUT_wealth_tax')
+
 
 '''
 ------------------------------------------------------------------------
@@ -301,11 +313,11 @@ call(['python', 'SS.py'])
 '''
 
 call(['python', 'TPI.py'])
-# import TPI
 
 # Save entire output colder as OUTPUT_income_tax
 shutil.rmtree('OUTPUT_income_tax')
 shutil.copytree('OUTPUT', 'OUTPUT_income_tax')
+
 
 '''
 ------------------------------------------------------------------------
