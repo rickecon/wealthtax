@@ -13,11 +13,12 @@ from ogusa import calibrate
 ogusa.parameters.DATASET = 'REAL'
 
 
-def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True, age_specific=False, reform={}, user_params={}, guid='', run_micro=True):
+def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
+           age_specific=False, reform={}, user_params={}, guid='',
+           run_micro=True, calibrate_model=False):
 
     #from ogusa import parameters, wealth, labor, demographics, income
     from ogusa import parameters, demographics, income, utils
-    from ogusa import txfunc
 
     tick = time.time()
 
@@ -33,9 +34,6 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True, age_
         except OSError as oe:
             pass
 
-    if run_micro:
-        txfunc.get_tax_func_estimate(baseline=baseline, analytical_mtrs=analytical_mtrs, age_specific=age_specific,
-                                     start_year=user_params['start_year'], reform=reform, guid=guid)
     print ("in runner, baseline is ", baseline)
     run_params = ogusa.parameters.get_parameters(baseline=baseline, guid=guid)
     run_params['analytical_mtrs'] = analytical_mtrs
@@ -50,13 +48,9 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True, age_
         run_params.update(user_params)
 
     # Modify ogusa parameters based on user input
-    if 'g_y_annual' in user_params:
-        print "updating g_y_annual and associated"
-        ending_age = run_params['ending_age']
-        starting_age = run_params['starting_age']
-        S = run_params['S']
-        g_y = (1 + user_params['g_y_annual'])**(float(ending_age - starting_age) / S) - 1
-        run_params['g_y'] = g_y
+    if 'sigma' in user_params:
+        print "updating sigma"
+        run_params['sigma'] = user_params['sigma']
         run_params.update(user_params)
 
 
@@ -147,7 +141,9 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True, age_
     print "took {0} seconds to get that part done.".format(time.time() - tick)
 
 
-def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True, age_specific=False, reform={}, user_params={}, guid='', run_micro=True):
+def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
+              age_specific=False, reform={}, user_params={}, guid='',
+              calibrate_model=False, run_micro=True):
 
     from ogusa import parameters, demographics, income, utils
     from ogusa import txfunc
@@ -166,9 +162,6 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True, a
         except OSError as oe:
             pass
 
-    if run_micro:
-        txfunc.get_tax_func_estimate(baseline=baseline, analytical_mtrs=analytical_mtrs, age_specific=age_specific,
-                                     start_year=user_params['start_year'], reform=reform, guid=guid)
     print ("in runner, baseline is ", baseline)
     run_params = ogusa.parameters.get_parameters(baseline=baseline, guid=guid)
     run_params['analytical_mtrs'] = analytical_mtrs
@@ -183,13 +176,9 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True, a
         run_params.update(user_params)
 
     # Modify ogusa parameters based on user input
-    if 'g_y_annual' in user_params:
-        print "updating g_y_annual and associated"
-        ending_age = run_params['ending_age']
-        starting_age = run_params['starting_age']
-        S = run_params['S']
-        g_y = (1 + user_params['g_y_annual'])**(float(ending_age - starting_age) / S) - 1
-        run_params['g_y'] = g_y
+    if 'sigma' in user_params:
+        print "updating sigma"
+        run_params['sigma'] = user_params['sigma']
         run_params.update(user_params)
 
     from ogusa import SS, TPI
@@ -229,12 +218,12 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True, a
     CALL CALIBRATION here if boolean flagged
     ****
     '''
-    calibrate_model = True
     if calibrate_model:
-        chi_params = calibrate.chi_estimate(income_tax_params, ss_params, iterative_params, chi_params, baseline_dir=baseline_dir)
+        chi_params = calibrate.chi_estimate(income_tax_params, ss_params,
+                      iterative_params, chi_params, baseline_dir=baseline_dir)
 
-    ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline,
-                                     baseline_dir=baseline_dir)
+    ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+                      chi_params, baseline,baseline_dir=baseline_dir)
 
     '''
     ------------------------------------------------------------------------
@@ -249,4 +238,3 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True, a
         utils.mkdirs(os.path.join(output_base, "SS"))
         ss_dir = os.path.join(output_base, "SS/SS_vars.pkl")
         pickle.dump(ss_outputs, open(ss_dir, "wb"))
-

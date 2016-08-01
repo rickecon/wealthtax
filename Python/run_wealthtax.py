@@ -25,7 +25,7 @@ def run_micro_macro(user_params):
     user_params = {'frisch':0.67, 'sigma':3.0}
     kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
             'baseline':True,'user_params':user_params,
-            'guid':'wealth_tax_baseline','calibrate':False}
+            'guid':'wealth_tax_baseline','calibrate_model':False}
     runner_SS(**kwargs)
 
 
@@ -54,7 +54,7 @@ def run_micro_macro(user_params):
         input_dir = baseline_dir
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':True,'user_params':user_params,
-                'guid':'baseline_sigma_'+str(item),'calibrate':False}
+                'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
         runner_SS(**kwargs)
 
 
@@ -80,7 +80,7 @@ def run_micro_macro(user_params):
         guid_iter = 'reform_' + str(0)
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':True,'user_params':user_params,
-                'guid':'wealth_tax_reform1','calibrate':False}
+                'guid':'wealth_tax_reform1','calibrate_model':False}
         runner(**kwargs)
 
         '''
@@ -93,7 +93,7 @@ def run_micro_macro(user_params):
         guid_iter = 'reform_' + str(0)
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':True,'user_params':user_params,
-                'guid':'wealth_tax_reform2','calibrate':False,
+                'guid':'wealth_tax_reform2','calibrate_model':False,
         runner(**kwargs)
 
 
