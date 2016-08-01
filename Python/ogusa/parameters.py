@@ -20,21 +20,10 @@ import json
 import numpy as np
 import scipy.ndimage.filters as filter
 from demographics import get_pop_objs
-from demographics_old import get_omega
 from income import get_e
 import pickle
 import elliptical_u_est
 import matplotlib.pyplot as plt
-
-
-'''
-------------------------------------------------------------------------
-Set paths, define user modifiable parameters
-------------------------------------------------------------------------
-'''
-DATASET = 'REAL'
-USER_MODIFIABLE_PARAMS = ['frisch', 'sigma']
-
 
 '''
 ------------------------------------------------------------------------
@@ -113,7 +102,7 @@ g_n_vector   = [T+S,] vector, growth rate in economically active pop for each pe
 e            = [S,J] array, normalized effective labor units by age and ability type
 ------------------------------------------------------------------------
 '''
-def get_parameters(baseline, reform, guid, user_modifiable, metadata):
+def get_parameters(baseline, reform, guid, user_modifiable):
     '''
     --------------------------------------------------------------------
     This function sets the parameters for the full model.
@@ -141,7 +130,7 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     --------------------------------------------------------------------
     '''
     # Model Parameters
-    S = int(80) #S<30 won't meet necessary tolerances
+    S = int(40) #S<30 won't meet necessary tolerances
     J = int(7)
     T = int(3 * S)
     BW = int(10)
@@ -271,11 +260,11 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     flag_graphs = False
     #   Calibration parameters
     # These guesses are close to the calibrated values
-    # chi_b_guess = np.ones((J,)) * 80.0
+    chi_b_guess = np.ones((J,)) * 80.0
     #chi_b_guess = np.array([0.7, 0.7, 1.0, 1.2, 1.2, 1.2, 1.4])
     #chi_b_guess = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 10.0])
     #chi_b_guess = np.array([5, 10, 90, 250, 250, 250, 250])
-    chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
+    #chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
     chi_n_guess_80 = np.array([38.12000874, 33.22762421, 25.34842241, 26.67954008, 24.41097278,
                             23.15059004, 22.46771332, 21.85495452, 21.46242013, 22.00364263,
                             21.57322063, 21.53371545, 21.29828515, 21.10144524, 20.8617942,
@@ -300,17 +289,12 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
         E, S, T, 1, 100, 2016, flag_graphs)
 
 
-    e = get_e(80, 7, 20, 100, lambdas = np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
+    # e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
+    # # # need to turn 80x7 array into SxJ array
+    # e /= (e * omega_SS.reshape(S, 1)
+    #             * lambdas.reshape(1, J)).sum()
+    e = np.ones((S,J))/(np.ones((S,J)) * omega_SS.reshape(S, 1)* lambdas.reshape(1, J)).sum()
 
     allvars = dict(locals())
-
-    if user_modifiable:
-        allvars = {k:allvars[k] for k in USER_MODIFIABLE_PARAMS}
-
-    if metadata:
-        params_meta = read_parameter_metadata()
-        for k,v in allvars.iteritems():
-            params_meta[k]["value"] = v
-        allvars = params_meta
 
     return allvars

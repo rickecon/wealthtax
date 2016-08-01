@@ -222,8 +222,8 @@ def tau_income(r, w, b, n, factor, params):
     y = (r*b)*factor
     I = x+y
 
-    num = (A*(I**2)) + (B*I))
-    denom = (A*(I**2)) + (B*I) + C)
+    num = (A*(I**2)) + (B*I)
+    denom = (A*(I**2)) + (B*I) + C
     tau =  D*(num/denom)
     return tau
 
@@ -311,7 +311,14 @@ def MTR_capital(r, w, b, n, factor, params):
     num = D*(2*A*I+B)*C
     denom = ((A*(I**2))+(B*I) + C)**2
     tau = num/denom
-    return tau
+
+    num_income = (A*(I**2)) + (B*I)
+    denom_income = (A*(I**2)) + (B*I) + C
+    tau_income =  D*(num/denom)
+
+    mtr = tau_income + tau*I
+
+    return mtr
 
 
 def MTR_labor(r, w, b, n, factor, params):
@@ -387,11 +394,21 @@ def MTR_labor(r, w, b, n, factor, params):
         max_y = etr_params[8]
         min_y = etr_params[9]
 
+    x = (w*e*n)*factor
+    y = (r*b)*factor
+    I = x+y
+
     num = D*(2*A*I+B)*C
     denom = ((A*(I**2))+(B*I) + C)**2
     tau = num/denom
 
-    return tau
+    num_income = (A*(I**2)) + (B*I)
+    denom_income = (A*(I**2)) + (B*I) + C
+    tau_income =  D*(num/denom)
+
+    mtr = tau_income + tau*I
+
+    return mtr
 
 
 def get_lump_sum(r, w, b, n, BQ, factor, params):

@@ -1,10 +1,10 @@
 {
-    "g_y_annual":{
-        "long_name": "Growth rate of technology",
-	    "description": "This parameter gives the underlying growth rate for labor augmenting technological change.  The growth rate determines long-run economic growth in OG-USA.",
+    "sigma":{
+        "long_name": "Coefficient of relative risk aversion",
+	    "description": "This parameter gives coefficient of relative risk aversion/intertemporal elasticity of substitution",
         "irs_ref": "",
         "notes": "",
-        "col_label": ["Growth rate of technology"]
+        "col_label": ["Coefficent of relative risk aversion"]
     },
     "frisch":{
         "long_name": "Frisch elastictiy of labor supply used to fit elliptical utility",

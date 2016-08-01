@@ -35,8 +35,8 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             pass
 
     print ("in runner, baseline is ", baseline)
-    run_params = ogusa.parameters.get_parameters(baseline=baseline, reform,
-                          guid=guid, user_modifiable, metadata)
+    run_params = ogusa.parameters.get_parameters(baseline=baseline, reform=reform,
+                          guid=guid, user_modifiable=True)
     run_params['analytical_mtrs'] = analytical_mtrs
 
     # Modify ogusa parameters based on user input
@@ -164,8 +164,11 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             pass
 
     print ("in runner, baseline is ", baseline)
-    run_params = ogusa.parameters.get_parameters(baseline=baseline, reform, guid=guid)
+    run_params = ogusa.parameters.get_parameters(baseline=baseline, reform=reform,
+                          guid=guid, user_modifiable=True)
     run_params['analytical_mtrs'] = analytical_mtrs
+
+
 
     # Modify ogusa parameters based on user input
     if 'frisch' in user_params:
