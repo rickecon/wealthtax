@@ -1,6 +1,6 @@
 '''
 ------------------------------------------------------------------------
-Last updated 4/8/2015
+Last updated 8/1/2017
 
 This file sets parameters for the model run.
 
@@ -23,7 +23,6 @@ from demographics import get_pop_objs
 from demographics_old import get_omega
 from income import get_e
 import pickle
-import txfunc
 import elliptical_u_est
 import matplotlib.pyplot as plt
 
@@ -34,134 +33,7 @@ Set paths, define user modifiable parameters
 ------------------------------------------------------------------------
 '''
 DATASET = 'REAL'
-PARAMS_FILE = os.path.join(os.path.dirname(__file__), 'default_full_parameters.json')
-PARAMS_FILE_METADATA_NAME = 'parameters_metadata.json'
-PARAMS_FILE_METADATA_PATH = os.path.join(os.path.dirname(__file__), PARAMS_FILE_METADATA_NAME)
-TAX_ESTIMATE_PATH = os.environ.get("TAX_ESTIMATE_PATH", ".")
-USER_MODIFIABLE_PARAMS = ['g_y_annual', 'frisch']
-
-
-def read_parameter_metadata():
-    '''
-    --------------------------------------------------------------------
-    This function reads in parameter metadata
-    --------------------------------------------------------------------
-
-    INPUTS: None
-
-    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION:
-    /PARAMS_FILE_METADATA_PATH/ = json file with metadata
-
-    OBJECTS CREATED WITHIN FUNCTION:
-    params_dict = dictionary of metadata
-
-    RETURNS: params_dict
-    --------------------------------------------------------------------
-    '''
-    if os.path.exists(PARAMS_FILE_METADATA_PATH):
-        with open(PARAMS_FILE_METADATA_PATH) as pfile:
-            params_dict = json.load(pfile)
-    else:
-        from pkg_resources import resource_stream, Requirement
-        path_in_egg = os.path.join('ogusa', PARAMS_FILE_METADATA_NAME)
-        buf = resource_stream(Requirement.parse('ogusa'), path_in_egg)
-        as_bytes = buf.read()
-        as_string = as_bytes.decode("utf-8")
-        params_dict = json.loads(as_string)
-
-    return params_dict
-
-
-def read_tax_func_estimate(pickle_path, pickle_file):
-    '''
-    --------------------------------------------------------------------
-    This function reads in tax function parameters
-    --------------------------------------------------------------------
-
-    INPUTS:
-    pickle_path = string, path to pickle with tax function parameter estimates
-    pickle_file = string, name of pickle file with tax function parmaeter estimates
-
-    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION:
-    /picklepath/ = pickle file with dictionary of tax function estimated parameters
-
-    OBJECTS CREATED WITHIN FUNCTION:
-    dict_params = dictionary, contains numpy arrays of tax function estimates
-
-    RETURNS: dict_params
-    --------------------------------------------------------------------
-    '''
-    if os.path.exists(pickle_path):
-        with open(pickle_path) as pfile:
-            dict_params = pickle.load(pfile)
-    else:
-        from pkg_resources import resource_stream, Requirement
-        path_in_egg = pickle_file
-        buf = resource_stream(Requirement.parse('ogusa'), path_in_egg)
-        as_bytes = buf.read()
-        as_string = as_bytes.decode("utf-8")
-        dict_params = pickle.loads(as_string)
-
-    return dict_params
-
-
-def get_parameters_from_file():
-    '''
-    --------------------------------------------------------------------
-    This function loads the json file with model parameters
-    --------------------------------------------------------------------
-
-    INPUTS: None
-
-    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION:
-    /PARAMS_FILE/ = json file with model parameters
-
-    OBJECTS CREATED WITHIN FUNCTION:
-
-    RETURNS: j
-    --------------------------------------------------------------------
-    '''
-    with open(PARAMS_FILE,'r') as f:
-        j = json.load(f)
-        for key in j:
-            if isinstance(j[key], list):
-                j[key] = np.array(j[key])
-        return j
-
-
-def get_parameters(baseline=False, guid='', user_modifiable=False, metadata=False):
-    '''
-    --------------------------------------------------------------------
-    This function returns the model parameters.
-    --------------------------------------------------------------------
-
-    INPUTS:
-    baseline        = boolean, =True if run is of baseline policy
-    guid            = string, id for model run
-    user_modifiable = boolean, =True if allow user modifiable parameters
-    metadata        = boolean, =True if use metadata file for parameter
-                       values (rather than what is entered in parameters below)
-
-    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION:
-    get_full_parameters()
-    get_reduced_parameters()
-
-    OBJECTS CREATED WITHIN FUNCTION:
-
-    RETURNS: dictionary with model parameters
-    --------------------------------------------------------------------
-    '''
-    if DATASET == 'REAL':
-        return get_full_parameters(baseline=baseline, guid=guid,
-                                   user_modifiable=user_modifiable,
-                                   metadata=metadata)
-
-    elif DATASET == 'SMALL':
-        return get_reduced_parameters(baseline=baseline, guid=guid,
-                                      user_modifiable=user_modifiable,
-                                      metadata=metadata)
-    else:
-        raise ValueError("Unknown value {0}".format(DATASET))
+USER_MODIFIABLE_PARAMS = ['frisch', 'sigma']
 
 
 '''
@@ -241,135 +113,7 @@ g_n_vector   = [T+S,] vector, growth rate in economically active pop for each pe
 e            = [S,J] array, normalized effective labor units by age and ability type
 ------------------------------------------------------------------------
 '''
-
-
-def get_reduced_parameters(baseline, guid, user_modifiable, metadata):
-    '''
-    --------------------------------------------------------------------
-    This function sets the parameters for the reduced model, which is
-    simplified to run more quickly for testing.
-    --------------------------------------------------------------------
-
-    INPUTS:
-    baseline        = boolean, =True if baseline tax policy, =False if reform
-    guid            = string, id for reform run
-    user_modifiable = boolean, =True if allow user modifiable parameters
-    metadata        = boolean, =True if use metadata file for parameter
-                       values (rather than what is entered in parameters below)
-
-    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION:
-    read_tax_func_estimate()
-    elliptical_u_est.estimation()
-    read_parameter_metadata()
-
-    OBJECTS CREATED WITHIN FUNCTION:
-    See parameters defined above
-    allvars = dictionary, dictionary with all parameters defined in this function
-
-    RETURNS: allvars
-
-    OUTPUT: None
-    --------------------------------------------------------------------
-    '''
-    # Model Parameters
-    starting_age = 40
-    ending_age = 50
-    S = int(ending_age-starting_age)
-    J = int(2)
-    T = int(2 * S)
-    BW = int(10)
-    lambdas = np.array([.50, .50])
-    E = int(starting_age * (S / float(ending_age - starting_age)))
-    beta_annual = .96 # Carroll (JME, 2009)
-    beta = beta_annual ** (float(ending_age - starting_age) / S)
-    sigma = 1.5 # value from Attanasio, Banks, Meghir and Weber (JEBS, 1999)
-    alpha = .35 # many use 0.33, but many find that capitals share is increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
-    Z = 1.0
-    delta_annual = .05 # approximately the value from Kehoe calibration exercise: http://www.econ.umn.edu/~tkehoe/classes/calibration-04.pdf
-    delta = 1 - ((1 - delta_annual) ** (float(ending_age - starting_age) / S))
-    ltilde = 1.0
-    g_y_annual = 0.03
-    g_y = (1 + g_y_annual)**(float(ending_age - starting_age) / S) - 1
-    #   Ellipse parameters
-    frisch = 0.4 # Frisch elasticity consistent with Altonji (JPE, 1996) and Peterman (Econ Inquiry, 2016)
-    b_ellipse, upsilon = elliptical_u_est.estimation(frisch,ltilde)
-    k_ellipse = 0 # this parameter is just a level shifter in utlitiy - irrelevant for analysis
-
-    # Tax parameters:
-    #   Income Tax Parameters
-    ####  will call tax function estimation function here...
-    ### do output such that each parameters is in a separate SxBW array
-
-    if baseline:
-        baseline_pckl = "TxFuncEst_baseline{}.pkl".format(guid)
-        estimate_file = os.path.join(TAX_ESTIMATE_PATH,
-                                     baseline_pckl)
-        print 'using baseline1 tax parameters'
-        dict_params = read_tax_func_estimate(estimate_file, baseline_pckl)
-    else:
-        policy_pckl = "TxFuncEst_policy{}.pkl".format(guid)
-        estimate_file = os.path.join(TAX_ESTIMATE_PATH,
-                                     policy_pckl)
-        print 'using policy1 tax parameters'
-        dict_params = read_tax_func_estimate(estimate_file, policy_pckl)
-
-
-    mean_income_data = dict_params['tfunc_avginc'][0]
-
-    etr_params = dict_params['tfunc_etr_params_S'][:S,:BW,:]
-    mtrx_params = dict_params['tfunc_mtrx_params_S'][:S,:BW,:]
-    mtry_params = dict_params['tfunc_mtry_params_S'][:S,:BW,:]
-
-    # To zero out income taxes, uncomment the following 3 lines:
-    # etr_params[:,:,6:] = 0.0
-    # mtrx_params[:,:,6:] = 0.0
-    # mtry_params[:,:,6:] = 0.0
-
-    #   Wealth tax params
-    #       These are non-calibrated values, h and m just need
-    #       need to be nonzero to avoid errors. When p_wealth
-    #       is zero, there is no wealth tax.
-    h_wealth = 0.1
-    m_wealth = 1.0
-    p_wealth = 0.0
-    #   Bequest and Payroll Taxes
-    tau_bq = np.zeros(J)
-    tau_payroll = 0.15
-    retire = np.round(9.0 * S / 16.0) - 1
-
-    # Simulation Parameters
-    MINIMIZER_TOL = 1e-3
-    MINIMIZER_OPTIONS = {'maxiter': 1}
-    PLOT_TPI = False
-    maxiter = 10
-    mindist_SS = 1e-3
-    mindist_TPI = 1e-3 #1e-6
-    nu = .4
-    flag_graphs = False
-    #   Calibration parameters
-    # These guesses are close to the calibrated values
-    chi_b_guess = np.array([1, 100000])
-    chi_n_guess = np.array([5, 6, 7, 8, 9, 10, 11, 12, 13, 14])
-
-    # Generate Income and Demographic parameters
-    omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector, imm_rates, omega_S_preTP = get_pop_objs(
-        E, S, T, 1, 100, 2016, flag_graphs)
-    e = np.array([[0.25, 1.25]] * 10)
-    allvars = dict(locals())
-
-    if user_modifiable:
-        allvars = {k:allvars[k] for k in USER_MODIFIABLE_PARAMS}
-
-    if metadata:
-        params_meta = read_parameter_metadata()
-        for k,v in allvars.iteritems():
-            params_meta[k]["value"] = v
-        allvars = params_meta
-
-    return allvars
-
-
-def get_full_parameters(baseline, guid, user_modifiable, metadata):
+def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     '''
     --------------------------------------------------------------------
     This function sets the parameters for the full model.
@@ -399,7 +143,7 @@ def get_full_parameters(baseline, guid, user_modifiable, metadata):
     # Model Parameters
     S = int(80) #S<30 won't meet necessary tolerances
     J = int(7)
-    T = int(4 * S)
+    T = int(3 * S)
     BW = int(10)
     lambdas = np.array([.25, .25, .2, .1, .1, .09, .01])
     #lambdas = np.array([0.5, 0.5])
@@ -410,196 +154,110 @@ def get_full_parameters(baseline, guid, user_modifiable, metadata):
     E = int(starting_age * (S / float(ending_age - starting_age)))
     beta_annual = .96 # Carroll (JME, 2009)
     beta = beta_annual ** (float(ending_age - starting_age) / S)
-    sigma = 1.5 # value from Attanasio, Banks, Meghir and Weber (JEBS, 1999)
-    alpha = .35 # many use 0.33, but many find that capitals share is increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
+    sigma = 3.0
+    alpha = .35 # many use 0.33, but many find that capitals share is
+                # increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
     Z = 1.0
-    delta_annual = .05 # approximately the value from Kehoe calibration exercise: http://www.econ.umn.edu/~tkehoe/classes/calibration-04.pdf
+    delta_annual = .05 # approximately the value from Kehoe calibration
+                       # exercise: http://www.econ.umn.edu/~tkehoe/classes/calibration-04.pdf
     delta = 1 - ((1 - delta_annual) ** (float(ending_age - starting_age) / S))
     ltilde = 1.0
     g_y_annual = 0.03
     g_y = (1 + g_y_annual)**(float(ending_age - starting_age) / S) - 1
     #   Ellipse parameters
-    frisch = 0.4 # Frisch elasticity consistent with Altonji (JPE, 1996) and Peterman (Econ Inquiry, 2016)
+    frisch = (1/1.5) # Frisch elasticity consistent with Altonji (JPE, 1996)
+                     # and Peterman (Econ Inquiry, 2016)
     b_ellipse, upsilon = elliptical_u_est.estimation(frisch,ltilde)
     k_ellipse = 0 # this parameter is just a level shifter in utlitiy - irrelevant for analysis
 
     # Tax parameters:
-    #   Income Tax Parameters
-    #  will call tax function estimation function here...
-    # do output such that each parameters is in a separate SxBW array
-    # read in estimated parameters
-    print 'baselines is:', baseline
-    if baseline:
-        baseline_pckl = "TxFuncEst_baseline{}.pkl".format(guid)
-        estimate_file = os.path.join(TAX_ESTIMATE_PATH,
-                                     baseline_pckl)
-        print 'using baseline tax parameters'
-        dict_params = read_tax_func_estimate(estimate_file, baseline_pckl)
-
-    else:
-        policy_pckl = "TxFuncEst_policy{}.pkl".format(guid)
-        estimate_file = os.path.join(TAX_ESTIMATE_PATH,
-                                     policy_pckl)
-        print 'using policy tax parameters'
-        dict_params = read_tax_func_estimate(estimate_file, policy_pckl)
-
-
-    mean_income_data = dict_params['tfunc_avginc'][0]
-
-    etr_params = dict_params['tfunc_etr_params_S'][:S,:BW,:]
-    mtrx_params = dict_params['tfunc_mtrx_params_S'][:S,:BW,:]
-    mtry_params = dict_params['tfunc_mtry_params_S'][:S,:BW,:]
-
+    mean_income_data = 84377.0
 
     etr_params = np.zeros((S,BW,10))
     mtrx_params = np.zeros((S,BW,10))
     mtry_params = np.zeros((S,BW,10))
-    etr_params[:,:,:] = dict_params['tfunc_etr_params_S'][20,0,:]
-    mtrx_params[:,:,:] = dict_params['tfunc_mtrx_params_S'][20,0,:]
-    mtry_params[:,:,:] = dict_params['tfunc_mtry_params_S'][20,0,:]
 
 
-    mtrx_params[:,:,1] = 0.
-    mtrx_params[:,:,2] = 0.
-    mtrx_params[:,:,4] = 0.
-    mtrx_params[:,:,8] = 0.
-    mtrx_params[:,:,9] = 0.
+    if reform != 1:
+        #baseline values
+        a_tax_income = 3.03452713268985e-06
+        b_tax_income = .222
+        c_tax_income = 133261.0
+        d_tax_income = .219
+    else:
+        # reform values
+        a_tax_income = 3.03452713268985e-06
+        b_tax_income = .222
+        c_tax_income = 133261.0
+        d_tax_income = .219
 
-    mtry_params[:,:,0] = 0.
-    mtry_params[:,:,2] = 0.
-    mtry_params[:,:,3] = 0.
-    mtry_params[:,:,6] = 0.
-    mtry_params[:,:,7] = 0.
-    
-    # # unocmmenting the block below ensures no tax rates are negative
-    # etr_params[:,:,7] = 0.
-    # mtrx_params[:,:,7] = 0.
-    # mtry_params[:,:,7] = 0.
-    # etr_params[:,:,9] = 0.
-    # mtrx_params[:,:,9] = 0.
-    # mtry_params[:,:,9] = 0.
+        ## this is tricky - need to have new income tax rates that generate the
+        # same SS revenue as the wealth tax.  old code for this was:
 
-    # print 'tax diffs: ', np.absolute(etr_params-etr_params.mean(axis=(0,1))).max()
-    # quit()
+#         p_wealth = 0.0
+#
+# var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+#              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+#              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+#              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+#              'a_tax_income', 'scal',
+#              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+#              'tau_payroll', 'tau_bq',
+#              'theta_tax', 'retire', 'mean_income',
+#              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
+#
+# dictionary = {}
+# for key in var_names:
+#     dictionary[key] = globals()[key]
+# pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+#
+# lump_to_match = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
+#
+#
+# def matcher(d_inc_guess):
+#     pickle.dump(d_inc_guess, open("OUTPUT/SS/d_inc_guess.pkl", "w"))
+#     call(['python', 'SS.py'])
+#     lump_new = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
+#     error = abs(lump_to_match - lump_new)
+#     print 'Error in taxes:', error
+#     return error
+#
+# print 'Computing new income tax to match wealth tax'
+# new_d_inc = opt.fsolve(matcher, d_tax_income, xtol=1e-13)
+# print '\tOld income tax:', d_tax_income
+# print '\tNew income tax:', new_d_inc
+#
+# os.remove("OUTPUT/SS/d_inc_guess.pkl")
+# os.remove("OUTPUT/SS/Tss_var.pkl")
 
+    etr_params[:,:,0] = a_tax_income
+    etr_params[:,:,1] = b_tax_income
+    etr_params[:,:,2] = c_tax_income
+    etr_params[:,:,3] = d_tax_income
 
-
-
-    # set etrs and mtrs to constant rates over income/age by uncommenting following code block
-    etr_params = np.zeros((S,BW,10))
-    # mtrx_params = np.zeros((S,BW,10))
-    # mtry_params = np.zeros((S,BW,10))
-    etr_params[:,:,7] = dict_params['tfunc_avg_etr']
-    # mtrx_params[:,:,7] = dict_params['tfunc_avg_mtrx']
-    # mtry_params[:,:,7] = dict_params['tfunc_avg_mtry']
-    # etr_params[:,:,9] = dict_params['tfunc_avg_etr']
-    # mtrx_params[:,:,9] = dict_params['tfunc_avg_mtrx']
-    # mtry_params[:,:,9] = dict_params['tfunc_avg_mtry']
-    etr_params[:,:,5] = 1.0
-    # mtrx_params[:,:,5] = 1.0
-    # mtry_params[:,:,5] = 1.0
-
-    # etr_params = np.zeros((S,BW,10))
-    # mtrx_params = np.zeros((S,BW,10))
-    # mtry_params = np.zeros((S,BW,10))
-    # for i in xrange(S):
-    #     etr_params[:,:,7] = 0.005*i
-    #     mtrx_params[:,:,7] = 0.005*i
-    #     mtry_params[:,:,7] = 0.005*i
-    #     etr_params[:,:,9] = 0.005*i
-    #     mtrx_params[:,:,9] = 0.005*i
-    #     mtry_params[:,:,9] = 0.005*i
-    # etr_params[:,:,5] = 1.0
-    # mtrx_params[:,:,5] = 1.0
-    # mtry_params[:,:,5] = 1.0
-
-
-    # make etrs and mtrs constant over time, uncomment following code block
-    etr_params[:,:,7] = dict_params['tfunc_avg_etr'][0]
-    # mtrx_params[:,:,7] = dict_params['tfunc_avg_mtrx'][0]
-    # mtry_params[:,:,7] = dict_params['tfunc_avg_mtry'][0]
-    etr_params[:,:,9] = dict_params['tfunc_avg_etr'][0]
-    # mtrx_params[:,:,9] = dict_params['tfunc_avg_mtrx'][0]
-    # mtry_params[:,:,9] = dict_params['tfunc_avg_mtry'][0]
-
-    # To zero out income taxes, uncomment the following 3 lines:
-    # etr_params[:,:,6:] = 0.0
-    # mtrx_params[:,:,6:] = 0.0
-    # mtry_params[:,:,6:] = 0.0
-
-
-    # #plot some tax functions
-    # cap_income = np.array([0.0,1000., 10000., 100000., 1000000.]) # fix capital income
-    # N = 1000 # number of points in income grids
-    # labinc_sup = np.linspace(5, 1000000, N)
-    # capinc_sup = np.linspace(5, 1000000, N)
-
-    # A = mtrx_params[0,0,0]
-    # B = mtrx_params[0,0,1]
-    # C = mtrx_params[0,0,2]
-    # D = mtrx_params[0,0,3]
-    # E = mtrx_params[0,0,4]
-    # F = mtrx_params[0,0,5]
-    # max_x = mtrx_params[0,0,6]
-    # min_x = mtrx_params[0,0,7]
-    # max_y = mtrx_params[0,0,8]
-    # min_y = mtrx_params[0,0,9]
-
-    # analytical_mtrs=True
-    # marginal_rates = np.zeros((5,N))
-
-    # for i in xrange((5)):
-    #     y = cap_income[i] # fix capital income
-    #     x = labinc_sup # labor income varies
-    #     I = x+y
-
-    #     if analytical_mtrs:
-    #         num = (A*(x**2)) + (B*(y**2)) + (C*x*y) + (D*x) + (E*y)
-    #         denom = (A*(x**2)) + (B*(y**2)) + (C*x*y) + (D*x) + (E*y) + F
-    #         Lambda = num/denom
-
-    #         d_num = (2*A*x + C*y + D)*F
-    #         d_denom = ((A*(x**2)) + (B*(y**2)) + (C*x*y) + (D*x) + (E*y) + F)**2
-    #         d_Lambda = d_num/d_denom
-
-    #         marginal_rates[i,:] =  (max_x-min_x)*Lambda + (x*(max_x-min_x) + y*(max_y-min_y))*d_Lambda + min_x
-
-    #     else:
-
-    #         phi = x/I
-    #         Phi = phi*(max_x-min_x) + (1-phi)*(max_y-min_y)
-    #         K = phi*min_x + (1-phi)*min_y
-
-    #         num = (A*(x**2)) + (B*(y**2)) + (C*x*y) + (D*x) + (E*y)
-    #         denom = (A*(x**2)) + (B*(y**2)) + (C*x*y) + (D*x) + (E*y) + F
-            
-    #         marginal_rates[i,:]  =  (Phi*(num/denom)) + K
-   
-
-    # plt.plot(labinc_sup, marginal_rates[0,:], label='cap inc=0')
-    # plt.plot(labinc_sup, marginal_rates[1,:], label='cap inc=1,000')
-    # plt.plot(labinc_sup, marginal_rates[2,:], label='cap inc=10,000')
-    # plt.plot(labinc_sup, marginal_rates[3,:], label='cap inc=100,000')
-    # plt.plot(labinc_sup, marginal_rates[4,:], label='cap inc=1,000,000')
-    # plt.legend(loc='center right')
-    # plt.title('MTRx by labor income')
-    # plt.xlabel(r'Labor Income')
-    # plt.ylabel(r'MTR')
-    # plt.show()
-    # quit()
-
+    mtrx_params = etr_params
+    mtry_params = etr_params
 
 
     #   Wealth tax params
     #       These are non-calibrated values, h and m just need
     #       need to be nonzero to avoid errors. When p_wealth
     #       is zero, there is no wealth tax.
-    h_wealth = 0.1
-    m_wealth = 1.0
-    p_wealth = 0.0
+    if reform != 3:
+        #baseline values
+        h_wealth = 0.1
+        m_wealth = 1.0
+        p_wealth = 0.0
+    else:
+        # wealth tax reform values
+        p_wealth = 0.025
+        h_wealth = 0.305509008443123
+        m_wealth = 2.16050687852062
+
+
     #   Bequest and Payroll Taxes
     tau_bq = np.zeros(J)
-    tau_payroll = 0.0 #0.15 # were are inluding payroll taxes in tax functions for now
+    tau_payroll = 0.15
     retire = np.round(9.0 * S / 16.0) - 1
 
     # Simulation Parameters
@@ -613,11 +271,11 @@ def get_full_parameters(baseline, guid, user_modifiable, metadata):
     flag_graphs = False
     #   Calibration parameters
     # These guesses are close to the calibrated values
-    chi_b_guess = np.ones((J,)) * 80.0
+    # chi_b_guess = np.ones((J,)) * 80.0
     #chi_b_guess = np.array([0.7, 0.7, 1.0, 1.2, 1.2, 1.2, 1.4])
     #chi_b_guess = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 10.0])
     #chi_b_guess = np.array([5, 10, 90, 250, 250, 250, 250])
-    #chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
+    chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
     chi_n_guess_80 = np.array([38.12000874, 33.22762421, 25.34842241, 26.67954008, 24.41097278,
                             23.15059004, 22.46771332, 21.85495452, 21.46242013, 22.00364263,
                             21.57322063, 21.53371545, 21.29828515, 21.10144524, 20.8617942,
@@ -641,35 +299,8 @@ def get_full_parameters(baseline, guid, user_modifiable, metadata):
     omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector, imm_rates, omega_S_preTP = get_pop_objs(
         E, S, T, 1, 100, 2016, flag_graphs)
 
-    ## To shut off demographics, uncomment the following 9 lines of code
-    g_n_ss = 0.0
-    surv_rate1 = np.ones((S,))# prob start at age S
-    surv_rate1[1:] = np.cumprod(surv_rate[:-1], dtype=float)
-    omega_SS = np.ones(S)*surv_rate1# number of each age alive at any time
-    omega_SS = omega_SS/omega_SS.sum()
-    imm_rates = np.zeros((T+S,S))
-    omega = np.tile(np.reshape(omega_SS,(1,S)),(T+S,1))
-    omega_S_preTP = omega_SS
-    g_n_vector = np.tile(g_n_ss,(T+S,))
 
-
-    # income.get_e() must be hardcoded since relies on regression output 
-    # from DeBacker, Evans, Philips, and Ramnath (2015)
-    # e = get_e(80, 7, 20, 100, lambdas = np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
-    # # need to turn 80x7 array into SxJ array
-    # e_final
-    # e_final /= (e_final * omega_SS.reshape(S, 1)
-    #             * bin_weights.reshape(1, J)).sum()
-    # ## To shut off hetero earnings processes, uncomment following two lines
-    # e_full = np.tile(((e_hetero*lambdas).sum(axis=1)).reshape(S,1),(1,J))
-    # e_full /= (e * omega_SS.reshape(S, 1)* lambdas.reshape(1, J)).sum()
-    # chi_b_guess = np.ones((J,)) * 80.0
-    # J = 1
-    # e = e_full[:,0]
-    e = np.ones((S,J))/(np.ones((S,J)) * omega_SS.reshape(S, 1)* lambdas.reshape(1, J)).sum()
-    # print 'lambdas', lambdas[0]
-    # print 'e shape: ', e.shape
-    # quit()
+    e = get_e(80, 7, 20, 100, lambdas = np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
 
     allvars = dict(locals())
 
