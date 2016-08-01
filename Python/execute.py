@@ -14,7 +14,7 @@ ogusa.parameters.DATASET = 'REAL'
 
 
 def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
-           age_specific=False, reform={}, user_params={}, guid='',
+           age_specific=False, reform=0, user_params={}, guid='',
            run_micro=True, calibrate_model=False):
 
     #from ogusa import parameters, wealth, labor, demographics, income
@@ -35,7 +35,8 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             pass
 
     print ("in runner, baseline is ", baseline)
-    run_params = ogusa.parameters.get_parameters(baseline=baseline, guid=guid)
+    run_params = ogusa.parameters.get_parameters(baseline=baseline, reform,
+                          guid=guid, user_modifiable, metadata)
     run_params['analytical_mtrs'] = analytical_mtrs
 
     # Modify ogusa parameters based on user input
@@ -142,7 +143,7 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
 
 def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
-              age_specific=False, reform={}, user_params={}, guid='',
+              age_specific=False, reform=0, user_params={}, guid='',
               calibrate_model=False, run_micro=True):
 
     from ogusa import parameters, demographics, income, utils
@@ -163,7 +164,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             pass
 
     print ("in runner, baseline is ", baseline)
-    run_params = ogusa.parameters.get_parameters(baseline=baseline, guid=guid)
+    run_params = ogusa.parameters.get_parameters(baseline=baseline, reform, guid=guid)
     run_params['analytical_mtrs'] = analytical_mtrs
 
     # Modify ogusa parameters based on user input

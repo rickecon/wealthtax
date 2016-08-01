@@ -36,42 +36,6 @@ DATASET = 'REAL'
 USER_MODIFIABLE_PARAMS = ['frisch', 'sigma']
 
 
-
-def get_parameters(baseline=False, guid='', user_modifiable=False, metadata=False):
-    '''
-    --------------------------------------------------------------------
-    This function returns the model parameters.
-    --------------------------------------------------------------------
-
-    INPUTS:
-    baseline        = boolean, =True if run is of baseline policy
-    guid            = string, id for model run
-    user_modifiable = boolean, =True if allow user modifiable parameters
-    metadata        = boolean, =True if use metadata file for parameter
-                       values (rather than what is entered in parameters below)
-
-    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION:
-    get_full_parameters()
-    get_reduced_parameters()
-
-    OBJECTS CREATED WITHIN FUNCTION:
-
-    RETURNS: dictionary with model parameters
-    --------------------------------------------------------------------
-    '''
-    if DATASET == 'REAL':
-        return get_full_parameters(baseline=baseline, guid=guid,
-                                   user_modifiable=user_modifiable,
-                                   metadata=metadata)
-
-    elif DATASET == 'SMALL':
-        return get_reduced_parameters(baseline=baseline, guid=guid,
-                                      user_modifiable=user_modifiable,
-                                      metadata=metadata)
-    else:
-        raise ValueError("Unknown value {0}".format(DATASET))
-
-
 '''
 ------------------------------------------------------------------------
 Parameters
@@ -149,7 +113,7 @@ g_n_vector   = [T+S,] vector, growth rate in economically active pop for each pe
 e            = [S,J] array, normalized effective labor units by age and ability type
 ------------------------------------------------------------------------
 '''
-def get_full_parameters(baseline, guid, user_modifiable, metadata):
+def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     '''
     --------------------------------------------------------------------
     This function sets the parameters for the full model.
@@ -191,45 +155,109 @@ def get_full_parameters(baseline, guid, user_modifiable, metadata):
     beta_annual = .96 # Carroll (JME, 2009)
     beta = beta_annual ** (float(ending_age - starting_age) / S)
     sigma = 3.0
-    alpha = .35 # many use 0.33, but many find that capitals share is increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
+    alpha = .35 # many use 0.33, but many find that capitals share is
+                # increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
     Z = 1.0
-    delta_annual = .05 # approximately the value from Kehoe calibration exercise: http://www.econ.umn.edu/~tkehoe/classes/calibration-04.pdf
+    delta_annual = .05 # approximately the value from Kehoe calibration
+                       # exercise: http://www.econ.umn.edu/~tkehoe/classes/calibration-04.pdf
     delta = 1 - ((1 - delta_annual) ** (float(ending_age - starting_age) / S))
     ltilde = 1.0
     g_y_annual = 0.03
     g_y = (1 + g_y_annual)**(float(ending_age - starting_age) / S) - 1
     #   Ellipse parameters
-    frisch = (1/1.5) # Frisch elasticity consistent with Altonji (JPE, 1996) and Peterman (Econ Inquiry, 2016)
+    frisch = (1/1.5) # Frisch elasticity consistent with Altonji (JPE, 1996)
+                     # and Peterman (Econ Inquiry, 2016)
     b_ellipse, upsilon = elliptical_u_est.estimation(frisch,ltilde)
     k_ellipse = 0 # this parameter is just a level shifter in utlitiy - irrelevant for analysis
 
     # Tax parameters:
+    mean_income_data = 84377.0
+
     etr_params = np.zeros((S,BW,10))
     mtrx_params = np.zeros((S,BW,10))
     mtry_params = np.zeros((S,BW,10))
 
-    # A = mtrx_params[0,0,0]
-    # B = mtrx_params[0,0,1]
-    # C = mtrx_params[0,0,2]
-    # D = mtrx_params[0,0,3]
-    # E = mtrx_params[0,0,4]
-    # F = mtrx_params[0,0,5]
-    # max_x = mtrx_params[0,0,6]
-    # min_x = mtrx_params[0,0,7]
-    # max_y = mtrx_params[0,0,8]
-    # min_y = mtrx_params[0,0,9]
+
+    if reform != 1:
+        #baseline values
+        a_tax_income = 3.03452713268985e-06
+        b_tax_income = .222
+        c_tax_income = 133261.0
+        d_tax_income = .219
+    else:
+        # reform values
+        a_tax_income = 3.03452713268985e-06
+        b_tax_income = .222
+        c_tax_income = 133261.0
+        d_tax_income = .219
+
+        ## this is tricky - need to have new income tax rates that generate the
+        # same SS revenue as the wealth tax.  old code for this was:
+
+#         p_wealth = 0.0
+#
+# var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
+#              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
+#              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
+#              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
+#              'a_tax_income', 'scal',
+#              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
+#              'tau_payroll', 'tau_bq',
+#              'theta_tax', 'retire', 'mean_income',
+#              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
+#
+# dictionary = {}
+# for key in var_names:
+#     dictionary[key] = globals()[key]
+# pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
+#
+# lump_to_match = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
+#
+#
+# def matcher(d_inc_guess):
+#     pickle.dump(d_inc_guess, open("OUTPUT/SS/d_inc_guess.pkl", "w"))
+#     call(['python', 'SS.py'])
+#     lump_new = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
+#     error = abs(lump_to_match - lump_new)
+#     print 'Error in taxes:', error
+#     return error
+#
+# print 'Computing new income tax to match wealth tax'
+# new_d_inc = opt.fsolve(matcher, d_tax_income, xtol=1e-13)
+# print '\tOld income tax:', d_tax_income
+# print '\tNew income tax:', new_d_inc
+#
+# os.remove("OUTPUT/SS/d_inc_guess.pkl")
+# os.remove("OUTPUT/SS/Tss_var.pkl")
+
+    etr_params[:,:,0] = a_tax_income
+    etr_params[:,:,1] = b_tax_income
+    etr_params[:,:,2] = c_tax_income
+    etr_params[:,:,3] = d_tax_income
+
+    mtrx_params = etr_params
+    mtry_params = etr_params
+
 
     #   Wealth tax params
     #       These are non-calibrated values, h and m just need
     #       need to be nonzero to avoid errors. When p_wealth
     #       is zero, there is no wealth tax.
-    h_wealth = 0.1
-    m_wealth = 1.0
-    p_wealth = 0.0
+    if reform != 3:
+        #baseline values
+        h_wealth = 0.1
+        m_wealth = 1.0
+        p_wealth = 0.0
+    else:
+        # wealth tax reform values
+        p_wealth = 0.025
+        h_wealth = 0.305509008443123
+        m_wealth = 2.16050687852062
+
 
     #   Bequest and Payroll Taxes
     tau_bq = np.zeros(J)
-    tau_payroll = 0.0 #0.15 # were are inluding payroll taxes in tax functions for now
+    tau_payroll = 0.15
     retire = np.round(9.0 * S / 16.0) - 1
 
     # Simulation Parameters
@@ -273,7 +301,7 @@ def get_full_parameters(baseline, guid, user_modifiable, metadata):
 
 
     e = get_e(80, 7, 20, 100, lambdas = np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
-    
+
     allvars = dict(locals())
 
     if user_modifiable:
