@@ -20,13 +20,13 @@ def run_micro_macro(user_params):
         Run calibration
     -----------------------------------------------------------------------
     '''
-    output_base = baseline_dir
-    input_dir = baseline_dir
-    user_params = {'frisch':(1/1.5), 'sigma':3.0}
-    kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-            'baseline':True, 'reform':0, 'user_params':user_params,
-            'guid':'wealth_tax_baseline','calibrate_model':False}
-    runner_SS(**kwargs)
+    # output_base = baseline_dir
+    # input_dir = baseline_dir
+    # user_params = {'frisch':(1/1.5), 'sigma':3.0}
+    # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+    #         'baseline':True, 'reform':0, 'user_params':user_params,
+    #         'guid':'wealth_tax_baseline','calibrate_model':False}
+    # runner_SS(**kwargs)
 
 
     user_params = {'frisch':(1/1.5), 'sigma':3.0}
@@ -43,33 +43,48 @@ def run_micro_macro(user_params):
 
         # set up directories to save output to
         baseline_dir = "./OUTPUT_BASELINE" + '/sigma' + str(item)
-        income_dir = "./OUTPUT_INCOME_REFORM" + '/sigma' + str(item)
         wealth_dir = "./OUTPUT_WEALTH_REFORM" + '/sigma' + str(item)
-
-        '''
-        ------------------------------------------------------------------------
-            Run SS for Baseline first
-        ------------------------------------------------------------------------
-        '''
-        output_base = baseline_dir
-        input_dir = baseline_dir
-        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-                'baseline':True, 'reform':0, 'user_params':user_params,
-                'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        runner_SS(**kwargs)
+        income_dir = "./OUTPUT_INCOME_REFORM" + '/sigma' + str(item)
 
 
-        '''
-        ------------------------------------------------------------------------
-            Run baseline
-        ------------------------------------------------------------------------
-        '''
-        output_base = baseline_dir
-        input_dir = baseline_dir
-        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-                'baseline':True,'reform':0,'user_params':user_params,
-                'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        runner_SS(**kwargs)
+        # '''
+        # ------------------------------------------------------------------------
+        #     Run SS for Baseline first
+        # ------------------------------------------------------------------------
+        # '''
+        # output_base = baseline_dir
+        # input_dir = baseline_dir
+        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+        #         'baseline':True, 'reform':0, 'user_params':user_params,
+        #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
+        # runner_SS(**kwargs)
+        #
+        #
+        # '''
+        # ------------------------------------------------------------------------
+        #     Run baseline
+        # ------------------------------------------------------------------------
+        # '''
+        # output_base = baseline_dir
+        # input_dir = baseline_dir
+        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+        #         'baseline':False,'reform':0,'user_params':user_params,
+        #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
+        # runner_SS(**kwargs)
+        #
+        # '''
+        # ------------------------------------------------------------------------
+        #     Run wealth tax reform (needs to be run before income tax reform
+        #     because it determines the SS revenue target)
+        # ------------------------------------------------------------------------
+        # '''
+        # output_base = wealth_dir
+        # input_dir = wealth_dir
+        # guid_iter = 'reform_' + str(0)
+        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+        #         'baseline':False, 'reform':2, 'user_params':user_params,
+        #         'guid':'wealth_tax_reform2','calibrate_model':False}
+        # runner_SS(**kwargs)
 
         '''
         ------------------------------------------------------------------------
@@ -82,19 +97,6 @@ def run_micro_macro(user_params):
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':True, 'reform':1, 'user_params':user_params,
                 'guid':'wealth_tax_reform1','calibrate_model':False}
-        runner_SS(**kwargs)
-
-        '''
-        ------------------------------------------------------------------------
-            Run wealth tax reform
-        ------------------------------------------------------------------------
-        '''
-        output_base = wealth_dir
-        input_dir = wealth_dir
-        guid_iter = 'reform_' + str(0)
-        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-                'baseline':True, 'reform':2, 'user_params':user_params,
-                'guid':'wealth_tax_reform2','calibrate_model':False}
         runner_SS(**kwargs)
 
 

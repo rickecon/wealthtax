@@ -166,58 +166,11 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     mtrx_params = np.zeros((S,BW,10))
     mtry_params = np.zeros((S,BW,10))
 
-
-    if reform != 1:
-        #baseline values
-        a_tax_income = 3.03452713268985e-06
-        b_tax_income = .222
-        c_tax_income = 133261.0
-        d_tax_income = .219
-    else:
-        # reform values
-        a_tax_income = 3.03452713268985e-06
-        b_tax_income = .222
-        c_tax_income = 133261.0
-        d_tax_income = .219
-
-        ## this is tricky - need to have new income tax rates that generate the
-        # same SS revenue as the wealth tax.  old code for this was:
-
-#         p_wealth = 0.0
-#
-# var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
-#              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-#              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-#              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-#              'a_tax_income', 'scal',
-#              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-#              'tau_payroll', 'tau_bq',
-#              'theta_tax', 'retire', 'mean_income',
-#              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
-#
-# dictionary = {}
-# for key in var_names:
-#     dictionary[key] = globals()[key]
-# pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-#
-# lump_to_match = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
-#
-#
-# def matcher(d_inc_guess):
-#     pickle.dump(d_inc_guess, open("OUTPUT/SS/d_inc_guess.pkl", "w"))
-#     call(['python', 'SS.py'])
-#     lump_new = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
-#     error = abs(lump_to_match - lump_new)
-#     print 'Error in taxes:', error
-#     return error
-#
-# print 'Computing new income tax to match wealth tax'
-# new_d_inc = opt.fsolve(matcher, d_tax_income, xtol=1e-13)
-# print '\tOld income tax:', d_tax_income
-# print '\tNew income tax:', new_d_inc
-#
-# os.remove("OUTPUT/SS/d_inc_guess.pkl")
-# os.remove("OUTPUT/SS/Tss_var.pkl")
+    #baseline values - reform values determined in execute.py
+    a_tax_income = 3.03452713268985e-06
+    b_tax_income = .222
+    c_tax_income = 133261.0
+    d_tax_income = .219
 
     etr_params[:,:,0] = a_tax_income
     etr_params[:,:,1] = b_tax_income
@@ -232,16 +185,17 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     #       These are non-calibrated values, h and m just need
     #       need to be nonzero to avoid errors. When p_wealth
     #       is zero, there is no wealth tax.
-    if reform != 3:
-        #baseline values
-        h_wealth = 0.1
-        m_wealth = 1.0
-        p_wealth = 0.0
-    else:
+    if reform == 2:
         # wealth tax reform values
         p_wealth = 0.025
         h_wealth = 0.305509008443123
         m_wealth = 2.16050687852062
+    else:
+        #baseline values
+        h_wealth = 0.1
+        m_wealth = 1.0
+        p_wealth = 0.0
+
 
 
     #   Bequest and Payroll Taxes
