@@ -72,6 +72,64 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
                 'h_wealth', 'p_wealth', 'm_wealth',
                 'omega', 'g_n_ss', 'omega_SS', 'surv_rate', 'imm_rates','e', 'rho', 'omega_S_preTP']
 
+
+        '''
+        ------------------------------------------------------------------------
+            If using income tax reform, need to determine parameters that yield
+            same SS revenue as the wealth tax reform.
+        ------------------------------------------------------------------------
+        '''
+        if reform == 1:
+            sim_params = {}
+            for key in param_names:
+                sim_params[key] = run_params[key]
+
+            sim_params['output_dir'] = output_base
+            sim_params['run_params'] = run_params
+            income_tax_params, ss_params, iterative_params, chi_params= SS.create_steady_state_parameters(**sim_params)
+
+            # find SS revenue from wealth tax reform
+            reform3_ss_dir = os.path.join(
+            "./OUTPUT_WEALTH_REFORM"    + '/sigma' + str(run_params['sigma']), "SS/SS_vars.pkl")
+            reform3_ss_solutions = pickle.load(open(reform3_ss_dir, "rb"))
+            lump_to_match = reform3_ss_solutions['T_Hss']
+
+            # create function to match SS revenue
+            def matcher(d_guess, params):
+                income_tax_params, lump_to_match = params
+                analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+                etr_params[:,3] = d_guess
+                mtrx_params[:,3] = d_guess
+                mtry_params[:,3] = d_guess
+                income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+                ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+                                  chi_params, baseline,baseline_dir=baseline_dir)
+
+                lump_new = ss_outputs['T_Hss']
+                error = abs(lump_to_match - lump_new)
+                if d_guess <= 0:
+                    error = 1e14
+                print 'Error in taxes:', error
+                return error
+
+            print 'Computing new income tax to match wealth tax'
+            d_guess= .219 # initial guess
+            import scipy.optimize as opt
+            params = [income_tax_params, lump_to_match]
+            new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-13)
+            print '\tOld income tax:', d_guess
+            print '\tNew income tax:', new_d_inc
+
+            analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+            etr_params[:,3] = new_d_inc
+            mtrx_params[:,3] = new_d_inc
+            mtry_params[:,3] = new_d_inc
+
+            run_params['etr_params'] = etr_params
+            run_params['mtrx_params'] = mtrx_params
+            run_params['mtry_params'] = mtry_params
+
+
     '''
     ------------------------------------------------------------------------
         Run SS
@@ -92,17 +150,21 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
     '''
     ------------------------------------------------------------------------
-        Pickle SS results
+        Pickle SS results and parameters of run
     ------------------------------------------------------------------------
     '''
     if baseline:
         utils.mkdirs(os.path.join(baseline_dir, "SS"))
         ss_dir = os.path.join(baseline_dir, "SS/SS_vars.pkl")
         pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        param_dir = os.path.join(baseline_dir, "run_parameters.pkl")
+        pickle.dump(sim_params, open(param_dir, "wb"))
     else:
         utils.mkdirs(os.path.join(output_base, "SS"))
         ss_dir = os.path.join(output_base, "SS/SS_vars.pkl")
         pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        param_dir = os.path.join(output_base, "run_parameters.pkl")
+        pickle.dump(sim_params, open(param_dir, "wb"))
 
 
     '''
@@ -220,8 +282,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         # find SS revenue from wealth tax reform
         reform3_ss_dir = os.path.join(
         "./OUTPUT_WEALTH_REFORM"    + '/sigma' + str(run_params['sigma']), "SS/SS_vars.pkl")
-        ss_solutions = pickle.load(open(reform3_ss_dir, "rb"))
-        lump_to_match = ss_solutions['T_Hss']
+        reform3_ss_solutions = pickle.load(open(reform3_ss_dir, "rb"))
+        lump_to_match = reform3_ss_solutions['T_Hss']
 
         # create function to match SS revenue
         def matcher(d_guess, params):
@@ -234,8 +296,10 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
                               chi_params, baseline,baseline_dir=baseline_dir)
 
-            lump_new = ss_solutions['T_Hss']
+            lump_new = ss_outputs['T_Hss']
             error = abs(lump_to_match - lump_new)
+            if d_guess <= 0:
+                error = 1e14
             print 'Error in taxes:', error
             return error
 
@@ -248,13 +312,13 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         print '\tNew income tax:', new_d_inc
 
         analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
-        etr_params[:,:,3] = new_d_inc
-        mtrx_params[:,:,3] = new_d_inc
-        mtry_params[:,:,3] = new_d_inc
-        income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
-        ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                          chi_params, baseline,baseline_dir=baseline_dir)
+        etr_params[:,3] = new_d_inc
+        mtrx_params[:,3] = new_d_inc
+        mtry_params[:,3] = new_d_inc
 
+        run_params['etr_params'] = etr_params
+        run_params['mtrx_params'] = mtrx_params
+        run_params['mtry_params'] = mtry_params
 
 
     '''
@@ -286,14 +350,18 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
     '''
     ------------------------------------------------------------------------
-        Pickle SS results
+        Pickle SS results and parameters
     ------------------------------------------------------------------------
     '''
     if baseline:
         utils.mkdirs(os.path.join(baseline_dir, "SS"))
         ss_dir = os.path.join(baseline_dir, "SS/SS_vars.pkl")
         pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        param_dir = os.path.join(baseline_dir, "run_parameters.pkl")
+        pickle.dump(sim_params, open(param_dir, "wb"))
     else:
         utils.mkdirs(os.path.join(output_base, "SS"))
         ss_dir = os.path.join(output_base, "SS/SS_vars.pkl")
         pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        param_dir = os.path.join(output_base, "run_parameters.pkl")
+        pickle.dump(sim_params, open(param_dir, "wb"))
