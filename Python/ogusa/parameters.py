@@ -130,7 +130,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     --------------------------------------------------------------------
     '''
     # Model Parameters
-    S = int(40) #S<30 won't meet necessary tolerances
+    S = int(80) #S<30 won't meet necessary tolerances
     J = int(7)
     T = int(3 * S)
     BW = int(10)
@@ -287,13 +287,23 @@ def get_parameters(baseline, reform, guid, user_modifiable):
    # Generate Income and Demographic parameters
     omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector, imm_rates, omega_S_preTP = get_pop_objs(
         E, S, T, 1, 100, 2016, flag_graphs)
+     ## To shut off demographics, uncomment the following 9 lines of code
+    g_n_ss = 0.0
+    surv_rate1 = np.ones((S,))# prob start at age S
+    surv_rate1[1:] = np.cumprod(surv_rate[:-1], dtype=float)
+    omega_SS = np.ones(S)*surv_rate1# number of each age alive at any time
+    omega_SS = omega_SS/omega_SS.sum()
+    imm_rates = np.zeros((T+S,S))
+    omega = np.tile(np.reshape(omega_SS,(1,S)),(T+S,1))
+    omega_S_preTP = omega_SS
+    g_n_vector = np.tile(g_n_ss,(T+S,))
 
 
-    # e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
-    # # # need to turn 80x7 array into SxJ array
-    # e /= (e * omega_SS.reshape(S, 1)
-    #             * lambdas.reshape(1, J)).sum()
-    e = np.ones((S,J))/(np.ones((S,J)) * omega_SS.reshape(S, 1)* lambdas.reshape(1, J)).sum()
+    e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
+    # # need to turn 80x7 array into SxJ array
+    e /= (e * omega_SS.reshape(S, 1)
+                * lambdas.reshape(1, J)).sum()
+
 
     allvars = dict(locals())
 
