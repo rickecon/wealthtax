@@ -128,21 +128,18 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
 
     min_args = data_moments, W, income_tax_params, ss_params, \
                iterative_params, chi_guesses_flat, baseline_dir
-    # est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
-    #                 tol=1e-15, options={'maxfun': 1, 'maxiter': 1, 'maxls': 1})
-    # est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
-    #                 tol=1e-15)
-    # chi_params = est_output.x
-    # objective_func_min = est_output.fun
-    #
-    # # pickle output
-    # utils.mkdirs(os.path.join(baseline_dir, "Calibration"))
-    # est_dir = os.path.join(baseline_dir, "Calibration/chi_estimation.pkl")
-    # pickle.dump(est_output, open(est_dir, "wb"))
-    #
-    # # save data and model moments and min stat to csv
-    # # to then put in table of paper
-    chi_params = chi_guesses_flat
+    est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
+                    tol=1e-15)
+    chi_params = est_output.x
+    objective_func_min = est_output.fun
+
+    # pickle output
+    utils.mkdirs(os.path.join(baseline_dir, "Calibration"))
+    est_dir = os.path.join(baseline_dir, "Calibration/chi_estimation.pkl")
+    pickle.dump(est_output, open(est_dir, "wb"))
+
+    # save data and model moments and min stat to csv
+    # to then put in table of paper
     chi_b = chi_params[:J]
     chi_n = chi_params[J:]
     chi_params_list = (chi_b, chi_n)
@@ -150,15 +147,15 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     ss_output = SS.run_SS(income_tax_params, ss_params, iterative_params, chi_params_list, True, baseline_dir)
     model_moments = calc_moments(ss_output, omega_SS, lambdas, S, J)
 
-    # # make dataframe for results
-    # columns = ['data_moment', 'model_moment', 'minstat']
-    # moment_fit = pd.DataFrame(index=range(0,J+2+S), columns=columns)
-    # moment_fit = moment_fit.fillna(0) # with 0s rather than NaNs
-    # moment_fit['data_moment'] = data_moments
-    # moment_fit['model_moment'] = model_moments
-    # moment_fit['minstat'] = objective_func_min
-    # est_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")s
-    # moment_fit.to_csv(est_dir)
+    # make dataframe for results
+    columns = ['data_moment', 'model_moment', 'minstat']
+    moment_fit = pd.DataFrame(index=range(0,J+2+S), columns=columns)
+    moment_fit = moment_fit.fillna(0) # with 0s rather than NaNs
+    moment_fit['data_moment'] = data_moments
+    moment_fit['model_moment'] = model_moments
+    moment_fit['minstat'] = objective_func_min
+    est_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")s
+    moment_fit.to_csv(est_dir)
 
     # calculate std errors
     h = 0.0001  # pct change in parameter
@@ -186,9 +183,6 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     std_errors_chi = (np.diag(VCV_params))**(1/2.)
     sd_dir = os.path.join(baseline_dir, "Calibration/chi_std_errors.pkl")
     pickle.dump(std_errors_chi, open(sd_dir, "wb"))
-
-    np.savetxt('chi_std_errors.csv',std_errors_chi)
-
 
     return chi_params
 

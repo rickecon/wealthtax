@@ -20,21 +20,10 @@ import json
 import numpy as np
 import scipy.ndimage.filters as filter
 from demographics import get_pop_objs
-from demographics_old import get_omega
 from income import get_e
 import pickle
 import elliptical_u_est
 import matplotlib.pyplot as plt
-
-
-'''
-------------------------------------------------------------------------
-Set paths, define user modifiable parameters
-------------------------------------------------------------------------
-'''
-DATASET = 'REAL'
-USER_MODIFIABLE_PARAMS = ['frisch', 'sigma']
-
 
 '''
 ------------------------------------------------------------------------
@@ -113,7 +102,7 @@ g_n_vector   = [T+S,] vector, growth rate in economically active pop for each pe
 e            = [S,J] array, normalized effective labor units by age and ability type
 ------------------------------------------------------------------------
 '''
-def get_parameters(baseline, reform, guid, user_modifiable, metadata):
+def get_parameters(baseline, reform, guid, user_modifiable):
     '''
     --------------------------------------------------------------------
     This function sets the parameters for the full model.
@@ -177,58 +166,11 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     mtrx_params = np.zeros((S,BW,10))
     mtry_params = np.zeros((S,BW,10))
 
-
-    if reform != 1:
-        #baseline values
-        a_tax_income = 3.03452713268985e-06
-        b_tax_income = .222
-        c_tax_income = 133261.0
-        d_tax_income = .219
-    else:
-        # reform values
-        a_tax_income = 3.03452713268985e-06
-        b_tax_income = .222
-        c_tax_income = 133261.0
-        d_tax_income = .219
-
-        ## this is tricky - need to have new income tax rates that generate the
-        # same SS revenue as the wealth tax.  old code for this was:
-
-#         p_wealth = 0.0
-#
-# var_names = ['S', 'J', 'T', 'bin_weights', 'starting_age', 'ending_age',
-#              'beta', 'sigma', 'alpha', 'nu', 'A', 'delta', 'ctilde', 'E',
-#              'bqtilde', 'ltilde', 'g_y', 'TPImaxiter',
-#              'TPImindist', 'b_ellipse', 'k_ellipse', 'upsilon',
-#              'a_tax_income', 'scal',
-#              'b_tax_income', 'c_tax_income', 'd_tax_income', 'tau_sales',
-#              'tau_payroll', 'tau_bq',
-#              'theta_tax', 'retire', 'mean_income',
-#              'h_wealth', 'p_wealth', 'm_wealth', 'chi_b_scal', 'SS_stage']
-#
-# dictionary = {}
-# for key in var_names:
-#     dictionary[key] = globals()[key]
-# pickle.dump(dictionary, open("OUTPUT/given_params.pkl", "w"))
-#
-# lump_to_match = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
-#
-#
-# def matcher(d_inc_guess):
-#     pickle.dump(d_inc_guess, open("OUTPUT/SS/d_inc_guess.pkl", "w"))
-#     call(['python', 'SS.py'])
-#     lump_new = pickle.load(open("OUTPUT/SS/Tss_var.pkl", "r"))
-#     error = abs(lump_to_match - lump_new)
-#     print 'Error in taxes:', error
-#     return error
-#
-# print 'Computing new income tax to match wealth tax'
-# new_d_inc = opt.fsolve(matcher, d_tax_income, xtol=1e-13)
-# print '\tOld income tax:', d_tax_income
-# print '\tNew income tax:', new_d_inc
-#
-# os.remove("OUTPUT/SS/d_inc_guess.pkl")
-# os.remove("OUTPUT/SS/Tss_var.pkl")
+    #baseline values - reform values determined in execute.py
+    a_tax_income = 3.03452713268985e-06
+    b_tax_income = .222
+    c_tax_income = 133261.0
+    d_tax_income = .219
 
     etr_params[:,:,0] = a_tax_income
     etr_params[:,:,1] = b_tax_income
@@ -243,16 +185,17 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     #       These are non-calibrated values, h and m just need
     #       need to be nonzero to avoid errors. When p_wealth
     #       is zero, there is no wealth tax.
-    if reform != 3:
-        #baseline values
-        h_wealth = 0.1
-        m_wealth = 1.0
-        p_wealth = 0.0
-    else:
+    if reform == 2:
         # wealth tax reform values
         p_wealth = 0.025
         h_wealth = 0.305509008443123
         m_wealth = 2.16050687852062
+    else:
+        #baseline values
+        h_wealth = 0.1
+        m_wealth = 1.0
+        p_wealth = 0.0
+
 
 
     #   Bequest and Payroll Taxes
@@ -271,11 +214,11 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
     flag_graphs = False
     #   Calibration parameters
     # These guesses are close to the calibrated values
-    # chi_b_guess = np.ones((J,)) * 80.0
+    chi_b_guess = np.ones((J,)) * 80.0
     #chi_b_guess = np.array([0.7, 0.7, 1.0, 1.2, 1.2, 1.2, 1.4])
     #chi_b_guess = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 10.0])
     #chi_b_guess = np.array([5, 10, 90, 250, 250, 250, 250])
-    chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
+    #chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
     chi_n_guess_80 = np.array([38.12000874, 33.22762421, 25.34842241, 26.67954008, 24.41097278,
                             23.15059004, 22.46771332, 21.85495452, 21.46242013, 22.00364263,
                             21.57322063, 21.53371545, 21.29828515, 21.10144524, 20.8617942,
@@ -298,19 +241,24 @@ def get_parameters(baseline, reform, guid, user_modifiable, metadata):
    # Generate Income and Demographic parameters
     omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector, imm_rates, omega_S_preTP = get_pop_objs(
         E, S, T, 1, 100, 2016, flag_graphs)
+     ## To shut off demographics, uncomment the following 9 lines of code
+    g_n_ss = 0.0
+    surv_rate1 = np.ones((S,))# prob start at age S
+    surv_rate1[1:] = np.cumprod(surv_rate[:-1], dtype=float)
+    omega_SS = np.ones(S)*surv_rate1# number of each age alive at any time
+    omega_SS = omega_SS/omega_SS.sum()
+    imm_rates = np.zeros((T+S,S))
+    omega = np.tile(np.reshape(omega_SS,(1,S)),(T+S,1))
+    omega_S_preTP = omega_SS
+    g_n_vector = np.tile(g_n_ss,(T+S,))
 
 
-    e = get_e(80, 7, 20, 100, lambdas = np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
+    e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
+    # # need to turn 80x7 array into SxJ array
+    e /= (e * omega_SS.reshape(S, 1)
+                * lambdas.reshape(1, J)).sum()
+
 
     allvars = dict(locals())
-
-    if user_modifiable:
-        allvars = {k:allvars[k] for k in USER_MODIFIABLE_PARAMS}
-
-    if metadata:
-        params_meta = read_parameter_metadata()
-        for k,v in allvars.iteritems():
-            params_meta[k]["value"] = v
-        allvars = params_meta
 
     return allvars
