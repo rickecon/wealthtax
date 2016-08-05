@@ -155,7 +155,7 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     moment_fit['model_moment'] = model_moments
     moment_fit['minstat'] = objective_func_min
     est_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
-    moment_fit.to_csv(baseline_dir)
+    pickle.dump(est_output, open(est_dir, "wb"))
 
     # calculate std errors
     h = 0.0001  # pct change in parameter
