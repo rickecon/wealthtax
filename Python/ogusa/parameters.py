@@ -214,7 +214,9 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     flag_graphs = False
     #   Calibration parameters
     # These guesses are close to the calibrated values
-    chi_b_guess = np.ones((J,)) * 80.0
+    # chi_b_guess = np.ones((J,)) * 80.0
+    chi_b_guess = np.array([7.84003265, 10.72762998, 129.97045975, 128.33552107,
+        229.59424786, 282.90123012, 116.0779987])
     #chi_b_guess = np.array([0.7, 0.7, 1.0, 1.2, 1.2, 1.2, 1.4])
     #chi_b_guess = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 10.0])
     #chi_b_guess = np.array([5, 10, 90, 250, 250, 250, 250])
@@ -235,23 +237,13 @@ def get_parameters(baseline, reform, guid, user_modifiable):
                             43.37786072, 45.38166073, 46.22395387, 50.21419653, 51.05246704,
                             53.86896121, 53.90029708, 61.83586775, 64.87563699, 66.91207845,
                             68.07449767, 71.27919965, 73.57195873, 74.95045988, 76.62308152])
+
     chi_n_guess = filter.uniform_filter(chi_n_guess_80,size=int(80/S))[::int(80/S)]
 
 
    # Generate Income and Demographic parameters
     omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector, imm_rates, omega_S_preTP = get_pop_objs(
         E, S, T, 1, 100, 2016, flag_graphs)
-     ## To shut off demographics, uncomment the following 9 lines of code
-    g_n_ss = 0.0
-    surv_rate1 = np.ones((S,))# prob start at age S
-    surv_rate1[1:] = np.cumprod(surv_rate[:-1], dtype=float)
-    omega_SS = np.ones(S)*surv_rate1# number of each age alive at any time
-    omega_SS = omega_SS/omega_SS.sum()
-    imm_rates = np.zeros((T+S,S))
-    omega = np.tile(np.reshape(omega_SS,(1,S)),(T+S,1))
-    omega_S_preTP = omega_SS
-    g_n_vector = np.tile(g_n_ss,(T+S,))
-
 
     e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
     # # need to turn 80x7 array into SxJ array

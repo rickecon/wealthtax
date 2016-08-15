@@ -128,8 +128,12 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
 
     min_args = data_moments, W, income_tax_params, ss_params, \
                iterative_params, chi_guesses_flat, baseline_dir
-    est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
-                    tol=1e-15)
+    # est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
+    #                 tol=1e-15)
+    minimizer_kwargs = {"args": (min_args)}
+    est_output = opt.basinhopping(minstat, chi_guesses_flat, niter=2000, T=1.0,
+                                stepsize=0.5, minimizer_kwargs=minimizer_kwargs,
+                                disp=False, niter_success=None)
     chi_params = est_output.x
     objective_func_min = est_output.fun
 
@@ -154,11 +158,11 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     moment_fit['data_moment'] = data_moments
     moment_fit['model_moment'] = model_moments
     moment_fit['minstat'] = objective_func_min
-    est_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
-    pickle.dump(est_output, open(est_dir, "wb"))
+    mom_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
+    pickle.dump(moment_fit, open(mom_dir, "wb"))
 
     # calculate std errors
-    h = 0.0001  # pct change in parameter
+    h = 0.001  # pct change in parameter
     model_moments_low = np.zeros((len(chi_params),len(model_moments)))
     model_moments_high = np.zeros((len(chi_params),len(model_moments)))
     chi_params_low = chi_params
@@ -226,8 +230,12 @@ def minstat(chi_guesses, *args):
     model_moments = calc_moments(ss_output, omega_SS, lambdas, S, J)
 
     # distance with levels
-    distance = np.dot(np.dot((np.array(model_moments) - np.array(data_moments)).T,W),
+    if ss_output['ss_flag'] == 0:
+        distance = np.dot(np.dot((np.array(model_moments) - np.array(data_moments)).T,W),
                    np.array(model_moments) - np.array(data_moments))
+    else:
+        distance = 1e14
+
     #distance = ((np.array(model_moments) - np.array(data_moments))**2).sum()
     print 'DATA and MODEL DISTANCE: ', distance
 

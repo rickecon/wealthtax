@@ -7,7 +7,7 @@ Creates graphs for steady state output.
 This py-file calls the following other file(s):
             firm.py
             household.py
-            SSinit/ss_init_vars.pkl
+            SS/ss_init_vars.pkl
             SS/ss_vars.pkl
             OUTPUT/Saved_moments/params_given.pkl
             OUTPUT/Saved_moments/params_changed.pkl
@@ -31,6 +31,7 @@ import os
 
 import firm
 import household
+import labor
 
 import parameters
 parameters.DATASET = 'REAL'
@@ -53,7 +54,7 @@ def the_inequalizer(dist, pop_weights, ability_weights, S, J):
         pop_weights     = [S,] vector, fraction of population by each age
         ability_weights = [J,] vector, fraction of population for each lifetime income group
         S               = integer, number of economically active periods in lifetime
-        J               = integer, number of ability types 
+        J               = integer, number of ability types
 
     Functions called: None
 
@@ -98,10 +99,10 @@ def the_inequalizer(dist, pop_weights, ability_weights, S, J):
 '''
 
 
-SS_FIG_DIR = "OUTPUT"
-COMPARISON_DIR = "OUTPUT"
+SS_FIG_DIR = "../OUTPUT_BASELINE/sigma3.0"
+COMPARISON_DIR = "../OUTPUT_BASELINE/sigma3.0"
 
-ss_init = os.path.join(SS_FIG_DIR, "SSinit/ss_init_vars.pkl")
+ss_init = os.path.join(SS_FIG_DIR, "SS/SS_vars.pkl")
 variables = pickle.load(open(ss_init, "rb"))
 for key in variables:
     globals()[key] = variables[key]
@@ -112,7 +113,7 @@ for key in variables:
 
 
 #globals().update(ogusa.parameters.get_parameters_from_file())
-globals().update(parameters.get_parameters())
+globals().update(parameters.get_parameters(True, {}, {}, {}))
 param_names = ['S', 'J', 'T', 'BW', 'lambdas', 'starting_age', 'ending_age',
              'beta', 'sigma', 'alpha', 'nu', 'Z', 'delta', 'E',
              'ltilde', 'g_y', 'maxiter', 'mindist_SS', 'mindist_TPI',
@@ -141,7 +142,7 @@ factor_ss_init = factor_ss
 
 savings = np.copy(bssmat_splus1)
 
-beq_ut = chi_b.reshape(S, J) * (rho.reshape(S, 1)) * \
+beq_ut = chi_b.reshape(1, J) * (rho.reshape(S, 1)) * \
     (savings**(1 - sigma) - 1) / (1 - sigma)
 utility = ((cssmat_init ** (1 - sigma) - 1) / (1 - sigma)) + chi_n.reshape(S, 1) * \
     (b_ellipse * (1 - (nssmat_init / ltilde)**upsilon) ** (1 / upsilon) + k_ellipse)
@@ -152,8 +153,10 @@ T_Hss_init = T_Hss
 Kss_init = Kss
 Lss_init = Lss
 
-Css_init = household.get_C(cssmat, omega_SS.reshape(S, 1), lambdas, 'SS')
-iss_init = firm.get_I(bssmat_splus1, bssmat_splus1, delta, g_y, g_n_ss)
+c_params = (omega_SS.reshape(S, 1), lambdas, 'SS')
+Css_init = household.get_C(cssmat, c_params)
+i_params = (delta, g_y, omega_SS.reshape(1,S), lambdas, imm_rates, g_n_ss, 'SS')
+iss_init = firm.get_I(bssmat_splus1, Kss_init, Kss_init, i_params)
 income_init = cssmat + iss_init
 # print (income_init*omega_SS).sum()
 # print Css + delta * Kss
@@ -181,7 +184,7 @@ X2, Y2 = np.meshgrid(domain[1:], Jgrid)
 
 plt.figure()
 plt.plot(np.arange(J) + 1, utility_init)
-lt_utility = os.path.join(SS_FIG_DIR, "SSinit/lifetime_utility")
+lt_utility = os.path.join(SS_FIG_DIR, "SS/lifetime_utility")
 plt.savefig(lt_utility)
 
 fig5 = plt.figure()
@@ -190,7 +193,7 @@ ax5.set_xlabel(r'age-$s$')
 ax5.set_ylabel(r'ability type-$j$')
 ax5.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
 ax5.plot_surface(X, Y, bssmat_s.T, rstride=1, cstride=1, cmap=cmap2)
-capital_dist = os.path.join(SS_FIG_DIR, "SSinit/capital_dist")
+capital_dist = os.path.join(SS_FIG_DIR, "SS/capital_dist")
 plt.savefig(capital_dist)
 # plt.show()
 
@@ -210,7 +213,7 @@ ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'individual savings $\bar{b}_{j,s}$')
-capital_dist_2D = os.path.join(SS_FIG_DIR, "SSinit/capital_dist_2D")
+capital_dist_2D = os.path.join(SS_FIG_DIR, "SS/capital_dist_2D")
 plt.savefig(capital_dist_2D)
 
 fig53 = plt.figure()
@@ -220,14 +223,14 @@ ax53.set_ylabel(r'ability type-$j$')
 ax53.set_zlabel(r'log individual savings $log(\bar{b}_{j,s})$')
 ax53.plot_surface(X2, Y2, np.log(
     bssmat_s[1:]).T, rstride=1, cstride=1, cmap=cmap1)
-capital_dist_log = os.path.join(SS_FIG_DIR, "SSinit/capital_dist_log")
+capital_dist_log = os.path.join(SS_FIG_DIR, "SS/capital_dist_log")
 plt.savefig(capital_dist_log)
 
 plt.figure()
 plt.plot(np.arange(J) + 1, BQss)
 plt.xlabel(r'ability-$j$')
 plt.ylabel(r'bequests $\overline{bq}_{j,E+S+1}$')
-intentional_bequests = os.path.join(SS_FIG_DIR, "SSinit/intentional_bequests")
+intentional_bequests = os.path.join(SS_FIG_DIR, "SS/intentional_bequests")
 plt.savefig(intentional_bequests)
 
 fig4 = plt.figure()
@@ -236,15 +239,13 @@ ax4.set_xlabel(r'age-$s$')
 ax4.set_ylabel(r'ability-$j$')
 ax4.set_zlabel(r'individual labor supply $\bar{l}_{j,s}$')
 ax4.plot_surface(X, Y, (nssmat).T, rstride=1, cstride=1, cmap=cmap1)
-labor_dist = os.path.join(SS_FIG_DIR, "SSinit/labor_dist")
+labor_dist = os.path.join(SS_FIG_DIR, "SS/labor_dist")
 plt.savefig(labor_dist)
 
 # Plot 2d comparison of labor distribution to data
 # First import the labor data
-labor = os.path.join(COMPARISON_DIR, "Saved_moments/labor_data_moments.pkl")
-variables = pickle.load(open(labor, "rb"))
-for key in variables:
-    globals()[key] = variables[key]
+cps = labor.get_labor_data()
+labor_dist_data = labor.compute_labor_moments(cps,S)
 
 plt.figure()
 plt.plot(np.arange(80) + 20, (nssmat * lambdas).sum(1),
@@ -255,7 +256,7 @@ plt.legend()
 plt.ylabel(r'individual labor supply $\bar{l}_{s}$')
 plt.xlabel(r'age-$s$')
 labor_dist_comparison = os.path.join(
-    SS_FIG_DIR, "SSinit/labor_dist_comparison")
+    SS_FIG_DIR, "SS/labor_dist_comparison")
 plt.savefig(labor_dist_comparison)
 
 fig113 = plt.figure()
@@ -272,7 +273,7 @@ ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'individual labor supply $\bar{l}_{j,s}$')
-labor_dist_2D = os.path.join(SS_FIG_DIR, "SSinit/labor_dist_2D")
+labor_dist_2D = os.path.join(SS_FIG_DIR, "SS/labor_dist_2D")
 plt.savefig(labor_dist_2D)
 
 fig9 = plt.figure()
@@ -282,7 +283,7 @@ ax9.set_xlabel(r'age-$s$')
 ax9.set_ylabel(r'ability-$j$')
 ax9.set_zlabel('Consumption')
 # ax9.set_title('Steady State Distribution of Consumption')
-consumption = os.path.join(SS_FIG_DIR, "SSinit/consumption")
+consumption = os.path.join(SS_FIG_DIR, "SS/consumption")
 plt.savefig(consumption)
 
 fig114 = plt.figure()
@@ -299,7 +300,7 @@ ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel(r'age-$s$')
 ax.set_ylabel(r'individual consumption $\bar{c}_{j,s}$')
-consumption_2D = os.path.join(SS_FIG_DIR, "SSinit/consumption_2D")
+consumption_2D = os.path.join(SS_FIG_DIR, "SS/consumption_2D")
 plt.savefig(consumption_2D)
 
 fig93 = plt.figure()
@@ -309,7 +310,7 @@ ax93.set_xlabel(r'age-$s$')
 ax93.set_ylabel(r'ability type-$j$')
 ax93.set_zlabel('log consumption')
 # ax93.set_title('Steady State Distribution of Consumption')
-consumption_log = os.path.join(SS_FIG_DIR, "SSinit/consumption_log")
+consumption_log = os.path.join(SS_FIG_DIR, "SS/consumption_log")
 plt.savefig(consumption_log)
 
 fig2 = plt.figure()
@@ -318,14 +319,14 @@ ax2.set_xlabel(r'age-$s$')
 ax2.set_ylabel(r'ability-$j$')
 ax2.set_zlabel(r'individual income $\bar{y}_{j,s}$')
 ax2.plot_surface(X, Y, (income_init).T, rstride=1, cstride=1, cmap=cmap1)
-income = os.path.join(SS_FIG_DIR, "SSinit/income")
+income = os.path.join(SS_FIG_DIR, "SS/income")
 plt.savefig(income)
 
 plt.figure()
 plt.plot(domain, chi_n)
 plt.xlabel(r'Age cohort - $s$')
 plt.ylabel(r'$\chi _n$')
-chi_n = os.path.join(SS_FIG_DIR, "SSinit/chi_n")
+chi_n = os.path.join(SS_FIG_DIR, "SS/chi_n")
 plt.savefig(chi_n)
 
 fig16 = plt.figure()
@@ -336,7 +337,7 @@ ax16.set_ylabel(r'Ability Types $J$')
 ax16.set_zlabel('Error Level')
 ax16.set_title('Euler Errors')
 euler_errors_savings_SS = os.path.join(
-    SS_FIG_DIR, "SSinit/euler_errors_savings_SS")
+    SS_FIG_DIR, "SS/euler_errors_savings_SS")
 plt.savefig(euler_errors_savings_SS)
 fig17 = plt.figure()
 ax17 = fig17.gca(projection='3d')
@@ -347,7 +348,7 @@ ax17.set_ylabel(r'Ability Types $J$')
 ax17.set_zlabel('Error Level')
 ax17.set_title('Euler Errors')
 euler_errors_laborleisure_SS = os.path.join(
-    SS_FIG_DIR, "SSinit/euler_errors_laborleisure_SS")
+    SS_FIG_DIR, "SS/euler_errors_laborleisure_SS")
 plt.savefig(euler_errors_laborleisure_SS)
 
 # '''
@@ -400,7 +401,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 
 # plt.figure()
 # plt.plot(np.arange(J) + 1, utility)
-# lifetime_utility = os.path.join(SS_FIG_DIR, "SSinit/lifetime_utility")
+# lifetime_utility = os.path.join(SS_FIG_DIR, "SS/lifetime_utility")
 # plt.savefig(lifetime_utility)
 
 # fig15 = plt.figure()
@@ -409,14 +410,14 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax15.set_ylabel(r'ability-$j$')
 # ax15.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
 # ax15.plot_surface(X, Y, bssmat_s.T, rstride=1, cstride=1, cmap=cmap2)
-# capital_dist = os.path.join(SS_FIG_DIR, "SSinit/capital_dist")
+# capital_dist = os.path.join(SS_FIG_DIR, "SS/capital_dist")
 # plt.savefig(capital_dist)
 
 # plt.figure()
 # plt.plot(np.arange(J) + 1, BQss)
 # plt.xlabel(r'ability-$j$')
 # plt.ylabel(r'bequests $\overline{bq}_{j,E+S+1}$')
-# intentional_bequests = os.path.join(SS_FIG_DIR, "SSinit/intentional_bequests")
+# intentional_bequests = os.path.join(SS_FIG_DIR, "SS/intentional_bequests")
 # plt.savefig(intentional_bequests)
 
 # fig14 = plt.figure()
@@ -425,7 +426,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax14.set_ylabel(r'ability-$j$')
 # ax14.set_zlabel(r'individual labor supply $\bar{l}_{j,s}$')
 # ax14.plot_surface(X, Y, (nssmat).T, rstride=1, cstride=1, cmap=cmap1)
-# labor_dist = os.path.join(SS_FIG_DIR, "SSinit/labor_dist")
+# labor_dist = os.path.join(SS_FIG_DIR, "SS/labor_dist")
 # plt.savefig(labor_dist)
 
 # fig19 = plt.figure()
@@ -435,7 +436,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax19.set_ylabel(r'ability-$j$')
 # ax19.set_zlabel('Consumption')
 # ax19.set_title('Steady State Distribution of Consumption')
-# consumption = os.path.join(SS_FIG_DIR, "SSinit/consumption")
+# consumption = os.path.join(SS_FIG_DIR, "SS/consumption")
 # plt.savefig(consumption)
 
 # fig12 = plt.figure()
@@ -444,14 +445,14 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax12.set_ylabel(r'ability-$j$')
 # ax12.set_zlabel(r'individual income $\bar{y}_{j,s}$')
 # ax12.plot_surface(X, Y, (income).T, rstride=1, cstride=1, cmap=cmap1)
-# income = os.path.join(SS_FIG_DIR, "SSinit/income")
+# income = os.path.join(SS_FIG_DIR, "SS/income")
 # plt.savefig(income)
 
 # plt.figure()
 # plt.plot(domain, chi_n)
 # plt.xlabel(r'Age cohort - $s$')
 # plt.ylabel(r'$\chi _n$')
-# chi_n = os.path.join(SS_FIG_DIR, "SSinit/chi_n")
+# chi_n = os.path.join(SS_FIG_DIR, "SS/chi_n")
 # plt.savefig(chi_n)
 
 # fig116 = plt.figure()
@@ -462,7 +463,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax116.set_zlabel('Error Level')
 # ax116.set_title('Euler Errors')
 # euler_errors_savings_SS = os.path.join(
-#     SS_FIG_DIR, "SSinit/euler_errors_savings_SS")
+#     SS_FIG_DIR, "SS/euler_errors_savings_SS")
 # plt.savefig(euler_errors_savings_SS)
 # fig117 = plt.figure()
 # ax117 = fig117.gca(projection='3d')
@@ -473,7 +474,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax117.set_zlabel('Error Level')
 # ax117.set_title('Euler Errors')
 # euler_errors_laborleisure_SS = os.path.join(
-#     SS_FIG_DIR, "SSinit/euler_errors_laborleisure_SS")
+#     SS_FIG_DIR, "SS/euler_errors_laborleisure_SS")
 # plt.savefig(euler_errors_laborleisure_SS)
 
 # '''
@@ -493,7 +494,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # plt.figure()
 # plt.plot(np.arange(J) + 1, utility_dif)
 # lifetime_utility_percdif = os.path.join(
-#     SS_FIG_DIR, "SSinit/lifetime_utility_percdif")
+#     SS_FIG_DIR, "SS/lifetime_utility_percdif")
 # plt.savefig(lifetime_utility_percdif)
 
 # fig25 = plt.figure()
@@ -502,7 +503,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax25.set_ylabel(r'ability-$j$')
 # ax25.set_zlabel(r'individual savings $\bar{b}_{j,s}$')
 # ax25.plot_surface(X2, Y2, bssmat_percdif.T, rstride=1, cstride=1, cmap=cmap2)
-# capital_dist_percdif = os.path.join(SS_FIG_DIR, "SSinit/capital_dist_percdif")
+# capital_dist_percdif = os.path.join(SS_FIG_DIR, "SS/capital_dist_percdif")
 # plt.savefig(capital_dist_percdif)
 
 # plt.figure()
@@ -510,7 +511,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # plt.xlabel(r'ability-$j$')
 # plt.ylabel(r'bequests $\overline{bq}_{j,E+S+1}$')
 # intentional_bequests_percdif = os.path.join(
-#     SS_FIG_DIR, "SSinit/intentional_bequests_percdif")
+#     SS_FIG_DIR, "SS/intentional_bequests_percdif")
 # plt.savefig(intentional_bequests_percdif)
 
 # fig24 = plt.figure()
@@ -519,7 +520,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax24.set_ylabel(r'ability-$j$')
 # ax24.set_zlabel(r'individual labor supply $\bar{l}_{j,s}$')
 # ax24.plot_surface(X, Y, (nssmat_percdif).T, rstride=1, cstride=1, cmap=cmap1)
-# labor_dist_percdif = os.path.join(SS_FIG_DIR, "SSinit/labor_dist_percdif")
+# labor_dist_percdif = os.path.join(SS_FIG_DIR, "SS/labor_dist_percdif")
 # plt.savefig(labor_dist_percdif)
 
 # fig29 = plt.figure()labor supply
@@ -529,7 +530,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax29.set_ylabel(r'ability-$j$')
 # ax29.set_zlabel('Consumption')
 # ax29.set_title('Steady State Distribution of Consumption')
-# consumption_percdif = os.path.join(SS_FIG_DIR, "SSinit/consumption_percdif")
+# consumption_percdif = os.path.join(SS_FIG_DIR, "SS/consumption_percdif")
 # plt.savefig(consumption_percdif)
 
 # fig22 = plt.figure()
@@ -538,7 +539,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax22.set_ylabel(r'ability-$j$')
 # ax22.set_zlabel(r'individual income $\bar{y}_{j,s}$')
 # ax22.plot_surface(X, Y, (income_dif).T, rstride=1, cstride=1, cmap=cmap1)
-# income_percdif = os.path.join(SS_FIG_DIR, "SSinit/income_percdif")
+# income_percdif = os.path.join(SS_FIG_DIR, "SS/income_percdif")
 # plt.savefig(income_percdif)
 
 
@@ -611,7 +612,7 @@ plt.savefig(euler_errors_laborleisure_SS)
 # ax.set_ylabel(r'% change in $\bar{l}_{j,s}$')
 
 
-# combograph = os.path.join(SS_FIG_DIR, "SSinit/combograph")
+# combograph = os.path.join(SS_FIG_DIR, "SS/combograph")
 # plt.savefig(combograph)
 
 
@@ -648,7 +649,7 @@ for j in xrange(J):
     plt.ylabel(r'Individual savings, in millions of dollars')
     plt.legend(loc=0)
     fig_j = os.path.join(
-        SS_FIG_DIR, "SSinit/wealth_fit_graph_{}".format(whichpercentile[j]))
+        SS_FIG_DIR, "SS/wealth_fit_graph_{}".format(whichpercentile[j]))
     plt.savefig(fig_j)
 
 # all 7 together
@@ -718,7 +719,7 @@ ax8.set_ylim([-.05, .25])
 ax8.set_title(r'$0-24^{th}$ Percentile')
 
 
-wealth_fits_all_png = os.path.join(SS_FIG_DIR, "SSinit/wealth_fits_all_png")
+wealth_fits_all_png = os.path.join(SS_FIG_DIR, "SS/wealth_fits_all_png")
 plt.savefig(wealth_fits_all_png)
 
 '''
@@ -740,7 +741,7 @@ plt.plot(domain, factor_ss_init * cssmat_init[:, 6], label='100%')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual consumption, in dollars')
 plt.legend(loc=0)
-css_dollars = os.path.join(SS_FIG_DIR, "SSinit/css_dollars")
+css_dollars = os.path.join(SS_FIG_DIR, "SS/css_dollars")
 plt.savefig(css_dollars)
 
 plt.figure()
@@ -754,7 +755,7 @@ plt.plot(domain, factor_ss_init * income_init[:, 6], label='100%')
 plt.xlabel(r'age-$s$')
 plt.ylabel(r'Individual income, in dollars')
 plt.legend(loc=0)
-income_dollars = os.path.join(SS_FIG_DIR, "SSinit/income_dollars")
+income_dollars = os.path.join(SS_FIG_DIR, "SS/income_dollars")
 plt.savefig(income_dollars)
 
 '''
