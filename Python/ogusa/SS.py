@@ -507,7 +507,8 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
 
     resource_constraint = Yss - (Css + Iss)
 
-    #print 'Resource Constraint Difference:', resource_constraint
+    # print 'Resource Constraint Difference:', resource_constraint
+    # print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
 
     if ENFORCE_SOLUTION_CHECKS and np.absolute(resource_constraint) > 1e-8:
         err = "Steady state aggregate resource constraint not satisfied"
@@ -516,7 +517,7 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     # check constraints
     household.constraint_checker_SS(bssmat, nssmat, cssmat, ltilde)
 
-    if np.absolute(resource_constraint) > 1e-8 or (np.absolute(euler_errors)).max > 1e-8:
+    if np.absolute(resource_constraint) > 1e-8 or (np.absolute(euler_errors)).max() > 1e-8:
         ss_flag = 1
     else:
         ss_flag = 0

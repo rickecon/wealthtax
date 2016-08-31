@@ -39,6 +39,23 @@ import labor
 import SS
 import utils
 
+# initialize datafame to keep output
+global bh_output
+data = np.ones((1,88))
+columns = list(xrange(88))
+bh_output = pd.DataFrame(data, columns=columns)
+
+
+class MyBounds(object):
+        def __init__(self, xmin=[0.0,0.0] ):
+            #self.xmax = np.array(xmax)
+            self.xmin = np.array(xmin)
+        def __call__(self, **kwargs):
+            x = kwargs["x_new"]
+            #tmax = bool(np.all(x <= self.xmax))
+            tmin = bool(np.all(x >= self.xmin))
+            return tmin
+
 def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, baseline_dir="./OUTPUT"):
     '''
     --------------------------------------------------------------------
@@ -129,11 +146,12 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     min_args = data_moments, W, income_tax_params, ss_params, \
                iterative_params, chi_guesses_flat, baseline_dir
     # est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
-    #                 tol=1e-15)
+    #                 tol=1e-15, options={'maxfun':1,'maxiter':1,'maxls':2})
+    mybounds = MyBounds()
     minimizer_kwargs = {"args": (min_args)}
-    est_output = opt.basinhopping(minstat, chi_guesses_flat, niter=2000, T=1.0,
-                                stepsize=0.5, minimizer_kwargs=minimizer_kwargs,
-                                disp=False, niter_success=None)
+    est_output = opt.basinhopping(minstat, chi_guesses_flat, niter=1000,
+                                minimizer_kwargs=minimizer_kwargs,
+                                disp=False,niter_success=None, accept_test=mybounds)
     chi_params = est_output.x
     objective_func_min = est_output.fun
 
@@ -191,8 +209,6 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     return chi_params
 
 
-
-
 def minstat(chi_guesses, *args):
     '''
     --------------------------------------------------------------------
@@ -238,6 +254,21 @@ def minstat(chi_guesses, *args):
 
     #distance = ((np.array(model_moments) - np.array(data_moments))**2).sum()
     print 'DATA and MODEL DISTANCE: ', distance
+
+    # save results along the way
+    bh_along = np.reshape(np.append(chi_guesses,distance),(1,88))
+    # x = chi_guesses
+    # f = distance
+    # fun_dict = {'x':x,'f':f}
+    # bh_out = np.append(bh_output, bh_along,axis=1)
+    # bh_output = bh_out
+    # print bh_output.shape
+    columns = list(xrange(88))
+    df = pd.DataFrame(bh_along, columns=columns)
+    bh_output.loc[len(bh_output),:] = bh_along
+    pickle.dump(bh_output, open( "estimation_output_along.pkl", "wb" ) )
+
+
 
     # # distance with percentage diffs
     # distance = (((model_moments - data_moments)/data_moments)**2).sum()
