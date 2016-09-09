@@ -47,7 +47,7 @@ bh_output = pd.DataFrame(data, columns=columns)
 
 
 class MyBounds(object):
-        def __init__(self, xmin=[0.0,0.0] ):
+        def __init__(self, xmin=np.zeros((87,)) ):
             #self.xmax = np.array(xmax)
             self.xmin = np.array(xmin)
         def __call__(self, **kwargs):
