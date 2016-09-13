@@ -185,8 +185,8 @@ def get_fert(totpers, min_yr, max_yr, graph=False):
         minorLocator   = MultipleLocator(1)
         ax.xaxis.set_minor_locator(minorLocator)
         plt.grid(b=True, which='major', color='0.65',linestyle='-')
-        # plt.title('Fitted fertility rate function by age ($f_{s}$)',
-        #     fontsize=20)
+        plt.title('Fitted fertility rate function by age ($f_{s}$)',
+            fontsize=20)
         plt.xlabel(r'Age $s$')
         plt.ylabel(r'Fertility rate $f_{s}$')
         plt.xlim((min_yr-1, max_yr+1))
@@ -198,13 +198,28 @@ def get_fert(totpers, min_yr, max_yr, graph=False):
             fontsize=9)
         plt.tight_layout(rect=(0, 0.03, 1, 1))
         # Create directory if OUTPUT directory does not already exist
-        output_fldr = "OUTPUT/Demographics"
+        output_fldr = '../Graphs'
         output_dir = os.path.join(cur_path, output_fldr)
         if os.access(output_dir, os.F_OK) == False:
             os.makedirs(output_dir)
         output_path = os.path.join(output_dir, "fert_rates")
         plt.savefig(output_path)
         # plt.show()
+        plt.close()
+
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(age_fine, fert_fine,linewidth=2, color='blue')
+        plt.ylim((0,
+            1.15*(fert_fine_pred.max())))
+        plt.xlabel(r'Age $s$')
+        plt.ylabel(r'Fertility rate $f_{s}$')
+        fert_rates_path = os.path.join('./Graphs', "fert_rates_paper")
+        plt.savefig(fert_rates_path)
+        plt.close()
+
 
     return fert_rates
 
@@ -325,8 +340,8 @@ def get_mort(totpers, min_yr, max_yr, graph=False):
         minorLocator   = MultipleLocator(1)
         ax.xaxis.set_minor_locator(minorLocator)
         plt.grid(b=True, which='major', color='0.65',linestyle='-')
-        # plt.title('Fitted mortality rate function by age ($rho_{s}$)',
-        #     fontsize=20)
+        plt.title('Fitted mortality rate function by age ($rho_{s}$)',
+            fontsize=20)
         plt.xlabel(r'Age $s$')
         plt.ylabel(r'Mortality rate $\rho_{s}$')
         plt.xlim((min_yr-2, age_year_all.max()+2))
@@ -337,13 +352,30 @@ def get_mort(totpers, min_yr, max_yr, graph=False):
             fontsize=9)
         plt.tight_layout(rect=(0, 0.03, 1, 1))
         # Create directory if OUTPUT directory does not already exist
-        output_fldr = "OUTPUT/Demographics"
+        output_fldr = './Graphs'
         output_dir = os.path.join(cur_path, output_fldr)
         if os.access(output_dir, os.F_OK) == False:
             os.makedirs(output_dir)
         output_path = os.path.join(output_dir, "mort_rates")
         plt.savefig(output_path)
         # plt.show()
+        plt.close()
+
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(np.hstack([0, age_year_all[min_yr-1:100]]),
+            np.hstack([infmort_rate, mort_rates_all[min_yr-1:100]]),linewidth=2, color='blue')
+        plt.plot(age_year_all[100:], mort_rates_all[
+            100:], color='blue', linestyle='--', linewidth=2)
+        plt.axvline(x=80, color='red', linestyle='-', linewidth=1)
+        plt.ylim((0.,0.7))
+        plt.xlabel(r'Age $s$')
+        plt.ylabel(r'Mortality rate $\rho_{s}$')
+        mort_rates_path = os.path.join('./Graphs', "mort_rates_paper")
+        plt.savefig(mort_rates_path)
+        plt.close()
 
     return mort_rates, infmort_rate
 
@@ -534,13 +566,26 @@ def get_imm_resid(totpers, min_yr, max_yr, graph=True):
         plt.ylabel(r'Imm. rate $i_{s}$')
         plt.xlim((0, totpers+1))
         # Create directory if OUTPUT directory does not already exist
-        output_fldr = "OUTPUT/Demographics"
+        output_fldr = './Graphs'
         output_dir = os.path.join(cur_path, output_fldr)
         if os.access(output_dir, os.F_OK) == False:
             os.makedirs(output_dir)
         output_path = os.path.join(output_dir, "imm_rates_orig")
         plt.savefig(output_path)
         # plt.show()
+        plt.close()
+
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(age_per, imm_rates,linewidth=2, color='blue')
+        plt.ylim((0,0.02))
+        plt.xlabel(r'Age $s$')
+        plt.ylabel(r'Imm. rate $i_{s}$')
+        imm_rates_path = os.path.join('./Graphs', "imm_rates_paper")
+        plt.savefig(imm_rates_path)
+        plt.close()
 
     return imm_rates
 
@@ -695,11 +740,11 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
     --------------------------------------------------------------------
     '''
     age_per = np.linspace(min_yr, max_yr, E+S)
-    fert_rates = get_fert(E+S, min_yr, max_yr, graph=False)
+    fert_rates = get_fert(E+S, min_yr, max_yr, graph=GraphDiag)
     mort_rates, infmort_rate = get_mort(E+S, min_yr, max_yr,
-                                        graph=False)
+                                        graph=GraphDiag)
     mort_rates_S = mort_rates[-S:]
-    imm_rates_orig = get_imm_resid(E+S, min_yr, max_yr, graph=False)
+    imm_rates_orig = get_imm_resid(E+S, min_yr, max_yr, graph=GraphDiag)
     #imm_rates_orig = np.zeros(E+S)
     imm_rates_S = imm_rates_orig[-S:]
     OMEGA_orig = np.zeros((E+S, E+S))
@@ -785,14 +830,14 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
         np.tile(np.reshape(imm_rates_orig[E:],(S,1)), (1, fixper)),
         np.tile(np.reshape(imm_rates_adj[E:],(S,1)), (1, T+S-fixper))))
 
-    # omega_diffs_orig = (omega_path_S[1:,1:] - 
-    #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] - 
+    # omega_diffs_orig = (omega_path_S[1:,1:] -
+    #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] -
     #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*np.tile(np.reshape(imm_rates_orig[E+1:],(S-1,1)),(1,T+S-1))*omega_path_S[1:,:-1])
-    # omega_diffs_adj = (omega_path_S[1:,1:] - 
-    #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] - 
+    # omega_diffs_adj = (omega_path_S[1:,1:] -
+    #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] -
     #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*np.tile(np.reshape(imm_rates_adj[E+1:],(S-1,1)),(1,T+S-1))*omega_path_S[1:,:-1])
-    # omega_diffs_mixed = (omega_path_S[1:,1:] - 
-    #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] - 
+    # omega_diffs_mixed = (omega_path_S[1:,1:] -
+    #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] -
     #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*imm_rates_mat[1:,:-1]*omega_path_S[1:,:-1])
     # np.savetxt('omega_diffs_orig.csv', omega_diffs_orig, delimiter=',')
     # np.savetxt('omega_diffs_adj.csv', omega_diffs_adj, delimiter=',')
@@ -857,13 +902,13 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
         ----------------------------------------------------------------
         '''
         cur_path = os.path.split(os.path.abspath(__file__))[0]
-        output_fldr = "OUTPUT/Demographics"
+        output_fldr = './Graphs'
         output_dir = os.path.join(cur_path, output_fldr)
         if os.access(output_dir, os.F_OK) == False:
             os.makedirs(output_dir)
         output_path = os.path.join(output_dir, "OrigVsFixSSpop")
         plt.savefig(output_path)
-        plt.show()
+        # plt.show()
 
         # Print whether or not the adjusted immigration rates solved the
         # zero condition
@@ -930,9 +975,9 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
         minorLocator   = MultipleLocator(1)
         ax.xaxis.set_minor_locator(minorLocator)
         plt.grid(b=True, which='major', color='0.65',linestyle='-')
-        plt.title(
-            'Original immigration rates vs. adjusted',
-            fontsize=20)
+        # plt.title(
+        #     'Original immigration rates vs. adjusted',
+        #     fontsize=20)
         plt.xlabel(r'Age $s$')
         plt.ylabel(r"Imm. rates $i_{s}$")
         plt.xlim((0, E+S+1))
@@ -940,7 +985,21 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
         # Create directory if OUTPUT directory does not already exist
         output_path = os.path.join(output_dir, "OrigVsAdjImm")
         plt.savefig(output_path)
-        plt.show()
+        # plt.show()
+        plt.close()
+
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(age_per_EpS, imm_rates_orig, label="Original Imm. Rates",linewidth=2, color='blue')
+        plt.plot(age_per_EpS, imm_rates_adj, label="Adj. Imm. Rates",linestyle="--",linewidth=2, color='blue')
+        # plt.ylim((0,0.02))
+        plt.xlabel(r'Age $s$')
+        plt.ylabel(r'Imm. rate $i_{s}$')
+        imm_rates_path = os.path.join('./Graphs', "imm_rates_all_paper")
+        plt.savefig(imm_rates_path)
+        plt.close()
 
         # Plot population distributions for data_year, curr_year,
         # curr_year+20, omega_SSfx, and omega_SS_orig
@@ -970,7 +1029,51 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
         # Create directory if OUTPUT directory does not already exist
         output_path = os.path.join(output_dir, "PopDistPath")
         plt.savefig(output_path)
-        plt.show()
+        #plt.show()
+        plt.close()
+
+        # Initial year pop dist
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(age_per_EpS,
+            (omega_path_lev[:, 0] / omega_path_lev[:, 0].sum()),linewidth=2, color='blue')
+        plt.xlabel(r'Age $s$')
+        plt.ylabel(r"Pop. dist'n $\omega_{s}$")
+        plt.xlim((0, E+S+1))
+        output_path = os.path.join("./Graphs", "PopDist_Initial")
+        plt.savefig(output_path)
+        plt.close()
+
+        # SS dist
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(age_per_EpS,
+            (omega_path_lev[:, -1] / omega_path_lev[:, -1].sum()),linewidth=2, color='blue')
+        plt.xlabel(r'Age $s$')
+        plt.ylabel(r"Pop. dist'n $\omega_{s}$")
+        plt.xlim((0, E+S+1))
+        output_path = os.path.join("./Graphs", "PopDist_SS")
+        plt.savefig(output_path)
+        plt.close()
+
+        # g_n path
+        plt.clf()
+        plt.figure()
+        plt.rc('text', usetex=True)
+        plt.rc('font', family='serif')
+        plt.plot(np.arange(T+S)+1, g_n_path*100, 'b', linewidth=2)
+        plt.axhline(y=100 * g_n_SS, color='r', linestyle='--', label=r'$\bar{g}_n$')
+        plt.xlim((0, T+S+1))
+        plt.legend(loc=0)
+        plt.xlabel(r'Time $t$')
+        plt.ylabel(r'Population growth rate $g_{n}$')
+        output_path = os.path.join("./Graphs", "Population_growthrate")
+        plt.savefig(output_path)
+        plt.close()
 
     # return omega_path_S, g_n_SS, omega_SSfx, survival rates,
     # mort_rates_S, and g_n_path

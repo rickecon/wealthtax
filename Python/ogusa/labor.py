@@ -44,36 +44,6 @@ def get_labor_data():
                                            'hours_unit', 'wtsupp'])
     return cps
 
-#     '''
-#     Need to:
-#     1) read in raw CPS files
-#     2) do collapsing
-#     3) return pandas DF with raw CPS data (just variables needed - age, hours, weight)
-#     4) return np array "weighted"
-#
-#     5) moments() will take CPS and calc moments
-#     6) VCV will boot strap CPS and call moments() with each boostrapped sample
-# '''
-#
-#     # Create variables for number of age groups in data (S_labor) and number
-#     # of percentiles (J_labor)
-#     S_labor = 60
-#     J_labor = 99
-#
-#     labor_file = utils.read_file(cur_path,
-#                                  "data/labor/cps_hours_by_age_hourspct.txt")
-#     data = pd.read_table(labor_file, header=0)
-#
-#     piv = data.pivot(index='age', columns='hours_pct', values='mean_hrs')
-#     lab_mat_basic = np.array(piv)
-#     lab_mat_basic /= np.nanmax(lab_mat_basic)
-#
-#     piv2 = data.pivot(index='age', columns='hours_pct', values='num_obs')
-#     weights = np.array(piv2)
-#     weights /= np.nansum(weights, axis=1).reshape(S_labor, 1)
-#     weighted = np.nansum((lab_mat_basic * weights), axis=1)
-
-
 '''
 ------------------------------------------------------------------------
     Compute moments from labor data
@@ -110,10 +80,6 @@ def compute_labor_moments(cps, S):
     # Fit a line to the last few years of the average labor participation which extends from
     # ages 76 to 100.
     slope = (by_age['frac_work'][-1] - by_age['frac_work'][-15]) / (15.)
-    # intercept = by_age['frac_work'][-1] - slope*len(by_age['frac_work'])
-    # extension = slope * (np.linspace(56, 80, 23)) + intercept
-    # to_dot = slope * (np.linspace(45, 56, 11)) + intercept
-
     labor_dist_data = np.zeros(80)
     labor_dist_data[:60] = by_age['frac_work']
     labor_dist_data[60:] = by_age['frac_work'][-1] + slope*xrange(20)
