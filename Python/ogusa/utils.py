@@ -50,7 +50,7 @@ def pct_diff_func(simul, data):
     Inputs:
         simul = any shape, model moments
         data  = same shape as simul, data moments
-    
+
     Functions called: None
 
     Objects in function:
@@ -73,7 +73,7 @@ def convex_combo(var1, var2, nu):
         var1 = any shape, variable 1
         var2 = same shape as var1, variable 2
         nu   = scalar, weight on var1 in convex combination
-    
+
     Functions called: None
 
     Objects in function:
@@ -126,10 +126,10 @@ def pickle_file_compare(fname1, fname2, tol=1e-3, exceptions={}, relative=False)
         fname1  = string, file name of file 1
         fname2  = string, file name of file 2
         tol     = scalar, tolerance
-        exceptions = dictionary, exceptions 
-        relative = boolean, 
+        exceptions = dictionary, exceptions
+        relative = boolean,
 
-    Functions called: 
+    Functions called:
         dict_compare
 
     Objects in function:
@@ -152,15 +152,15 @@ def comp_array(name, a, b, tol, unequal, exceptions={}, relative=False):
     Return True if | a - b | < tol, False otherwise
     If not equal, add items to the unequal list
     name: the name of the value being compared
-    
-    Inputs:
-        
 
-    Functions called: 
-        
+    Inputs:
+
+
+    Functions called:
+
 
     Objects in function:
-        
+
 
     Returns: Boolean
 
@@ -278,3 +278,106 @@ def dict_compare(fname1, pkl1, fname2, pkl2, tol, verbose=False, exceptions={}, 
             return False
 
     return check
+
+def the_inequalizer(dist, pop_weights, ability_weights, factor, S, J):
+    '''
+    --------------------------------------------------------------------
+    Generates three measures of inequality.
+
+    Inputs:
+        dist            = [S,J] array, distribution of endogenous variables over age and lifetime income group
+        pop_weights     = [S,] vector, fraction of population by each age
+        ability_weights = [J,] vector, fraction of population for each lifetime income group
+        factor          = scalar, factor relating model units to dollars
+        S               = integer, number of economically active periods in lifetime
+        J               = integer, number of ability types
+
+    Functions called: None
+
+    Objects in function:
+        weights           = [S,J] array, fraction of population for each age and lifetime income group
+        flattened_dist    = [S*J,] vector, vectorized dist
+        flattened_weights = [S*J,] vector, vectorized weights
+        sort_dist         = [S*J,] vector, ascending order vector of dist
+        loc_90th          = integer, index of 90th percentile
+        loc_10th          = integer, index of 10th percentile
+        loc_99th          = integer, index of 99th percentile
+
+    Returns: measure of inequality
+    --------------------------------------------------------------------
+    '''
+
+    weights = np.tile(pop_weights.reshape(S, 1), (1, J)) * \
+    ability_weights.reshape(1, J)
+    flattened_dist = dist.flatten()
+    flattened_weights = weights.flatten()
+    idx = np.argsort(flattened_dist)
+    sort_dist = flattened_dist[idx]
+    sort_weights = flattened_weights[idx]
+    cum_weights = np.cumsum(sort_weights)
+
+    # gini
+    p = cum_weights/cum_weights.sum()
+    nu = np.cumsum(sort_dist*sort_weights)
+    nu = nu/nu[-1]
+    gini_coeff = (nu[1:]*p[:-1]).sum() - (nu[:-1] * p[1:]).sum()
+
+
+    # variance
+    ln_dist = np.log(sort_dist*factor) # not scale invariant
+    weight_mean = (ln_dist*sort_weights).sum()/sort_weights.sum()
+    var_ln_dist = ((sort_weights*((ln_dist-weight_mean)**2)).sum())*(1./(sort_weights.sum()))
+
+
+    # 90/10 ratio
+    loc_90th = np.argmin(np.abs(cum_weights - .9))
+    loc_10th = np.argmin(np.abs(cum_weights - .1))
+    ratio_90_10 = sort_dist[loc_90th] / sort_dist[loc_10th]
+
+    # top 10% share
+    top_10_share= (sort_dist[loc_90th:] * sort_weights[loc_90th:]
+           ).sum() / (sort_dist * sort_weights).sum()
+
+    # top 1% share
+    loc_99th = np.argmin(np.abs(cum_weights - .99))
+    top_1_share = (sort_dist[loc_99th:] * sort_weights[loc_99th:]
+           ).sum() / (sort_dist * sort_weights).sum()
+
+    # calculate percentile shares (percentiles based on lambdas input)
+    dist_weight = (sort_weights*sort_dist)
+    total_dist_weight = dist_weight.sum()
+    cumsum = np.cumsum(sort_weights)
+    dist_sum = np.zeros((J,))
+    cum_weights = ability_weights.cumsum()
+    for i in range(J):
+        cutoff = sort_weights.sum() / (1./cum_weights[i])
+        dist_sum[i] = ((dist_weight[cumsum < cutoff].sum())/total_dist_weight)
+
+
+    dist_share = np.zeros((J,))
+    dist_share[0] = dist_sum[0]
+    dist_share[1:] = dist_sum[1:]-dist_sum[0:-1]
+
+    return np.append([dist_share], [gini_coeff,var_ln_dist])
+
+def gini(dist, weights):
+    '''
+    --------------------------------------------------------------------
+    Calculates the gini coefficient.
+    --------------------------------------------------------------------
+    '''
+
+    flattened_dist = dist.flatten()
+    flattened_weights = weights.flatten()
+    idx = np.argsort(flattened_dist)
+    sort_dist = flattened_dist[idx]
+    sort_weights = flattened_weights[idx]
+    cum_weights = np.cumsum(sort_weights)
+
+    # gini
+    p = cum_weights/cum_weights.sum()
+    nu = np.cumsum(sort_dist*sort_weights)
+    nu = nu/nu[-1]
+    gini_coeff = (nu[1:]*p[:-1]).sum() - (nu[:-1] * p[1:]).sum()
+
+    return gini_coeff

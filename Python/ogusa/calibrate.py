@@ -39,6 +39,23 @@ import labor
 import SS
 import utils
 
+# initialize datafame to keep output
+global bh_output
+data = np.ones((1,88))
+columns = list(xrange(88))
+bh_output = pd.DataFrame(data, columns=columns)
+
+
+class MyBounds(object):
+        def __init__(self, xmin=np.zeros((87,)) ):
+            #self.xmax = np.array(xmax)
+            self.xmin = np.array(xmin)
+        def __call__(self, **kwargs):
+            x = kwargs["x_new"]
+            #tmax = bool(np.all(x <= self.xmax))
+            tmin = bool(np.all(x >= self.xmin))
+            return tmin
+
 def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, baseline_dir="./OUTPUT"):
     '''
     --------------------------------------------------------------------
@@ -128,8 +145,13 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
 
     min_args = data_moments, W, income_tax_params, ss_params, \
                iterative_params, chi_guesses_flat, baseline_dir
-    est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
-                    tol=1e-15)
+    # est_output = opt.minimize(minstat, chi_guesses_flat, args=(min_args), method="L-BFGS-B", bounds=bnds,
+    #                 tol=1e-15, options={'maxfun':1,'maxiter':1,'maxls':2})
+    mybounds = MyBounds()
+    minimizer_kwargs = {"args": (min_args)}
+    est_output = opt.basinhopping(minstat, chi_guesses_flat, niter=1000,
+                                minimizer_kwargs=minimizer_kwargs,
+                                disp=False,niter_success=None, accept_test=mybounds)
     chi_params = est_output.x
     objective_func_min = est_output.fun
 
@@ -154,11 +176,11 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     moment_fit['data_moment'] = data_moments
     moment_fit['model_moment'] = model_moments
     moment_fit['minstat'] = objective_func_min
-    est_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")s
-    moment_fit.to_csv(est_dir)
+    mom_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
+    pickle.dump(moment_fit, open(mom_dir, "wb"))
 
     # calculate std errors
-    h = 0.0001  # pct change in parameter
+    h = 0.001  # pct change in parameter
     model_moments_low = np.zeros((len(chi_params),len(model_moments)))
     model_moments_high = np.zeros((len(chi_params),len(model_moments)))
     chi_params_low = chi_params
@@ -185,8 +207,6 @@ def chi_estimate(income_tax_params, ss_params, iterative_params, chi_guesses, ba
     pickle.dump(std_errors_chi, open(sd_dir, "wb"))
 
     return chi_params
-
-
 
 
 def minstat(chi_guesses, *args):
@@ -226,10 +246,29 @@ def minstat(chi_guesses, *args):
     model_moments = calc_moments(ss_output, omega_SS, lambdas, S, J)
 
     # distance with levels
-    distance = np.dot(np.dot((np.array(model_moments) - np.array(data_moments)).T,W),
+    if ss_output['ss_flag'] == 0:
+        distance = np.dot(np.dot((np.array(model_moments) - np.array(data_moments)).T,W),
                    np.array(model_moments) - np.array(data_moments))
+    else:
+        distance = 1e14
+
     #distance = ((np.array(model_moments) - np.array(data_moments))**2).sum()
     print 'DATA and MODEL DISTANCE: ', distance
+
+    # save results along the way
+    bh_along = np.reshape(np.append(chi_guesses,distance),(1,88))
+    # x = chi_guesses
+    # f = distance
+    # fun_dict = {'x':x,'f':f}
+    # bh_out = np.append(bh_output, bh_along,axis=1)
+    # bh_output = bh_out
+    # print bh_output.shape
+    columns = list(xrange(88))
+    df = pd.DataFrame(bh_along, columns=columns)
+    bh_output.loc[len(bh_output),:] = bh_along
+    pickle.dump(bh_output, open( "estimation_output_along.pkl", "wb" ) )
+
+
 
     # # distance with percentage diffs
     # distance = (((model_moments - data_moments)/data_moments)**2).sum()
@@ -270,7 +309,7 @@ def calc_moments(ss_output, omega_SS, lambdas, S, J):
     n = ss_output['nssmat']
 
     # wealth moments
-    model_wealth_moments = the_inequalizer(bssmat, omega_SS, lambdas, factor, S, J)
+    model_wealth_moments = utils.the_inequalizer(bssmat, omega_SS, lambdas, factor, S, J)
 
     # labor moments
     model_labor_moments = (n.reshape(S, J) * lambdas.reshape(1, J)).sum(axis=1)
@@ -279,85 +318,3 @@ def calc_moments(ss_output, omega_SS, lambdas, S, J):
     model_moments = list(model_wealth_moments.flatten()) + list(model_labor_moments.flatten())
 
     return model_moments
-
-
-def the_inequalizer(dist, pop_weights, ability_weights, factor, S, J):
-    '''
-    --------------------------------------------------------------------
-    Generates three measures of inequality.
-
-    Inputs:
-        dist            = [S,J] array, distribution of endogenous variables over age and lifetime income group
-        pop_weights     = [S,] vector, fraction of population by each age
-        ability_weights = [J,] vector, fraction of population for each lifetime income group
-        factor          = scalar, factor relating model units to dollars
-        S               = integer, number of economically active periods in lifetime
-        J               = integer, number of ability types
-
-    Functions called: None
-
-    Objects in function:
-        weights           = [S,J] array, fraction of population for each age and lifetime income group
-        flattened_dist    = [S*J,] vector, vectorized dist
-        flattened_weights = [S*J,] vector, vectorized weights
-        sort_dist         = [S*J,] vector, ascending order vector of dist
-        loc_90th          = integer, index of 90th percentile
-        loc_10th          = integer, index of 10th percentile
-        loc_99th          = integer, index of 99th percentile
-
-    Returns: measure of inequality
-    --------------------------------------------------------------------
-    '''
-
-    weights = np.tile(pop_weights.reshape(S, 1), (1, J)) * \
-    ability_weights.reshape(1, J)
-    flattened_dist = dist.flatten()
-    flattened_weights = weights.flatten()
-    idx = np.argsort(flattened_dist)
-    sort_dist = flattened_dist[idx]
-    sort_weights = flattened_weights[idx]
-    cum_weights = np.cumsum(sort_weights)
-
-    # gini
-    p = cum_weights/cum_weights.sum()
-    nu = np.cumsum(sort_dist*sort_weights)
-    nu = nu/nu[-1]
-    gini_coeff = (nu[1:]*p[:-1]).sum() - (nu[:-1] * p[1:]).sum()
-
-
-    # variance
-    ln_dist = np.log(sort_dist*factor) # not scale invariant
-    weight_mean = (ln_dist*sort_weights).sum()/sort_weights.sum()
-    var_ln_dist = ((sort_weights*((ln_dist-weight_mean)**2)).sum())*(1./(sort_weights.sum()))
-
-
-    # 90/10 ratio
-    loc_90th = np.argmin(np.abs(cum_weights - .9))
-    loc_10th = np.argmin(np.abs(cum_weights - .1))
-    ratio_90_10 = sort_dist[loc_90th] / sort_dist[loc_10th]
-
-    # top 10% share
-    top_10_share= (sort_dist[loc_90th:] * sort_weights[loc_90th:]
-           ).sum() / (sort_dist * sort_weights).sum()
-
-    # top 1% share
-    loc_99th = np.argmin(np.abs(cum_weights - .99))
-    top_1_share = (sort_dist[loc_99th:] * sort_weights[loc_99th:]
-           ).sum() / (sort_dist * sort_weights).sum()
-
-    # calculate percentile shares (percentiles based on lambdas input)
-    dist_weight = (sort_weights*sort_dist)
-    total_dist_weight = dist_weight.sum()
-    cumsum = np.cumsum(sort_weights)
-    dist_sum = np.zeros((J,))
-    cum_weights = ability_weights.cumsum()
-    for i in range(J):
-        cutoff = sort_weights.sum() / (1./cum_weights[i])
-        dist_sum[i] = ((dist_weight[cumsum < cutoff].sum())/total_dist_weight)
-
-
-    dist_share = np.zeros((J,))
-    dist_share[0] = dist_sum[0]
-    dist_share[1:] = dist_sum[1:]-dist_sum[0:-1]
-
-    return np.append([dist_share], [gini_coeff,var_ln_dist])

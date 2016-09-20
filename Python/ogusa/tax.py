@@ -43,12 +43,10 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
     Returns: theta
 
     '''
-    e, J, omega_SS, lambdas = params
+    e, S, J, omega_SS, lambdas = params
 
-    # Do a try/except, depending on whether the arrays are 1 or 2 dimensional
-    try:
-        AIME = ((wss * factor_ss * e * nssmat) *
-                omega_SS).sum(0) * lambdas / 12.0
+    try: # two dimensional (SxJ)
+        AIME = ((wss * e * nssmat * factor_ss)).sum(0) / ((12.0*S/80)*S)
         PIA = np.zeros(J)
         # Bins from data for each level of replacement
         for j in xrange(J):
@@ -58,13 +56,12 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
                 PIA[j] = 674.1 + .32 * (AIME[j] - 749.0)
             else:
                 PIA[j] = 1879.86 + .15 * (AIME[j] - 4517.0)
-        theta = PIA * (e * nssmat).mean(0) / AIME
         # Set the maximum replacment rate to be $30,000
-        maxpayment = 30000.0 / (factor_ss * wss)
-        theta[theta > maxpayment] = maxpayment
-    except:
-        AIME = ((wss * factor_ss * e * nssmat) *
-                omega_SS).sum() * lambdas / 12.0
+        maxpayment = 30000.0
+        PIA[PIA > maxpayment] = maxpayment
+        theta = (PIA*(12.0*S/80)) / factor_ss
+    except: #one dimensional (no J)
+        AIME = ((wss * e * nssmat * factor_ss).sum()) / ((12.0*S/80)*S)
         PIA = 0
         if AIME < 749.0:
             PIA = .9 * AIME
@@ -72,11 +69,11 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
             PIA = 674.1 + .32 * (AIME - 749.0)
         else:
             PIA = 1879.86 + .15 * (AIME - 4517.0)
-        theta = PIA * (e * nssmat).mean(0) / AIME
         # Set the maximum replacment rate to be $30,000
-        maxpayment = 30000.0 / (factor_ss * wss)
-        if theta > maxpayment:
-            theta = maxpayment
+        maxpayment = 30000.0
+        if PIA > maxpayment:
+            PIA = maxpayment
+        theta = PIA / factor_ss
     return theta
 
 
@@ -314,7 +311,7 @@ def MTR_capital(r, w, b, n, factor, params):
 
     num_income = (A*(I**2)) + (B*I)
     denom_income = (A*(I**2)) + (B*I) + C
-    tau_income =  D*(num/denom)
+    tau_income =  D*(num_income/denom_income)
 
     mtr = tau_income + tau*I
 
@@ -404,7 +401,7 @@ def MTR_labor(r, w, b, n, factor, params):
 
     num_income = (A*(I**2)) + (B*I)
     denom_income = (A*(I**2)) + (B*I) + C
-    tau_income =  D*(num/denom)
+    tau_income =  D*(num_income/denom_income)
 
     mtr = tau_income + tau*I
 

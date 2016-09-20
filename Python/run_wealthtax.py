@@ -27,6 +27,7 @@ def run_micro_macro(user_params):
             'baseline':True, 'reform':0, 'user_params':user_params,
             'guid':'wealth_tax_baseline','calibrate_model':False}
     runner_SS(**kwargs)
+    quit()
 
     sigma_list = [3.0, 1.1, 2.1, 3.2]
 
