@@ -227,6 +227,8 @@ for i in range(len(row_labels)):
 Percent changes in alternative inequality measures
 '''
 
+
+
 '''
 Sensitivity analysis - percentage changes in gini coefficient for wealth and
 income tax with different sigmas
