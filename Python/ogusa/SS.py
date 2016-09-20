@@ -201,7 +201,7 @@ def euler_equation_solver(guesses, params):
 
     BQ_params = (omega_SS, lambdas[j], rho, g_n_ss, 'SS')
     BQ = household.get_BQ(r, b_splus1, BQ_params)
-    theta_params = (e[:,j], J, omega_SS, lambdas[j])
+    theta_params = (e[:,j], S, J, omega_SS, lambdas[j])
     theta = tax.replacement_rate_vals(n_guess, w, factor, theta_params)
 
     foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta, tau_bq[j], rho, lambdas[j], J, S,
@@ -332,7 +332,7 @@ def inner_loop(outer_loop_vars, params, baseline):
 
     BQ_params = (omega_SS.reshape(S, 1), lambdas.reshape(1, J), rho.reshape(S, 1), g_n_ss, 'SS')
     new_BQ = household.get_BQ(new_r, bssmat, BQ_params)
-    theta_params = (e, J, omega_SS.reshape(S, 1), lambdas)
+    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas)
     theta = tax.replacement_rate_vals(nssmat, new_w, new_factor, theta_params)
 
     T_H_params = (e, lambdas.reshape(1, J), omega_SS.reshape(S, 1), 'SS', etr_params, theta, tau_bq,
@@ -489,7 +489,7 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     Iss = firm.get_I(bssmat_splus1, Kss, Kss, Iss_params)
 
     BQss = new_BQ
-    theta_params = (e, J, omega_SS.reshape(S, 1), lambdas)
+    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas)
     theta = tax.replacement_rate_vals(nssmat, wss, factor_ss, theta_params)
 
     # solve resource constraint
@@ -506,6 +506,33 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     Css = household.get_C(cssmat, Css_params)
 
     resource_constraint = Yss - (Css + Iss)
+
+
+
+    '''
+    ------------------------------------------------------------------------
+        The code below is to calulate and save model MTRs
+                - only exists to help debug
+    ------------------------------------------------------------------------
+    '''
+    etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+    etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
+    mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+    mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
+    e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
+    nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
+    mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
+    mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
+    mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
+    mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
+
+    etr_ss_params = (e, etr_params_3D)
+    etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
+
+    np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
+    np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
+    np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
+
 
     # print 'Resource Constraint Difference:', resource_constraint
     # print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
@@ -747,26 +774,6 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
     chi_b, chi_n = chi_params
 
     maxiter, mindist_SS = iterative_params
-
-    # omega_diffs = omega_SS[1:] - (1/(1+g_n_ss))*(1-rho[:-1])*omega_SS[:-1] - (1/(1+g_n_ss))*imm_rates[1:]*omega_SS[1:]
-    # # omega_diffs = (omega_SS[1:] -
-    # #     (1/(1+np.tile(np.reshape(g_n_ss[1:],(1,T+S-1)),(S-1,1))))*(1-np.tile(np.reshape(mort_rates_S[:-1],(S-1,1)),(1,T+S-1)))*omega_path_S[:-1,:-1] -
-    # #     (1/(1+np.tile(np.reshape(g_n_path[1:],(1,T+S-1)),(S-1,1))))*imm_rates_mat[1:,:-1]*omega_path_S[1:,:-1])
-    # print omega_diffs
-    # quit()
-
-
-    # First run SS simulation with guesses at initial values for b, n, w, r, etc
-    # For inital guesses of b and n, we choose very small b, and medium n
-
-    # tpi_jason_base2 = pickle.load(open( '/Users/jasondebacker/repos/dynamic/Python/OUTPUT_BASELINE/TPI/TPI_vars.pkl', "rb" ))
-    # b_guess = tpi_jason_base2['b_mat'][T-1,:,:]
-    # n_guess = tpi_jason_base2['n_mat'][T-1,:,:]
-    # print b_guess.reshape(S, J)
-    # print b_guess
-    # print tpi_jason_base2['b_mat'].shape
-    # np.savetxt('bmat_test.csv',np.reshape(tpi_jason_base2['b_mat'],(330,S)),delimiter=',')
-    # quit()
 
     b_guess = np.ones((S, J)).flatten() * 0.05
     n_guess = np.ones((S, J)).flatten() * .4 * ltilde
