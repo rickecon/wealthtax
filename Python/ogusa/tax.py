@@ -43,10 +43,12 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
     Returns: theta
 
     '''
-    e, S, J, omega_SS, lambdas = params
+    e, S, J, omega_SS, lambdas, retire = params
 
     try: # two dimensional (SxJ)
-        AIME = ((wss * e * nssmat * factor_ss)).sum(0) / ((12.0*S/80)*S)
+        # AIME based on last 35 years of earned income
+        start_last_35 = retire-int(round((S/80)*35))
+        AIME = ((wss * e * nssmat * factor_ss))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
         PIA = np.zeros(J)
         # Bins from data for each level of replacement
         for j in xrange(J):
@@ -60,8 +62,12 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
         maxpayment = 30000.0
         PIA[PIA > maxpayment] = maxpayment
         theta = (PIA*(12.0*S/80)) / factor_ss
+        print 'J-Theta: ', theta
+        print 'mean model income', ((wss * e * nssmat))[start_last_35:retire,:].sum(0) / (int(round((S/80)*35)))
     except: #one dimensional (no J)
-        AIME = ((wss * e * nssmat * factor_ss).sum()) / ((12.0*S/80)*S)
+        # AIME based on last 35 years of earned income
+        start_last_35 = retire-int(round((S/80)*35))
+        AIME = ((wss * e * nssmat * factor_ss)[start_last_35:retire].sum()) / ((12.0*(S/80))*int(round((S/80)*35)))
         PIA = 0
         if AIME < 749.0:
             PIA = .9 * AIME

@@ -201,7 +201,7 @@ def euler_equation_solver(guesses, params):
 
     BQ_params = (omega_SS, lambdas[j], rho, g_n_ss, 'SS')
     BQ = household.get_BQ(r, b_splus1, BQ_params)
-    theta_params = (e[:,j], S, J, omega_SS, lambdas[j])
+    theta_params = (e[:,j], S, J, omega_SS, lambdas[j],retire)
     theta = tax.replacement_rate_vals(n_guess, w, factor, theta_params)
 
     foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta, tau_bq[j], rho, lambdas[j], J, S,
@@ -332,7 +332,7 @@ def inner_loop(outer_loop_vars, params, baseline):
 
     BQ_params = (omega_SS.reshape(S, 1), lambdas.reshape(1, J), rho.reshape(S, 1), g_n_ss, 'SS')
     new_BQ = household.get_BQ(new_r, bssmat, BQ_params)
-    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas)
+    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas,retire)
     theta = tax.replacement_rate_vals(nssmat, new_w, new_factor, theta_params)
 
     T_H_params = (e, lambdas.reshape(1, J), omega_SS.reshape(S, 1), 'SS', etr_params, theta, tau_bq,
@@ -489,7 +489,7 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     Iss = firm.get_I(bssmat_splus1, Kss, Kss, Iss_params)
 
     BQss = new_BQ
-    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas)
+    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas,retire)
     theta = tax.replacement_rate_vals(nssmat, wss, factor_ss, theta_params)
 
     # solve resource constraint
@@ -515,27 +515,27 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
                 - only exists to help debug
     ------------------------------------------------------------------------
     '''
-    etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
-    etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
-    mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
-    mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
-    e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
-    nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
-    mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
-    mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
-    mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
-    mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
+    # etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+    # etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
+    # mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+    # mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
+    # e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
+    # nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
+    # mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
+    # mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
+    # mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
+    # mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
+    #
+    # etr_ss_params = (e, etr_params_3D)
+    # etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
+    #
+    # np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
+    # np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
+    # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
 
-    etr_ss_params = (e, etr_params_3D)
-    etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
 
-    np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
-    np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
-    np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
-
-
-    # print 'Resource Constraint Difference:', resource_constraint
-    # print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
+    print 'Resource Constraint Difference:', resource_constraint
+    print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
 
     if ENFORCE_SOLUTION_CHECKS and np.absolute(resource_constraint) > 1e-8:
         err = "Steady state aggregate resource constraint not satisfied"
@@ -632,10 +632,11 @@ def SS_fsolve(guesses, params):
     # print 'mean income in model and data: ', average_income_model, mean_income_data
     # print 'model income with factor: ', average_income_model*factor
     #
-    # print 'errors: ', error1, error2, error3, error4
-    # print 'T_H: ', new_T_H
-    # print 'factor: ', new_factor
-    # print 'interest rate: ', new_r
+    print 'errors: ', error1, error2, error3, error4
+    print 'T_H: ', new_T_H
+    print 'factor: ', new_factor
+    print 'interest rate: ', new_r
+    print 'wage rate: ', new_w
 
     # Check and punish violations
     if r <= 0:
