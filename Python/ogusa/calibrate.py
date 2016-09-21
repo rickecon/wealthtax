@@ -38,6 +38,7 @@ import wealth
 import labor
 import SS
 import utils
+import inequal
 
 # initialize datafame to keep output
 global bh_output
@@ -309,7 +310,7 @@ def calc_moments(ss_output, omega_SS, lambdas, S, J):
     n = ss_output['nssmat']
 
     # wealth moments
-    model_wealth_moments = utils.the_inequalizer(bssmat, omega_SS, lambdas, factor, S, J)
+    model_wealth_moments = inequal.the_inequalizer(bssmat, omega_SS, lambdas, factor, S, J)
 
     # labor moments
     model_labor_moments = (n.reshape(S, J) * lambdas.reshape(1, J)).sum(axis=1)

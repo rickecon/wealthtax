@@ -21,7 +21,7 @@ from scipy import stats
 import cPickle as pickle
 import xlsxwriter
 
-from ogusa import parameters, labor, utils, demographics
+from ogusa import parameters, labor, utils, inequal, demographics
 
 baseline_dir = "./OUTPUT_BASELINE"
 reform_dir = {}
@@ -129,10 +129,10 @@ for tax_run in ('base','wealth','income'):
     n_dict[tax_run,'Ability $j$'] = n[tax_run].sum(axis=0)
     n_dict[tax_run,'Age $s$'] = n[tax_run].sum(axis=1)
     for item in ('Total','Ability $j$','Age $s$'):
-        gini['b',item,tax_run] = utils.gini(b_dict[tax_run,item], weights[item])
-        gini['y',item,tax_run] = utils.gini(y_dict[tax_run,item], weights[item])
-        gini['c',item,tax_run] = utils.gini(b_dict[tax_run,item], weights[item])
-        gini['n',item,tax_run] = utils.gini(n_dict[tax_run,item], weights[item])
+        gini['b',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
+        gini['y',item,tax_run] = inequal.gini(y_dict[tax_run,item], weights[item])
+        gini['c',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
+        gini['n',item,tax_run] = inequal.gini(n_dict[tax_run,item], weights[item])
 
 # write to workbook
 worksheet = workbook.add_worksheet('Gini Changes')
@@ -251,10 +251,10 @@ for sig_val in sigma_list:
         wss = ss_output['wss']
         rss = ss_output['rss']
         income = ((wss*e*nss) + (rss*bss))*factor['base']
-        gini['b',item,str(sig_val)] = utils.gini(bss, weights)
-        gini['y',item,str(sig_val)] = utils.gini(income, weights)
-        gini['c',item,str(sig_val)] = utils.gini(css, weights)
-        gini['n',item,str(sig_val)] = utils.gini(nss, weights)
+        gini['b',item,str(sig_val)] = inequal.gini(bss, weights)
+        gini['y',item,str(sig_val)] = inequal.gini(income, weights)
+        gini['c',item,str(sig_val)] = inequal.gini(css, weights)
+        gini['n',item,str(sig_val)] = inequal.gini(nss, weights)
 
 # write to workbook
 worksheet = workbook.add_worksheet('Robust Sigma')
