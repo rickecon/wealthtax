@@ -137,9 +137,9 @@ for tax_run in ('base','wealth','income'):
 # write to workbook
 worksheet = workbook.add_worksheet('Gini Changes')
 top_line = ['Wealth Tax', 'Income Tax']
-headings = ['Steady-state variable', 'Gini type','Baseline','Treatment','% Change','Treatment','% Change']
-tex_vars = ['$b_{j,s}$','$y_{j,s}$','$c_{j,s}$','$n_{j,s}$']
-vars_names = ['Wealth','Income','$Consumption','Labor supply']
+headings = ['Steady-State Variable', 'Gini Type','Baseline','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$','$\\bar{n}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption','Labor Supply']
 row = 1
 col = 0
 for item in headings:
@@ -193,9 +193,9 @@ for tax_run in ('base','wealth','income'):
 # write to workbook
 worksheet = workbook.add_worksheet('Aggregate Changes')
 top_line = ['Wealth Tax', 'Income Tax']
-headings = ['Steady-state aggregate variable','Baseline','Treatment','% Change','Treatment','% Change']
-row_labels = ['Income (GDP) $\bar{Y}', 'Capital stock $\bar{K}$', 'Labor \bar{L}',
-              'Consumption $\bar{C}*$', 'Total utility $\bar{U}*']
+headings = ['Steady-State Aggregate Variable','Baseline','Treatment','% Change','Treatment','% Change']
+row_labels = ['Income (GDP) $\\bar{Y}', 'Capital Stock $\\bar{K}$', 'Labor $\\bar{L}$',
+              'Consumption $\\bar{C}*$', 'Total Utility $\\bar{U}*$']
 var_list  = ['Yss','Kss','Lss','Css','Uss']
 row = 1
 col = 0
@@ -226,6 +226,56 @@ for i in range(len(row_labels)):
 '''
 Percent changes in alternative inequality measures
 '''
+inequality = {}
+weights = np.tile(omega_SS.reshape(S, 1), (1, J)) * lambdas.reshape(1, J)
+for tax_run in ('base','wealth','income'):
+    income = ((wss[tax_run]*e*n[tax_run]) + (rss[tax_run]*bssmat[tax_run]))
+    var_dict = {'b':bssmat[tax_run],'y':income,'c':c[tax_run],'n':n[tax_run]}
+    for key,value in var_dict.iteritems():
+        inequality[key,tax_run,'$var(log(x_{j,s}))$'] = inequal.var_log(value, weights,factor['base'])
+        inequality[key,tax_run,'90/10 ratio'] = inequal.ninety_ten(value, weights)
+        inequality[key,tax_run,'Top 10% share'] = inequal.top_10(value, weights)
+        inequality[key,tax_run,'Top 1% share'] = inequal.top_1(value, weights)
+
+# write to workbook
+worksheet = workbook.add_worksheet('Alt Inequality')
+top_line = ['Wealth Tax', 'Income Tax']
+headings = ['Steady-state Variable', 'Inequality Measure','Baseline Value','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption']
+ineq_measures = ['$var(log(x_{j,s}))$','90/10 ratio','Top 10% share','Top 1% share']
+row = 1
+col = 0
+for item in headings:
+    worksheet.write(row,col,item)
+    col+=1
+worksheet.merge_range('D1:E1', top_line[0])
+worksheet.merge_range('F1:G1', top_line[1])
+
+col = 0
+row = 2
+for i in range(len(tex_vars)):
+    worksheet.write(row,col,tex_vars[i])
+    row+=1
+    worksheet.write(row,col,vars_names[i])
+    row+=3
+row = 2
+col = 1
+for var in ('b','y','c'):
+    for item in ineq_measures:
+        col=1
+        worksheet.write(row,col,item)
+        col=2
+        worksheet.write(row,col,inequality[(var,'base',item)])
+        col=3
+        for tax_run in ('wealth','income'):
+            worksheet.write(row,col,inequality[(var,tax_run,item)])
+            col += 1
+            pct_diff = (inequality[(var,tax_run,item)]-inequality[(var,'base',item)])/inequality[(var,tax_run,item)]
+            worksheet.write(row,col,pct_diff)
+            col += 1
+        row+=1
+
 
 
 
@@ -259,9 +309,9 @@ for sig_val in sigma_list:
 # write to workbook
 worksheet = workbook.add_worksheet('Robust Sigma')
 top_line = ['Wealth Tax', 'Income Tax']
-headings = ['Steady-state variable', 'CRRA','Baseline','Treatment','% Change','Treatment','% Change']
-tex_vars = ['$b_{j,s}$','$y_{j,s}$','$c_{j,s}$','$n_{j,s}$']
-vars_names = ['Wealth','Income','$Consumption','Labor supply']
+headings = ['Steady-State Variable', 'CRRA','Baseline','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$','$\\bar{n}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption','Labor Supply']
 row = 1
 col = 0
 for item in headings:
@@ -295,6 +345,8 @@ for var in ('b','y','c','n'):
             col += 1
         row+=1
 
+
+workbook.close()
 
 
 
