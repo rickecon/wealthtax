@@ -64,6 +64,7 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
         theta = (PIA*(12.0*S/80)) / factor_ss
         print 'J-Theta: ', theta
         print 'mean model income', ((wss * e * nssmat))[start_last_35:retire,:].sum(0) / (int(round((S/80)*35)))
+        theta = np.zeros(J)
     except: #one dimensional (no J)
         # AIME based on last 35 years of earned income
         start_last_35 = retire-int(round((S/80)*35))
@@ -80,6 +81,7 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
         if PIA > maxpayment:
             PIA = maxpayment
         theta = PIA / factor_ss
+        theta = 0.
     return theta
 
 

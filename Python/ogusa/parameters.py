@@ -170,7 +170,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     a_tax_income = 3.03452713268985e-06
     b_tax_income = .222
     c_tax_income = 133261.0
-    d_tax_income = .219
+    d_tax_income = 0.0#.219
 
     etr_params[:,:,0] = a_tax_income
     etr_params[:,:,1] = b_tax_income
@@ -200,7 +200,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
 
     #   Bequest and Payroll Taxes
     tau_bq = np.zeros(J)
-    tau_payroll = 0.15
+    tau_payroll = 0.0#0.15
     retire = np.round(9.0 * S / 16.0) - 1
 
     # Simulation Parameters

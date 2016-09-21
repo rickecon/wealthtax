@@ -25,7 +25,7 @@ def run_micro_macro(user_params):
     user_params = {'frisch':(1/1.5), 'sigma':3.0}
     kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
             'baseline':True, 'reform':0, 'user_params':user_params,
-            'guid':'wealth_tax_baseline','calibrate_model':True}
+            'guid':'wealth_tax_baseline','calibrate_model':False}
     runner_SS(**kwargs)
     quit()
 
