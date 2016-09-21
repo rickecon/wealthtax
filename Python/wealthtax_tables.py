@@ -21,7 +21,7 @@ from scipy import stats
 import cPickle as pickle
 import xlsxwriter
 
-from ogusa import parameters, labor, utils, demographics
+from ogusa import parameters, labor, utils, inequal, demographics
 
 baseline_dir = "./OUTPUT_BASELINE"
 reform_dir = {}
@@ -100,6 +100,31 @@ workbook = xlsxwriter.Workbook('WealthTaxTables.xlsx')
 '''
 Moments, data vs model - plus minstat from GMM estimation (wealth moments only)
 '''
+# read in data saved from calibration
+mom_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
+moment_fit = pickle.load(open(mom_dir, "rb"))
+
+# write to workbook
+worksheet = workbook.add_worksheet('Moments')
+worksheet.write(0,0,'Moment')
+worksheet.write(0,1,'Data')
+worksheet.write(0,2,'Model')
+moment_names=['Share 0-25%','Share 25-50%','Share 50-70%','Share 70-80%',
+             'Share 80-90%','Share 90-99%','Share 99-100%','Gini Coefficient',
+             'var(ln(wealth))']
+row = 1
+for i in range(len(moment_names)):
+    col = 0
+    worksheet.write(row,col,moment_names[i])
+    col+=1
+    worksheet.write(row,col,moment_fit['data_moment'][i])
+    col+=1
+    worksheet.write(row,col,moment_fit['model_moment'][i])
+    row+=1
+worksheet.write(row,0,'Minimum Statistic')
+worksheet.write(row,col,moment_fit['minstat'].loc[0])
+
+
 
 '''
 Comparision of changes in the SS gini (total, by age, by type) from baseline
@@ -129,17 +154,17 @@ for tax_run in ('base','wealth','income'):
     n_dict[tax_run,'Ability $j$'] = n[tax_run].sum(axis=0)
     n_dict[tax_run,'Age $s$'] = n[tax_run].sum(axis=1)
     for item in ('Total','Ability $j$','Age $s$'):
-        gini['b',item,tax_run] = utils.gini(b_dict[tax_run,item], weights[item])
-        gini['y',item,tax_run] = utils.gini(y_dict[tax_run,item], weights[item])
-        gini['c',item,tax_run] = utils.gini(b_dict[tax_run,item], weights[item])
-        gini['n',item,tax_run] = utils.gini(n_dict[tax_run,item], weights[item])
+        gini['b',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
+        gini['y',item,tax_run] = inequal.gini(y_dict[tax_run,item], weights[item])
+        gini['c',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
+        gini['n',item,tax_run] = inequal.gini(n_dict[tax_run,item], weights[item])
 
 # write to workbook
 worksheet = workbook.add_worksheet('Gini Changes')
 top_line = ['Wealth Tax', 'Income Tax']
-headings = ['Steady-state variable', 'Gini type','Baseline','Treatment','% Change','Treatment','% Change']
-tex_vars = ['$b_{j,s}$','$y_{j,s}$','$c_{j,s}$','$n_{j,s}$']
-vars_names = ['Wealth','Income','$Consumption','Labor supply']
+headings = ['Steady-State Variable', 'Gini Type','Baseline','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$','$\\bar{n}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption','Labor Supply']
 row = 1
 col = 0
 for item in headings:
@@ -193,9 +218,9 @@ for tax_run in ('base','wealth','income'):
 # write to workbook
 worksheet = workbook.add_worksheet('Aggregate Changes')
 top_line = ['Wealth Tax', 'Income Tax']
-headings = ['Steady-state aggregate variable','Baseline','Treatment','% Change','Treatment','% Change']
-row_labels = ['Income (GDP) $\bar{Y}', 'Capital stock $\bar{K}$', 'Labor \bar{L}',
-              'Consumption $\bar{C}*$', 'Total utility $\bar{U}*']
+headings = ['Steady-State Aggregate Variable','Baseline','Treatment','% Change','Treatment','% Change']
+row_labels = ['Income (GDP) $\\bar{Y}', 'Capital Stock $\\bar{K}$', 'Labor $\\bar{L}$',
+              'Consumption $\\bar{C}*$', 'Total Utility $\\bar{U}*$']
 var_list  = ['Yss','Kss','Lss','Css','Uss']
 row = 1
 col = 0
@@ -226,6 +251,56 @@ for i in range(len(row_labels)):
 '''
 Percent changes in alternative inequality measures
 '''
+inequality = {}
+weights = np.tile(omega_SS.reshape(S, 1), (1, J)) * lambdas.reshape(1, J)
+for tax_run in ('base','wealth','income'):
+    income = ((wss[tax_run]*e*n[tax_run]) + (rss[tax_run]*bssmat[tax_run]))
+    var_dict = {'b':bssmat[tax_run],'y':income,'c':c[tax_run],'n':n[tax_run]}
+    for key,value in var_dict.iteritems():
+        inequality[key,tax_run,'$var(log(x_{j,s}))$'] = inequal.var_log(value, weights,factor['base'])
+        inequality[key,tax_run,'90/10 ratio'] = inequal.ninety_ten(value, weights)
+        inequality[key,tax_run,'Top 10% share'] = inequal.top_10(value, weights)
+        inequality[key,tax_run,'Top 1% share'] = inequal.top_1(value, weights)
+
+# write to workbook
+worksheet = workbook.add_worksheet('Alt Inequality')
+top_line = ['Wealth Tax', 'Income Tax']
+headings = ['Steady-state Variable', 'Inequality Measure','Baseline Value','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption']
+ineq_measures = ['$var(log(x_{j,s}))$','90/10 ratio','Top 10% share','Top 1% share']
+row = 1
+col = 0
+for item in headings:
+    worksheet.write(row,col,item)
+    col+=1
+worksheet.merge_range('D1:E1', top_line[0])
+worksheet.merge_range('F1:G1', top_line[1])
+
+col = 0
+row = 2
+for i in range(len(tex_vars)):
+    worksheet.write(row,col,tex_vars[i])
+    row+=1
+    worksheet.write(row,col,vars_names[i])
+    row+=3
+row = 2
+col = 1
+for var in ('b','y','c'):
+    for item in ineq_measures:
+        col=1
+        worksheet.write(row,col,item)
+        col=2
+        worksheet.write(row,col,inequality[(var,'base',item)])
+        col=3
+        for tax_run in ('wealth','income'):
+            worksheet.write(row,col,inequality[(var,tax_run,item)])
+            col += 1
+            pct_diff = (inequality[(var,tax_run,item)]-inequality[(var,'base',item)])/inequality[(var,tax_run,item)]
+            worksheet.write(row,col,pct_diff)
+            col += 1
+        row+=1
+
 
 
 
@@ -251,17 +326,17 @@ for sig_val in sigma_list:
         wss = ss_output['wss']
         rss = ss_output['rss']
         income = ((wss*e*nss) + (rss*bss))*factor['base']
-        gini['b',item,str(sig_val)] = utils.gini(bss, weights)
-        gini['y',item,str(sig_val)] = utils.gini(income, weights)
-        gini['c',item,str(sig_val)] = utils.gini(css, weights)
-        gini['n',item,str(sig_val)] = utils.gini(nss, weights)
+        gini['b',item,str(sig_val)] = inequal.gini(bss, weights)
+        gini['y',item,str(sig_val)] = inequal.gini(income, weights)
+        gini['c',item,str(sig_val)] = inequal.gini(css, weights)
+        gini['n',item,str(sig_val)] = inequal.gini(nss, weights)
 
 # write to workbook
 worksheet = workbook.add_worksheet('Robust Sigma')
 top_line = ['Wealth Tax', 'Income Tax']
-headings = ['Steady-state variable', 'CRRA','Baseline','Treatment','% Change','Treatment','% Change']
-tex_vars = ['$b_{j,s}$','$y_{j,s}$','$c_{j,s}$','$n_{j,s}$']
-vars_names = ['Wealth','Income','$Consumption','Labor supply']
+headings = ['Steady-State Variable', 'CRRA','Baseline','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$','$\\bar{n}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption','Labor Supply']
 row = 1
 col = 0
 for item in headings:
@@ -295,6 +370,8 @@ for var in ('b','y','c','n'):
             col += 1
         row+=1
 
+
+workbook.close()
 
 
 
