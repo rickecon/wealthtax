@@ -295,7 +295,7 @@ def inner_loop(outer_loop_vars, params, baseline):
         if j == 0:
             guesses = np.append(bssmat[:, j], nssmat[:, j])
         else:
-            guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
+            guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
         euler_params = [r, w, T_H, factor, j, J, S, beta, sigma, ltilde, g_y,\
                   g_n_ss, tau_payroll, retire, mean_income_data,\
                   h_wealth, p_wealth, m_wealth, b_ellipse, upsilon,\
@@ -533,7 +533,7 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     # np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
     # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
 
-
+    print 'interest rate: ', rss
     print 'Resource Constraint Difference:', resource_constraint
     print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
 
@@ -633,10 +633,10 @@ def SS_fsolve(guesses, params):
     # print 'model income with factor: ', average_income_model*factor
     #
     print 'errors: ', error1, error2, error3, error4
-    print 'T_H: ', new_T_H
-    print 'factor: ', new_factor
-    print 'interest rate: ', new_r
-    print 'wage rate: ', new_w
+    # print 'T_H: ', new_T_H
+    # print 'factor: ', new_factor
+    # print 'interest rate: ', new_r
+    # print 'wage rate: ', new_w
 
     # Check and punish violations
     if r <= 0:
