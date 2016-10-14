@@ -154,8 +154,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     g_y_annual = 0.03
     g_y = (1 + g_y_annual)**(float(ending_age - starting_age) / S) - 1
     #   Ellipse parameters
-    frisch = (1/1.5) # Frisch elasticity consistent with Altonji (JPE, 1996)
-                     # and Peterman (Econ Inquiry, 2016)
+    frisch = 1.5 # Frisch elasticity consistent with Peterman (Econ Inquiry, 2016)
     b_ellipse, upsilon = elliptical_u_est.estimation(frisch,ltilde)
     k_ellipse = 0 # this parameter is just a level shifter in utlitiy - irrelevant for analysis
 
@@ -170,7 +169,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     a_tax_income = 3.03452713268985e-06
     b_tax_income = .222
     c_tax_income = 133261.0
-    d_tax_income = 0.0#.219
+    d_tax_income = 0.219
 
     etr_params[:,:,0] = a_tax_income
     etr_params[:,:,1] = b_tax_income
@@ -200,7 +199,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
 
     #   Bequest and Payroll Taxes
     tau_bq = np.zeros(J)
-    tau_payroll = 0.0#0.15
+    tau_payroll = 0.15
     retire = np.round(9.0 * S / 16.0) - 1
 
     # Simulation Parameters
@@ -217,13 +216,19 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     # chi_b_guess = np.ones((J,)) * 80.0
     # chi_b_guess = np.array([7.84003265, 10.72762998, 129.97045975, 128.33552107,
     #     229.59424786, 282.90123012, 116.0779987])
+
+    # The values below ran - harder to get solution with higher chi_7
     # chi_b_guess = np.array([7.84003265, 10.72762998, 128., 129.,
-    #     140., 150., 180.])
-    #chi_b_guess = np.array([0.7, 0.7, 1.0, 1.2, 1.2, 1.2, 1.4])
+    #     140., 150., 3450.])
+
+    chi_b_guess = np.array([0.04003265, 0.61, 0.65, 0.95,
+        90., 450., 8990.])
+
+    #chi_b_guess = np.array([0.01, 1.0, 1.0, 1.0, 1.0, 100., 600.])
     #chi_b_guess = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 10.0])
-    #chi_b_guess = np.array([5, 10, 90, 250, 250, 250, 250])
-    chi_b_guess = np.array([0.002234042, 8.307391815, 90.10567051, 250.0463041,
-                            250.0508393, 250.0515901, 250.0074773])
+    #chi_b_guess = np.array([0.00009264,10.052,90.841,373.180,1,738.031,22,758.547,118,648.915])
+    #chi_b_guess = np.array([0.002234042, 8.307391815, 90.10567051, 250.0463041,
+    #                        250.0508393, 250.0515901, 250.0074773])
     #chi_b_guess = np.array([2, 10, 90, 350, 1700, 22000, 120000])
     # chi_n_guess_80 = np.array([38.12000874, 33.22762421, 25.34842241, 26.67954008, 24.41097278,
     #                         23.15059004, 22.46771332, 21.85495452, 21.46242013, 22.00364263,
