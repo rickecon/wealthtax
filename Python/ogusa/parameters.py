@@ -221,8 +221,8 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     # chi_b_guess = np.array([7.84003265, 10.72762998, 128., 129.,
     #     140., 150., 3450.])
 
-    chi_b_guess = np.array([0.04003265, 0.61, 0.65, 0.95,
-        90., 450., 8990.])
+    chi_b_guess = np.array([0.04003265, 0.11, 0.2, 0.95,
+        90., 750., 11700.])
 
     #chi_b_guess = np.array([0.01, 1.0, 1.0, 1.0, 1.0, 100., 600.])
     #chi_b_guess = np.array([1.0, 1.0, 1.0, 1.0, 1.0, 4.0, 10.0])
