@@ -64,7 +64,7 @@ def the_inequalizer(dist, pop_weights, ability_weights, factor, S, J):
     gini_coeff = (nu[1:]*p[:-1]).sum() - (nu[:-1] * p[1:]).sum()
 
     # variance
-    ln_dist = np.log(sort_dist*factor) # not scale invariant
+    ln_dist = np.log(sort_dist*factor) # it is scale invariant, but use factor anyway
     weight_mean = (ln_dist*sort_weights).sum()/sort_weights.sum()
     var_ln_dist = ((sort_weights*((ln_dist-weight_mean)**2)).sum())*(1./(sort_weights.sum()))
 
