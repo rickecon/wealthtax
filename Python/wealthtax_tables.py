@@ -60,6 +60,7 @@ Kss = {}
 Lss = {}
 wss = {}
 rss = {}
+T_Hss = {}
 ss_dir = os.path.join(baseline_dir, "sigma3.0/SS/SS_vars.pkl")
 ss_output = pickle.load(open(ss_dir, "rb"))
 bssmat['base'] = ss_output['bssmat']
@@ -72,6 +73,7 @@ Kss['base'] = ss_output['Kss']
 Lss['base'] = ss_output['Lss']
 wss['base'] = ss_output['wss']
 rss['base'] = ss_output['rss']
+T_Hss['base'] = ss_output['T_Hss']
 
 for item in ('wealth','income'):
     ss_dir = os.path.join(reform_dir[item], "sigma3.0/SS/SS_vars.pkl")
@@ -86,6 +88,7 @@ for item in ('wealth','income'):
     Lss[item] = ss_output['Lss']
     wss[item] = ss_output['wss']
     rss[item] = ss_output['rss']
+    T_Hss[item] = ss_output['T_Hss']
 
 
 '''
@@ -156,7 +159,7 @@ for tax_run in ('base','wealth','income'):
     for item in ('Total','Ability $j$','Age $s$'):
         gini['b',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
         gini['y',item,tax_run] = inequal.gini(y_dict[tax_run,item], weights[item])
-        gini['c',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
+        gini['c',item,tax_run] = inequal.gini(c_dict[tax_run,item], weights[item])
         gini['n',item,tax_run] = inequal.gini(n_dict[tax_run,item], weights[item])
 
 # write to workbook
@@ -326,10 +329,10 @@ for sig_val in sigma_list:
         wss = ss_output['wss']
         rss = ss_output['rss']
         income = ((wss*e*nss) + (rss*bss))*factor['base']
-        gini['b',item,str(sig_val)] = inequal.gini(bss, weights)
-        gini['y',item,str(sig_val)] = inequal.gini(income, weights)
-        gini['c',item,str(sig_val)] = inequal.gini(css, weights)
-        gini['n',item,str(sig_val)] = inequal.gini(nss, weights)
+        gini['b',item,str(sig_val)] = np.nan_to_num(inequal.gini(bss, weights))
+        gini['y',item,str(sig_val)] = np.nan_to_num(inequal.gini(income, weights))
+        gini['c',item,str(sig_val)] = np.nan_to_num(inequal.gini(css, weights))
+        gini['n',item,str(sig_val)] = np.nan_to_num(inequal.gini(nss, weights))
 
 # write to workbook
 worksheet = workbook.add_worksheet('Robust Sigma')
@@ -364,7 +367,7 @@ for var in ('b','y','c','n'):
         for tax_run in ('wealth','income'):
             worksheet.write(row,col,gini[(var,tax_run,str(sig_val))])
             col += 1
-            pct_diff = ((gini[(var,tax_run,str(sig_val))]-
+            pct_diff = np.nan_to_num((gini[(var,tax_run,str(sig_val))]-
                         gini[(var,'base',str(sig_val))])/gini[(var,tax_run,str(sig_val))])
             worksheet.write(row,col,pct_diff)
             col += 1

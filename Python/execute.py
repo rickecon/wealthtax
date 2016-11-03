@@ -347,18 +347,17 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
 
 
-    # model_moments = ogusa.calibrate.calc_moments(ss_outputs,
-    #                                              sim_params['omega_SS'],
-    #                                              sim_params['lambdas'],
-    #                                              sim_params['S'],
-    #                                              sim_params['J'])
-    #
-    # scf, data = ogusa.wealth.get_wealth_data()
-    # wealth_moments = ogusa.wealth.compute_wealth_moments(scf, sim_params['lambdas'], sim_params['J'])
-    #
-    # print 'model moments: ', model_moments[:sim_params['J']+2]
-    # print 'data moments: ', wealth_moments
-    # quit()
+    model_moments = ogusa.calibrate.calc_moments(ss_outputs,
+                                                 sim_params['omega_SS'],
+                                                 sim_params['lambdas'],
+                                                 sim_params['S'],
+                                                 sim_params['J'])
+
+    scf, data = ogusa.wealth.get_wealth_data()
+    wealth_moments = ogusa.wealth.compute_wealth_moments(scf, sim_params['lambdas'], sim_params['J'])
+
+    print 'model moments: ', model_moments[:sim_params['J']+2]
+    print 'data moments: ', wealth_moments
 
     '''
     ------------------------------------------------------------------------
