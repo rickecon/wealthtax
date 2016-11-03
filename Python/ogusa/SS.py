@@ -41,6 +41,12 @@ Set flag for enforcement of solution check
 ENFORCE_SOLUTION_CHECKS = False
 
 '''
+Grab some values from prior run to serve as starting values
+'''
+START_VALUES = pickle.load(open("./ogusa/SS_vars.pkl", "rb"))
+
+
+'''
 ------------------------------------------------------------------------
     Define Functions
 ------------------------------------------------------------------------
@@ -292,10 +298,12 @@ def inner_loop(outer_loop_vars, params, baseline):
 
     for j in xrange(J):
         # Solve the euler equations
-        if j == 0:
-            guesses = np.append(bssmat[:, j], nssmat[:, j])
-        else:
-            guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
+        # if j == 0:
+        #     guesses = np.append(bssmat[:, j], nssmat[:, j])
+        # else:
+        #     #guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
+        #     guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
+        guesses = np.append(bssmat[:, j], nssmat[:, j])
         euler_params = [r, w, T_H, factor, j, J, S, beta, sigma, ltilde, g_y,\
                   g_n_ss, tau_payroll, retire, mean_income_data,\
                   h_wealth, p_wealth, m_wealth, b_ellipse, upsilon,\
@@ -339,6 +347,10 @@ def inner_loop(outer_loop_vars, params, baseline):
                       tau_payroll, h_wealth, p_wealth, m_wealth, retire, T, S, J)
     new_T_H = tax.get_lump_sum(new_r, new_w, b_s, nssmat, new_BQ, factor, T_H_params)
 
+    print 'Inner Loop Max Euler Error: ', (np.absolute(euler_errors)).max()
+    # print 'K: ', K
+    # print 'L: ', L
+    #print 'bssmat: ', bssmat
     return euler_errors, bssmat, nssmat, new_r, new_w, \
              new_T_H, new_factor, new_BQ, average_income_model
 
@@ -440,6 +452,11 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
         euler_errors, bssmat, nssmat, new_r, new_w, \
              new_T_H, new_factor, new_BQ, average_income_model = inner_loop(outer_loop_vars, inner_loop_params, baseline)
 
+        # print 'T_H: ', T_H, new_T_H
+        # print 'factor: ', factor, new_factor
+        # print 'interest rate: ', r, new_r
+        # print 'wage rate: ', w, new_w
+
         r = utils.convex_combo(new_r, r, nu)
         w = utils.convex_combo(new_w, w, nu)
         factor = utils.convex_combo(new_factor, factor, nu)
@@ -534,6 +551,9 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
 
     print 'interest rate: ', rss
+    print 'wage rate: ', wss
+    print 'factor: ', factor_ss
+    print 'T_H', T_Hss
     print 'Resource Constraint Difference:', resource_constraint
     print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
 
@@ -621,8 +641,14 @@ def SS_fsolve(guesses, params):
     # factor
     outer_loop_vars = (bssmat, nssmat, r, w, T_H, factor)
     inner_loop_params = (ss_params, income_tax_params, chi_params)
-    euler_errors, bssmat, nssmat, new_r, new_w, \
+    euler_errors, bssmat_out, nssmat_out, new_r, new_w, \
          new_T_H, new_factor, new_BQ, average_income_model = inner_loop(outer_loop_vars, inner_loop_params, baseline)
+
+    # only update initial guesses of b and n if HH problem solved
+    # if (np.absolute(euler_errors)).max() < 1e-08:
+    #     bssmat = bssmat_out
+    #     nssmat = nssmat_out
+
 
     error1 = new_w - w
     error2 = new_r - r
@@ -632,21 +658,33 @@ def SS_fsolve(guesses, params):
     # print 'mean income in model and data: ', average_income_model, mean_income_data
     # print 'model income with factor: ', average_income_model*factor
     #
-    print 'errors: ', error1, error2, error3, error4
-    # print 'T_H: ', new_T_H
-    # print 'factor: ', new_factor
-    # print 'interest rate: ', new_r
-    # print 'wage rate: ', new_w
+    # print 'errors: ', error1, error2, error3, error4
+    # print 'T_H: ', T_H, new_T_H
+    # print 'factor: ', factor, new_factor
+    # print 'interest rate: ', r, new_r
+    # print 'wage rate: ', w, new_w
 
     # Check and punish violations
-    if r <= 0:
-        error1 += 1e9
-    #if r > 1:
-    #    error1 += 1e9
     if w <= 0:
-        error2 += 1e9
+        error1 = 1e14
+    if np.isnan(w):
+        error1 = 1e14
+    if r <= 0:
+        error2 = 1e14
+    if np.isnan(r):
+        error2 = 1e14
+    if r > 1:
+        error2 = 1e9
+    if T_H <= 0:
+        error3 = 1e14
+    if np.isnan(T_H):
+        error3 = 1e14
     if factor <= 0:
-        error4 += 1e9
+        error4 = 1e14
+    if np.isnan(factor):
+        error4 = 1e14
+
+    print 'errors: ', error1, error2, error3, error4
 
     return [error1, error2, error3, error4]
 
@@ -776,22 +814,37 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
 
     maxiter, mindist_SS = iterative_params
 
-    b_guess = np.ones((S, J)).flatten() * 0.05
-    n_guess = np.ones((S, J)).flatten() * .4 * ltilde
+    # b_guess = np.ones((S, J)).flatten() * 0.05
+    # n_guess = np.ones((S, J)).flatten() * .4 * ltilde
+    b_guess = START_VALUES['bssmat_splus1'].flatten() #np.ones((S, J)).flatten() * 0.05
+    n_guess = START_VALUES['nssmat'].flatten() #np.ones((S, J)).flatten() * .4 * ltilde
     # For initial guesses of w, r, T_H, and factor, we use values that are close
     # to some steady state values.
 
     if baseline:
-        wguess = 1.2
-        rguess = .06
-        T_Hguess = 0.12
-        factorguess = 70000
+        wguess = START_VALUES['wss'] #0.968167841907 #1.16
+        rguess = START_VALUES['rss'] #0.116998690192 #.068
+        T_Hguess = START_VALUES['T_Hss'] #0.0304546765599 #0.046
+        factorguess = START_VALUES['factor_ss'] #274072.825051 #239344.894517
         ss_params_baseline = [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params]
         guesses = [wguess, rguess, T_Hguess, factorguess]
         [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve, guesses, args=ss_params_baseline, xtol=mindist_SS, full_output=True)
+        #opt_fun = lambda x: SS_fsolve(x, ss_params_baseline) # need this to pass args to scipy functions with out arg option
+        #[solutions_fsolve, infodict, ier, message] = opt.broyden2(opt_fun, guesses) # fails terribly and quickly
+        #[solutions_fsolve, infodict, ier, message] = opt.broyden1(opt_fun, guesses) # fails terribly and quickly
+        #[solutions_fsolve, infodict, ier, message] = opt.newton_krylov(opt_fun, guesses) #failed with zero in jacobian after a while
+        #[solutions_fsolve, infodict, ier, message] = opt.anderson(opt_fun, guesses) #fails terribly and quickly
+        #[solutions_fsolve, infodict, ier, message] = opt.excitingmixing(opt_fun, guesses) #fails terribly and quickly
+        #[solutions_fsolve, infodict, ier, message] = opt.linearmixing(opt_fun, guesses) #doesn't really get started bc of infs and nans
+        #[solutions_fsolve, infodict, ier, message] = opt.diagbroyden(opt_fun, guesses) #fails terribly and quickly
         if ENFORCE_SOLUTION_CHECKS and not ier == 1:
             raise RuntimeError("Steady state equilibrium not found")
         [wss, rss, T_Hss, factor_ss] = solutions_fsolve
+        # wss = wguess
+        # rss = rguess
+        # T_Hss = T_Hguess
+        # factor_ss = factorguess
+        # fsolve_flag = False
         fsolve_flag = True
         # Return SS values of variables
         solution_params= [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params]
