@@ -212,9 +212,13 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     nu = .4
     flag_graphs = False
     #   Calibration parameters
-    # These guesses are close to the calibrated values
-    chi_b_guess = np.array([0.04003265, 0.11, 0.2, 0.95,
-       90., 750., 11700.])
+    # These guesses are close to the calibrated values - with sigma = 3, frisch = 1/1.5
+    # chi_b_guess = np.array([0.04003265, 0.11, 0.2, 0.95,
+    #    90., 750., 11700.])
+
+    chi_b_guess =np.array([0.3, 0.3, 2., 14.,
+        12.5, 98., 2150.])*13.0 # this hits about 6% interest and very close on wealth moments for
+                                # Frisch 1.5 and sigma 2.0
 
     chi_n_guess_80=([38.35115078, 33.47310428, 25.63926049, 26.90508485, 24.63035262,
                  23.35906224, 22.65935099, 22.03392052, 21.62478355, 22.13535233,

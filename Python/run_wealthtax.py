@@ -22,11 +22,12 @@ def run_micro_macro(user_params):
     '''
     output_base = baseline_dir
     input_dir = baseline_dir
-    user_params = {'frisch':(1/1.5), 'sigma':3.0}
+    user_params = {'frisch':1.5, 'sigma':2.0}
     kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
             'baseline':True, 'reform':0, 'user_params':user_params,
             'guid':'wealth_tax_baseline','calibrate_model':False}
     runner_SS(**kwargs)
+    quit()
 
     sigma_list = [3.0, 1.1, 2.1, 3.2]
 
@@ -36,7 +37,7 @@ def run_micro_macro(user_params):
     for item in sigma_list:
         print 'item= ', item
         # parameters that may update at each iteration
-        user_params = {'frisch':(1/1.5), 'sigma':item}
+        user_params = {'frisch':1.5, 'sigma':item}
 
         # set up directories to save output to
         baseline_dir = "./OUTPUT_BASELINE" + '/sigma' + str(item)
