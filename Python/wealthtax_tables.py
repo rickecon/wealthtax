@@ -61,7 +61,7 @@ Lss = {}
 wss = {}
 rss = {}
 T_Hss = {}
-ss_dir = os.path.join(baseline_dir, "sigma3.0/SS/SS_vars.pkl")
+ss_dir = os.path.join(baseline_dir, "sigma2.0/SS/SS_vars.pkl")
 ss_output = pickle.load(open(ss_dir, "rb"))
 bssmat['base'] = ss_output['bssmat']
 factor['base'] = ss_output['factor_ss']
@@ -76,7 +76,7 @@ rss['base'] = ss_output['rss']
 T_Hss['base'] = ss_output['T_Hss']
 
 for item in ('wealth','income'):
-    ss_dir = os.path.join(reform_dir[item], "sigma3.0/SS/SS_vars.pkl")
+    ss_dir = os.path.join(reform_dir[item], "sigma2.0/SS/SS_vars.pkl")
     ss_output = pickle.load(open(ss_dir, "rb"))
     bssmat[item] = ss_output['bssmat']
     factor[item] = ss_output['factor_ss']
@@ -312,7 +312,7 @@ Sensitivity analysis - percentage changes in gini coefficient for wealth and
 income tax with different sigmas
 '''
 weights = np.tile(omega_SS.reshape(S, 1), (1, J)) * lambdas.reshape(1, J)
-sigma_list = [1.1, 2.1, 3.0, 3.2]
+sigma_list = [1.0, 1.1, 2.0, 2.1, 3.0, 3.1, 3.2]
 dir_dict = {}
 gini = {}
 for sig_val in sigma_list:

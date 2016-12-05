@@ -307,13 +307,114 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             return error
 
         print 'Computing new income tax to match wealth tax'
-        d_guess= .219 # initial guess
+        d_guess= .452 # initial guess 0.452 works for sigma = 2, frisch 1.5
+        new_d_inc = d_guess
         import scipy.optimize as opt
-        params = [income_tax_params, lump_to_match, ss_params, iterative_params,
-                          chi_params, baseline, baseline_dir]
-        new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-13)
-        print '\tOld income tax:', d_guess
-        print '\tNew income tax:', new_d_inc
+        # params = [income_tax_params, lump_to_match, ss_params, iterative_params,
+        #                   chi_params, baseline, baseline_dir]
+        # new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-8)
+        # print '\tOld income tax:', d_guess
+        # print '\tNew income tax:', new_d_inc
+
+        # def samesign(a, b):
+        #     return a * b > 0
+        #
+        # def bisect_method(func, params, low, high):
+        #     'Find root of continuous function where f(low) and f(high) have opposite signs'
+        #
+        #     #assert not samesign(func(params,low), func(params,high))
+        #
+        #     for i in range(54):
+        #         midpoint = (low + high) / 2.0
+        #         if samesign(func(params,low), func(params,midpoint)):
+        #             low = midpoint
+        #         else:
+        #             high = midpoint
+        #
+        #     return midpoint
+        #
+        # def solve_model(params,d):
+        #     income_tax_params, ss_params, iterative_params,\
+        #                       chi_params, baseline ,baseline_dir = params
+        #     analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+        #     etr_params[:,3] = d
+        #     mtrx_params[:,3] = d
+        #     mtry_params[:,3] = d
+        #     income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        #     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                       chi_params, baseline ,baseline_dir=baseline_dir)
+        #     ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        #     pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        #     lump_new = ss_outputs['T_Hss']
+        #     new_error = lump_to_match - lump_new
+        #     print 'Error in taxes:', error
+        #     print 'New income tax:', d
+        #     return new_error
+        #
+        # print 'Computing new income tax to match wealth tax'
+        # d_guess= .42 # initial guess
+        # # income_tax_params, lump_to_match, ss_params, iterative_params,\
+        # #                   chi_params, baseline, baseline_dir = params
+        # analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+        # etr_params[:,3] = d_guess
+        # mtrx_params[:,3] = d_guess
+        # mtry_params[:,3] = d_guess
+        # income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        # ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                   chi_params, baseline ,baseline_dir=baseline_dir)
+        # ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        # pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        # lump_new = ss_outputs['T_Hss']
+        # error = lump_to_match - lump_new
+        # new_error = error
+        # print "ERROR: ", error
+        # max_loop_iter = 300
+        # output_list = np.zeros((max_loop_iter,3))
+        # loop_iter = 0
+        # bisect = 0
+        # d_guess_old = d_guess
+        # while np.abs(new_error) > 1e-8 and loop_iter < max_loop_iter:
+        #     # if new_error > 0 and new_error > 0 and bisect == 0:
+        #     #     d_guess_old = d_guess
+        #     #     d_guess+=0.001
+        #     # elif new_error < 0 and new_error < 0 and bisect == 0:
+        #     #     d_guess_old = d_guess
+        #     #     d_guess-=0.001
+        #     #     d_guess = max(0.0,d_guess) # constrain so not negative
+        #     # else:
+        #     #     bisect = 1
+        #     #     print 'Entering bisection method'
+        #     #     params = income_tax_params, ss_params, iterative_params,\
+        #     #                       chi_params, baseline ,baseline_dir
+        #     #     high = max(d_guess,d_guess_old)
+        #     #     low = min(d_guess,d_guess_old)
+        #     #     d_guess = bisect_method(solve_model, params, low, high)
+        #     #     loop_iter = max_loop_iter
+        #
+        #     d_guess+=0.001
+        #
+        #     error = new_error
+        #     etr_params[:,3] = d_guess
+        #     mtrx_params[:,3] = d_guess
+        #     mtry_params[:,3] = d_guess
+        #     income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        #     print 'now here$$$'
+        #     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                       chi_params, baseline ,baseline_dir=baseline_dir)
+        #     ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        #     pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        #     lump_new = ss_outputs['T_Hss']
+        #     new_error = (lump_to_match - lump_new)
+        #     print "ERROR: ", new_error
+        #     output_list[loop_iter,0]=new_error
+        #     output_list[loop_iter,1]=d_guess
+        #     output_list[loop_iter,2]=ss_outputs['Yss']-ss_outputs['Iss']-ss_outputs['Css']
+        #     pickle.dump(output_list, open("output_list.pkl", "wb"))
+        #     print 'Error in taxes:', error
+        #     print 'Old income tax:', d_guess_old
+        #     print 'New income tax:', d_guess
+        #     print 'iteration: ', loop_iter
+        #     loop_iter += 1
 
         analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
         etr_params[:,3] = new_d_inc

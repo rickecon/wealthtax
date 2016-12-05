@@ -44,40 +44,62 @@ def replacement_rate_vals(nssmat, wss, factor_ss, params):
 
     '''
     e, S, J, omega_SS, lambdas, retire = params
-
-    try: # two dimensional (SxJ)
-        # AIME based on last 35 years of earned income
-        start_last_35 = retire-int(round((S/80)*35))
-        AIME = ((wss * e * nssmat * factor_ss))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
-        PIA = np.zeros(J)
-        # Bins from data for each level of replacement
-        for j in xrange(J):
-            if AIME[j] < 749.0:
-                PIA[j] = .9 * AIME[j]
-            elif AIME[j] < 4517.0:
-                PIA[j] = 674.1 + .32 * (AIME[j] - 749.0)
-            else:
-                PIA[j] = 1879.86 + .15 * (AIME[j] - 4517.0)
-        # Set the maximum replacment rate to be $30,000
-        maxpayment = 30000.0
-        PIA[PIA > maxpayment] = maxpayment
-        theta = (PIA*(12.0*S/80)) / factor_ss
-    except: #one dimensional (no J)
-        # AIME based on last 35 years of earned income
-        start_last_35 = retire-int(round((S/80)*35))
-        AIME = ((wss * e * nssmat * factor_ss)[start_last_35:retire].sum()) / ((12.0*(S/80))*int(round((S/80)*35)))
-        PIA = 0
-        if AIME < 749.0:
-            PIA = .9 * AIME
-        elif AIME < 4517.0:
-            PIA = 674.1 + .32 * (AIME - 749.0)
+    dim2 = 1
+    if nssmat.ndim==2:
+        dim2 = J
+    start_last_35 = retire-int(round((S/80)*35))
+    AIME = (e *(wss * nssmat * factor_ss).reshape(S,dim2))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
+    # try:
+    #     AIME = (e *(wss * nssmat * factor_ss).reshape(S,1))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
+    # except:
+    #     AIME = (e *(wss * nssmat * factor_ss).reshape(S,J))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
+    PIA = np.zeros(J)
+    # Bins from data for each level of replacement
+    for j in xrange(J):
+        if AIME[j] < 749.0:
+            PIA[j] = .9 * AIME[j]
+        elif AIME[j] < 4517.0:
+            PIA[j] = 674.1 + .32 * (AIME[j] - 749.0)
         else:
-            PIA = 1879.86 + .15 * (AIME - 4517.0)
-        # Set the maximum replacment rate to be $30,000
-        maxpayment = 30000.0
-        if PIA > maxpayment:
-            PIA = maxpayment
-        theta = PIA / factor_ss
+            PIA[j] = 1879.86 + .15 * (AIME[j] - 4517.0)
+    # Set the maximum replacment rate to be $30,000
+    maxpayment = 30000.0
+    PIA[PIA > maxpayment] = maxpayment
+    theta = (PIA*(12.0*S/80)) / (factor_ss*wss)
+
+    # try: # two dimensional (SxJ)
+    #     # AIME based on last 35 years of earned income
+    #     start_last_35 = retire-int(round((S/80)*35))
+    #     AIME = (e *(wss * nssmat * factor_ss).reshape(S,1))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
+    #     PIA = np.zeros(J)
+    #     # Bins from data for each level of replacement
+    #     for j in xrange(J):
+    #         if AIME[j] < 749.0:
+    #             PIA[j] = .9 * AIME[j]
+    #         elif AIME[j] < 4517.0:
+    #             PIA[j] = 674.1 + .32 * (AIME[j] - 749.0)
+    #         else:
+    #             PIA[j] = 1879.86 + .15 * (AIME[j] - 4517.0)
+    #     # Set the maximum replacment rate to be $30,000
+    #     maxpayment = 30000.0
+    #     PIA[PIA > maxpayment] = maxpayment
+    #     theta = (PIA*(12.0*S/80)) / (factor_ss*wss)
+    # except: #one dimensional (no J)
+    #     # AIME based on last 35 years of earned income
+    #     start_last_35 = retire-int(round((S/80)*35))
+    #     AIME = ((wss * e * nssmat * factor_ss)[start_last_35:retire].sum()) / ((12.0*(S/80))*int(round((S/80)*35)))
+    #     PIA = 0
+    #     if AIME < 749.0:
+    #         PIA = .9 * AIME
+    #     elif AIME < 4517.0:
+    #         PIA = 674.1 + .32 * (AIME - 749.0)
+    #     else:
+    #         PIA = 1879.86 + .15 * (AIME - 4517.0)
+    #     # Set the maximum replacment rate to be $30,000
+    #     maxpayment = 30000.0
+    #     if PIA > maxpayment:
+    #         PIA = maxpayment
+    #     theta = PIA / (factor_ss*wss)
     return theta
 
 
@@ -575,8 +597,7 @@ def total_taxes(r, w, b, n, BQ, factor, T_H, j, shift, params):
     elif method == 'TPI_scalar':
         # The above methods won't work if scalars are used.  This option is only called by the
         # SS_TPI_firstdoughnutring function in TPI.
-        #T_P -= theta[j] * w
-        T_P = 0.
+        T_P -= theta[j] * w
         T_BQ = tau_bq[j] * BQ / lambdas
     total_taxes = T_I + T_P + T_BQ + T_W - T_H
 

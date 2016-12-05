@@ -43,7 +43,13 @@ ENFORCE_SOLUTION_CHECKS = False
 '''
 Grab some values from prior run to serve as starting values
 '''
-START_VALUES = pickle.load(open("./ogusa/SS_vars.pkl", "rb"))
+#START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma2.0_baseline.pkl", "rb"))
+#START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma2.0_wealth.pkl", "rb"))
+#START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma3.0_baseline.pkl", "rb"))
+#START_VALUES = pickle.load(open("./OUTPUT_INCOME_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
+#START_VALUES = pickle.load(open("./OUTPUT_WEALTH_REFORM/sigma3.0/SS/SS_vars.pkl", "rb"))
+# START_VALUES = pickle.load(open("./OUTPUT_BASELINE/SS/SS_vars.pkl", "rb"))
+START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
 
 
 '''
@@ -207,13 +213,14 @@ def euler_equation_solver(guesses, params):
 
     BQ_params = (omega_SS, lambdas[j], rho, g_n_ss, 'SS')
     BQ = household.get_BQ(r, b_splus1, BQ_params)
-    theta_params = (e[:,j], S, J, omega_SS, lambdas[j],retire)
+    #theta_params = (e[:,j], S, J, omega_SS, lambdas[j],retire)
+    theta_params = (e, S, J, omega_SS, lambdas,retire)
     theta = tax.replacement_rate_vals(n_guess, w, factor, theta_params)
 
-    foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta, tau_bq[j], rho, lambdas[j], J, S,
+    foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta[j], tau_bq[j], rho, lambdas[j], J, S,
                            analytical_mtrs, etr_params, mtry_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'SS')
     error1 = household.FOC_savings(r, w, b_s, b_splus1, b_splus2, n_guess, BQ, factor, T_H, foc_save_parms)
-    foc_labor_params = (e[:, j], sigma, g_y, theta, b_ellipse, upsilon, chi_n, ltilde, tau_bq[j], lambdas[j], J, S,
+    foc_labor_params = (e[:, j], sigma, g_y, theta[j], b_ellipse, upsilon, chi_n, ltilde, tau_bq[j], lambdas[j], J, S,
                             analytical_mtrs, etr_params, mtrx_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'SS')
     error2 = household.FOC_labor(r, w, b_s, b_splus1, n_guess, BQ, factor, T_H, foc_labor_params)
 
@@ -234,7 +241,7 @@ def euler_equation_solver(guesses, params):
     error2[mask4] = 1e14
 
     tax1_params = (e[:, j], lambdas[j], 'SS', retire, etr_params, h_wealth, p_wealth,
-                   m_wealth, tau_payroll, theta, tau_bq[j], J, S)
+                   m_wealth, tau_payroll, theta[j], tau_bq[j], J, S)
     tax1 = tax.total_taxes(r, w, b_s, n_guess, BQ, factor, T_H, None, False, tax1_params)
     cons_params = (e[:, j], lambdas[j], g_y)
     cons = household.get_cons(r, w, b_s, b_splus1, n_guess, BQ, tax1, cons_params)
@@ -293,7 +300,8 @@ def inner_loop(outer_loop_vars, params, baseline):
     analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
     chi_b, chi_n = chi_params
 
-
+    # bssmat = START_VALUES['bssmat_splus1']
+    # nssmat = START_VALUES['nssmat']
     euler_errors = np.zeros((2*S,J))
 
     for j in xrange(J):
@@ -301,8 +309,8 @@ def inner_loop(outer_loop_vars, params, baseline):
         # if j == 0:
         #     guesses = np.append(bssmat[:, j], nssmat[:, j])
         # else:
-        #     #guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
-        #     guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
+        #     guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
+        #     #guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
         guesses = np.append(bssmat[:, j], nssmat[:, j])
         euler_params = [r, w, T_H, factor, j, J, S, beta, sigma, ltilde, g_y,\
                   g_n_ss, tau_payroll, retire, mean_income_data,\
@@ -319,7 +327,6 @@ def inner_loop(outer_loop_vars, params, baseline):
 
         bssmat[:, j] = solutions[:S]
         nssmat[:, j] = solutions[S:]
-
     K_params = (omega_SS.reshape(S, 1), lambdas.reshape(1, J), imm_rates, g_n_ss, 'SS')
     K = household.get_K(bssmat, K_params)
     L_params = (e, omega_SS.reshape(S, 1), lambdas.reshape(1, J), 'SS')
@@ -532,23 +539,24 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
                 - only exists to help debug
     ------------------------------------------------------------------------
     '''
-    # etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
-    # etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
-    # mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
-    # mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
-    # e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
-    # nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
-    # mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
-    # mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
-    # mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
-    # mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
-    #
-    # etr_ss_params = (e, etr_params_3D)
-    # etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
-    #
-    # np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
-    # np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
-    # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
+    etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+    etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
+    mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+    mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
+    e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
+    nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
+    mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
+    mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
+    mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
+    mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
+
+    etr_ss_params = (e, etr_params_3D)
+    etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
+
+    np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
+    np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
+    np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
+
 
     print 'interest rate: ', rss
     print 'wage rate: ', wss
@@ -826,6 +834,10 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
         rguess = START_VALUES['rss'] #0.116998690192 #.068
         T_Hguess = START_VALUES['T_Hss'] #0.0304546765599 #0.046
         factorguess = START_VALUES['factor_ss'] #274072.825051 #239344.894517
+        # wguess = 0.968167841907 #1.16
+        # rguess = 0.06998690192 #.068
+        # T_Hguess = 0.0304546765599 #0.046
+        # factorguess = 274072.825051 #239344.894517
         ss_params_baseline = [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params]
         guesses = [wguess, rguess, T_Hguess, factorguess]
         [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve, guesses, args=ss_params_baseline, xtol=mindist_SS, full_output=True)
@@ -850,10 +862,18 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
         solution_params= [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params]
         output = SS_solver(b_guess.reshape(S, J), n_guess.reshape(S, J), wss, rss, T_Hss, factor_ss, solution_params, baseline, fsolve_flag)
     else:
-        baseline_ss_dir = os.path.join(
-            baseline_dir, "SS/SS_vars.pkl")
-        ss_solutions = pickle.load(open(baseline_ss_dir, "rb"))
-        [wguess, rguess, T_Hguess, factor] = [ss_solutions['wss'], ss_solutions['rss'], ss_solutions['T_Hss'], ss_solutions['factor_ss']]
+        # baseline_ss_dir = os.path.join(
+        #     baseline_dir, "SS/SS_vars.pkl")
+        # ss_solutions = pickle.load(open(baseline_ss_dir, "rb"))
+        # [wguess, rguess, T_Hguess, factor] = [ss_solutions['wss'], ss_solutions['rss'], ss_solutions['T_Hss'], ss_solutions['factor_ss']]
+        wguess = START_VALUES['wss'] #0.968167841907 #1.16
+        rguess = START_VALUES['rss'] #0.116998690192 #.068
+        T_Hguess = START_VALUES['T_Hss'] #0.0304546765599 #0.046
+        factor = START_VALUES['factor_ss'] #274072.825051 #239344.894517
+        # wguess = 0.968167841907 #1.16
+        # rguess = 0.086998690192 #.068
+        # T_Hguess = 0.0304546765599 #0.046
+        # factor = 225348.036701 #239344.894517
         ss_params_reform = [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params, factor]
         guesses = [wguess, rguess, T_Hguess]
         [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve_reform, guesses, args=ss_params_reform, xtol=mindist_SS, full_output=True)
