@@ -21,86 +21,47 @@ import cPickle as pickle
 def replacement_rate_vals(nssmat, wss, factor_ss, params):
     '''
     Calculates replacement rate values for the payroll tax.
-
     Inputs:
         nssmat    = [S,J] array, steady state labor supply
         wss       = scalar, steady state wage rate
         factor_ss = scalar, factor that converts model income to dollars
-        params    = length 4 tuple, (e, J, omega_SS, lambdas)
+        params    = length 3 tuple, (e, S, retire)
         e         = [S,J] array, effective labor units
-        J         = integer, number of ability types
-        omega_SS  = [S,] vector, population weights by age
-        lambdas   = [J,] vector, lifetime income group weights
-
+        S         = integer, length of economic life
+        retire    = integer, retirement age
     Functions called: None
-
     Objects in function:
         AIME       = [J,] vector, average indexed monthly earnings by lifetime income group
         PIA        = [J,] vector, primary insurance amount by lifetime income group
         maxpayment = scalar, maximum replacement rate
         theta      = [J,] vector, replacement rates by lifetime income group
-
     Returns: theta
-
     '''
-    e, S, J, omega_SS, lambdas, retire = params
-    dim2 = 1
-    if nssmat.ndim==2:
-        dim2 = J
-    start_last_35 = retire-int(round((S/80)*35))
-    AIME = (e *(wss * nssmat * factor_ss).reshape(S,dim2))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
-    # try:
-    #     AIME = (e *(wss * nssmat * factor_ss).reshape(S,1))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
-    # except:
-    #     AIME = (e *(wss * nssmat * factor_ss).reshape(S,J))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
-    PIA = np.zeros(J)
+    e, S, retire = params
+    if e.ndim == 2:
+        dim2 = e.shape[1]
+    else:
+        dim2 = 1
+    earnings = (e *(wss * nssmat * factor_ss)).reshape(S,dim2)
+    # get highest earning 35 years
+    highest_35_earn = (-1.0*np.sort(-1.0*earnings[:retire,:] ,axis=0))[:int(round((S/80)*35))]
+    AIME = highest_35_earn.sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
+    PIA = np.zeros(dim2)
     # Bins from data for each level of replacement
-    for j in xrange(J):
+    for j in xrange(dim2):
         if AIME[j] < 749.0:
             PIA[j] = .9 * AIME[j]
         elif AIME[j] < 4517.0:
             PIA[j] = 674.1 + .32 * (AIME[j] - 749.0)
         else:
             PIA[j] = 1879.86 + .15 * (AIME[j] - 4517.0)
-    # Set the maximum replacment rate to be $30,000
-    maxpayment = 30000.0
+    # Set the maximum monthly replacment rate from SS benefits tables
+    maxpayment = 3501.00
     PIA[PIA > maxpayment] = maxpayment
     theta = (PIA*(12.0*S/80)) / (factor_ss*wss)
-
-    # try: # two dimensional (SxJ)
-    #     # AIME based on last 35 years of earned income
-    #     start_last_35 = retire-int(round((S/80)*35))
-    #     AIME = (e *(wss * nssmat * factor_ss).reshape(S,1))[start_last_35:retire,:].sum(0) / ((12.0*(S/80))*int(round((S/80)*35)))
-    #     PIA = np.zeros(J)
-    #     # Bins from data for each level of replacement
-    #     for j in xrange(J):
-    #         if AIME[j] < 749.0:
-    #             PIA[j] = .9 * AIME[j]
-    #         elif AIME[j] < 4517.0:
-    #             PIA[j] = 674.1 + .32 * (AIME[j] - 749.0)
-    #         else:
-    #             PIA[j] = 1879.86 + .15 * (AIME[j] - 4517.0)
-    #     # Set the maximum replacment rate to be $30,000
-    #     maxpayment = 30000.0
-    #     PIA[PIA > maxpayment] = maxpayment
-    #     theta = (PIA*(12.0*S/80)) / (factor_ss*wss)
-    # except: #one dimensional (no J)
-    #     # AIME based on last 35 years of earned income
-    #     start_last_35 = retire-int(round((S/80)*35))
-    #     AIME = ((wss * e * nssmat * factor_ss)[start_last_35:retire].sum()) / ((12.0*(S/80))*int(round((S/80)*35)))
-    #     PIA = 0
-    #     if AIME < 749.0:
-    #         PIA = .9 * AIME
-    #     elif AIME < 4517.0:
-    #         PIA = 674.1 + .32 * (AIME - 749.0)
-    #     else:
-    #         PIA = 1879.86 + .15 * (AIME - 4517.0)
-    #     # Set the maximum replacment rate to be $30,000
-    #     maxpayment = 30000.0
-    #     if PIA > maxpayment:
-    #         PIA = maxpayment
-    #     theta = PIA / (factor_ss*wss)
     return theta
+
+
 
 
 def tau_wealth(b, params):

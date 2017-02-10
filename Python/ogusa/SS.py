@@ -213,14 +213,13 @@ def euler_equation_solver(guesses, params):
 
     BQ_params = (omega_SS, lambdas[j], rho, g_n_ss, 'SS')
     BQ = household.get_BQ(r, b_splus1, BQ_params)
-    #theta_params = (e[:,j], S, J, omega_SS, lambdas[j],retire)
-    theta_params = (e, S, J, omega_SS, lambdas,retire)
+    theta_params = (e[j], S, retire)
     theta = tax.replacement_rate_vals(n_guess, w, factor, theta_params)
 
-    foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta[j], tau_bq[j], rho, lambdas[j], J, S,
+    foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta, tau_bq[j], rho, lambdas[j], J, S,
                            analytical_mtrs, etr_params, mtry_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'SS')
     error1 = household.FOC_savings(r, w, b_s, b_splus1, b_splus2, n_guess, BQ, factor, T_H, foc_save_parms)
-    foc_labor_params = (e[:, j], sigma, g_y, theta[j], b_ellipse, upsilon, chi_n, ltilde, tau_bq[j], lambdas[j], J, S,
+    foc_labor_params = (e[:, j], sigma, g_y, theta, b_ellipse, upsilon, chi_n, ltilde, tau_bq[j], lambdas[j], J, S,
                             analytical_mtrs, etr_params, mtrx_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'SS')
     error2 = household.FOC_labor(r, w, b_s, b_splus1, n_guess, BQ, factor, T_H, foc_labor_params)
 
@@ -241,7 +240,7 @@ def euler_equation_solver(guesses, params):
     # error2[mask4] = 1e14
 
     tax1_params = (e[:, j], lambdas[j], 'SS', retire, etr_params, h_wealth, p_wealth,
-                   m_wealth, tau_payroll, theta[j], tau_bq[j], J, S)
+                   m_wealth, tau_payroll, theta, tau_bq[j], J, S)
     tax1 = tax.total_taxes(r, w, b_s, n_guess, BQ, factor, T_H, None, False, tax1_params)
     cons_params = (e[:, j], lambdas[j], g_y)
     cons = household.get_cons(r, w, b_s, b_splus1, n_guess, BQ, tax1, cons_params)
@@ -362,7 +361,7 @@ def inner_loop(outer_loop_vars, params, baseline):
 
     BQ_params = (omega_SS.reshape(S, 1), lambdas.reshape(1, J), rho.reshape(S, 1), g_n_ss, 'SS')
     new_BQ = household.get_BQ(new_r, bssmat, BQ_params)
-    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas,retire)
+    theta_params = (e, S, retire)
     theta = tax.replacement_rate_vals(nssmat, new_w, new_factor, theta_params)
 
     T_H_params = (e, lambdas.reshape(1, J), omega_SS.reshape(S, 1), 'SS', etr_params, theta, tau_bq,
@@ -528,7 +527,7 @@ def SS_solver(b_guess_init, n_guess_init, wss, rss, T_Hss, factor_ss, params, ba
     Iss = firm.get_I(bssmat_splus1, Kss, Kss, Iss_params)
 
     BQss = new_BQ
-    theta_params = (e, S, J, omega_SS.reshape(S, 1), lambdas,retire)
+    theta_params = (e, S, retire)
     theta = tax.replacement_rate_vals(nssmat, wss, factor_ss, theta_params)
 
     # solve resource constraint
