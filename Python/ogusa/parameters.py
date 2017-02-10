@@ -220,9 +220,11 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     # chi_b_guess = np.array([0.04003265, 0.11, 0.2, 0.95,
     #    90., 750., 11700.])
     # chi_b_guess =np.array([1.0, 1.0])*80
-    chi_b_guess =np.array([1.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 4780.])
-    # chi_b_guess =np.array([0.3, 0.3, 2., 14.,
-    #         12.5, 98., 2150.])*13.0 # this hits about 6% interest and very close on wealth moments for
+    #####chi_b_guess =np.array([1.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 4780.])
+    #chi_b_guess =np.array([1.0, 80.0, 80.0, 80.0, 80.0, 80.0, 80.0, 84780.])
+    #chi_b_guess =np.array([0.3, 0.3, 2., 14.,12.5, 98., 2150.])
+    chi_b_guess =np.array([0.3, 0.3, 2., 14.,
+             12.5, 98., 2150.])*13.0 # this hits about 6% interest and very close on wealth moments for
     #                                 # Frisch 1.5 and sigma 2.0 ** but with old demographics file!!!
 
     # chi_b_guess =np.array([0.001, 0.007, 0.3, 4.,
@@ -368,6 +370,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
         chi_n_guess = chi_n_interp(age_midp_S)
         (_, _, omega_SS_80, _, _, _, _,_) = dem.get_pop_objs(20, 80,
             320, 1, 100, start_year, False)
+
 
     # make pop constant
     # omega = np.tile(omega_SS.reshape(1,S),(T+S,1))

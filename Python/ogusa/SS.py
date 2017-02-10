@@ -229,16 +229,16 @@ def euler_equation_solver(guesses, params):
     # Chi_b is large, they will be.  This prevents that from happening.
     # I'm not sure if the constraints are needed for labor.
     # But we might as well put them in for now.
-    mask1 = n_guess < 0
-    mask2 = n_guess > ltilde
-    mask3 = b_guess <= 0
-    mask4 = np.isnan(n_guess)
-    mask5 = np.isnan(b_guess)
-    error2[mask1] = 1e14
-    error2[mask2] = 1e14
-    error1[mask3] = 1e14
-    error1[mask5] = 1e14
-    error2[mask4] = 1e14
+    # mask1 = n_guess < 0
+    # mask2 = n_guess > ltilde
+    # mask3 = b_guess <= 0
+    # mask4 = np.isnan(n_guess)
+    # mask5 = np.isnan(b_guess)
+    # error2[mask1] = 1e14
+    # error2[mask2] = 1e14
+    # error1[mask3] = 1e14
+    # error1[mask5] = 1e14
+    # error2[mask4] = 1e14
 
     tax1_params = (e[:, j], lambdas[j], 'SS', retire, etr_params, h_wealth, p_wealth,
                    m_wealth, tau_payroll, theta[j], tau_bq[j], J, S)
@@ -309,9 +309,11 @@ def inner_loop(outer_loop_vars, params, baseline):
         # if j == 0:
         #     guesses = np.append(bssmat[:, j], nssmat[:, j])
         # else:
-        #     guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
-        #     #guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
+        #     #guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
+        #     guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
+
         guesses = np.append(bssmat[:, j], nssmat[:, j])
+
         euler_params = [r, w, T_H, factor, j, J, S, beta, sigma, ltilde, g_y,\
                   g_n_ss, tau_payroll, retire, mean_income_data,\
                   h_wealth, p_wealth, m_wealth, b_ellipse, upsilon,\
@@ -320,10 +322,23 @@ def inner_loop(outer_loop_vars, params, baseline):
                   mtry_params]
 
         [solutions, infodict, ier, message] = opt.fsolve(euler_equation_solver, guesses * .9,
-                                   args=euler_params, xtol=MINIMIZER_TOL, full_output=True)
+                                    args=euler_params, xtol=MINIMIZER_TOL, full_output=True)
 
-        euler_errors[:,j] = infodict['fvec']
-        #print 'Max Euler errors: ', np.absolute(euler_errors[:,j]).max()
+        #opt_fun = lambda x: euler_equation_solver(x, euler_params) # need this to pass args to scipy functions with out arg option
+        #solutions = opt.broyden2(opt_fun, guesses) # fails w/ no converge in linear solver
+        #[solutions_fsolve, infodict, ier, message] = opt.broyden1(opt_fun, guesses) # fails w/ no converge in linear solver
+        #[solutions_fsolve, infodict, ier, message] = opt.newton_krylov(opt_fun, guesses) # fails w/ no converge in linear solver
+        #[solutions_fsolve, infodict, ier, message] = opt.anderson(opt_fun, guesses) # fails w/ no converge in linear solver
+        #[solutions_fsolve, infodict, ier, message] = opt.excitingmixing(opt_fun, guesses) # fails w/ no converge in linear solver
+        #[solutions_fsolve, infodict, ier, message] = opt.linearmixing(opt_fun, guesses) # fails w/ no converge in linear solver
+        #[solutions_fsolve, infodict, ier, message] = opt.diagbroyden(opt_fun, guesses) # fails before start bc array has nans and/or infs
+
+        # print solutions
+        # quit()
+        #
+        # euler_errors[:,j] = infodict['fvec']
+        # print 'j = ', j
+        # print 'Max Euler errors: ', np.absolute(euler_errors[:,j]).max()
 
         bssmat[:, j] = solutions[:S]
         nssmat[:, j] = solutions[S:]
@@ -824,8 +839,8 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
 
     # b_guess = np.ones((S, J)).flatten() * 0.05
     # n_guess = np.ones((S, J)).flatten() * .4 * ltilde
-    b_guess = START_VALUES['bssmat_splus1'].flatten() #np.ones((S, J)).flatten() * 0.05
-    n_guess = START_VALUES['nssmat'].flatten() #np.ones((S, J)).flatten() * .4 * ltilde
+    b_guess = START_VALUES['bssmat_splus1'].flatten()
+    n_guess = START_VALUES['nssmat'].flatten()
     # For initial guesses of w, r, T_H, and factor, we use values that are close
     # to some steady state values.
 

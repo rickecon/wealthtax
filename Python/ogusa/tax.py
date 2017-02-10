@@ -597,7 +597,8 @@ def total_taxes(r, w, b, n, BQ, factor, T_H, j, shift, params):
     elif method == 'TPI_scalar':
         # The above methods won't work if scalars are used.  This option is only called by the
         # SS_TPI_firstdoughnutring function in TPI.
-        T_P -= theta[j] * w
+        #T_P -= theta[j] * w
+        T_P = 0.
         T_BQ = tau_bq[j] * BQ / lambdas
     total_taxes = T_I + T_P + T_BQ + T_W - T_H
 

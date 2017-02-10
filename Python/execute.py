@@ -247,7 +247,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         run_params['sigma'] = user_params['sigma']
         run_params.update(user_params)
 
-    from ogusa import SS, TPI
+    from ogusa import SS, TPI, SS_alt
 
 
     # List of parameter names that will not be changing (unless we decide to
@@ -443,8 +443,10 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         chi_params = calibrate.chi_estimate(income_tax_params, ss_params,
                       iterative_params, chi_params, baseline_dir=baseline_dir)
 
-    ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+    ss_outputs = SS_alt.run_SS(income_tax_params, ss_params, iterative_params,
                       chi_params, baseline, baseline_dir=baseline_dir)
+    # ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+    #                   chi_params, baseline, baseline_dir=baseline_dir)
 
 
 
