@@ -113,7 +113,21 @@ def marg_ut_cons(c, sigma):
 
     Returns: output
     '''
-    output = c**(-sigma)
+    # output = c**(-sigma)
+
+    if np.ndim(c) == 0:
+        c = np.array([c])
+    #p = c.shape[0]
+    epsilon = 0.0001
+    cvec_cnstr = c < epsilon
+    MU_c = np.zeros(c.shape)
+    MU_c[~cvec_cnstr] = c[~cvec_cnstr] ** (-sigma)
+    b2 = (-sigma * (epsilon ** (-sigma - 1))) / 2
+    b1 = (epsilon ** (-sigma)) - 2 * b2 * epsilon
+    MU_c[cvec_cnstr] = 2 * b2 * c[cvec_cnstr] + b1
+    output = MU_c
+    output = np.squeeze(output)
+
     return output
 
 
@@ -139,19 +153,59 @@ def marg_ut_labor(n, params):
     '''
     b_ellipse, upsilon, ltilde, chi_n = params
 
-    try:
-        deriv = b_ellipse * (1.0 / ltilde) * ((1.0 - (n / ltilde) ** upsilon) ** (
-            (1.0 / upsilon) - 1.0)) * (n / ltilde) ** (upsilon - 1.0)
-    except ValueError as ve:
-        # I think TJ added this in.  We need to be careful with doing stuff like this --
-        # it could lead to incorrect output, if we are setting deriv to be something that
-        # is actually close to the solution (or a possible solution).  If anything,
-        # we might want to set deriv to be some huge number (ie, 1e12).  That would almost
-        # certainly be far from the true value, which would force the euler error to be quite large,
-        # and so the fsolve will not pick this solution.
-        deriv = 1e12
+    # try:
+    #     deriv = b_ellipse * (1.0 / ltilde) * ((1.0 - (n / ltilde) ** upsilon) ** (
+    #         (1.0 / upsilon) - 1.0)) * (n / ltilde) ** (upsilon - 1.0)
+    # except ValueError as ve:
+    #     # I think TJ added this in.  We need to be careful with doing stuff like this --
+    #     # it could lead to incorrect output, if we are setting deriv to be something that
+    #     # is actually close to the solution (or a possible solution).  If anything,
+    #     # we might want to set deriv to be some huge number (ie, 1e12).  That would almost
+    #     # certainly be far from the true value, which would force the euler error to be quite large,
+    #     # and so the fsolve will not pick this solution.
+    #     deriv = 1e12
+    #
+    # output = chi_n * deriv
 
-    output = chi_n * deriv
+    b_ellip = b_ellipse
+    nvec = n
+    if np.ndim(nvec) == 0:
+        nvec = np.array([nvec])
+    # p = nvec.shape[0]
+    eps_low = 0.000001
+    eps_high = ltilde - 0.000001
+    nvec_low = nvec < eps_low
+    nvec_high = nvec > eps_high
+    nvec_uncstr = np.logical_and(~nvec_low, ~nvec_high)
+    MDU_n = np.zeros(nvec.shape)
+    MDU_n[nvec_uncstr] = (
+        (b_ellip / ltilde) *
+        ((nvec[nvec_uncstr] / ltilde) ** (upsilon - 1)) *
+        ((1 - ((nvec[nvec_uncstr] / ltilde) ** upsilon)) **
+         ((1 - upsilon) / upsilon)))
+    b2 = (0.5 * b_ellip * (ltilde ** (-upsilon)) * (upsilon - 1) *
+          (eps_low ** (upsilon - 2)) *
+          ((1 - ((eps_low / ltilde) ** upsilon)) **
+          ((1 - upsilon) / upsilon)) *
+          (1 + ((eps_low / ltilde) ** upsilon) *
+          ((1 - ((eps_low / ltilde) ** upsilon)) ** (-1))))
+    b1 = ((b_ellip / ltilde) * ((eps_low / ltilde) ** (upsilon - 1)) *
+          ((1 - ((eps_low / ltilde) ** upsilon)) **
+          ((1 - upsilon) / upsilon)) - (2 * b2 * eps_low))
+    MDU_n[nvec_low] = 2 * b2 * nvec[nvec_low] + b1
+    d2 = (0.5 * b_ellip * (ltilde ** (-upsilon)) * (upsilon - 1) *
+          (eps_high ** (upsilon - 2)) *
+          ((1 - ((eps_high / ltilde) ** upsilon)) **
+          ((1 - upsilon) / upsilon)) *
+          (1 + ((eps_high / ltilde) ** upsilon) *
+          ((1 - ((eps_high / ltilde) ** upsilon)) ** (-1))))
+    d1 = ((b_ellip / ltilde) * ((eps_high / ltilde) **
+          (upsilon - 1)) * ((1 - ((eps_high / ltilde) ** upsilon)) **
+          ((1 - upsilon) / upsilon)) - (2 * d2 * eps_high))
+    MDU_n[nvec_high] = 2 * d2 * nvec[nvec_high] + d1
+    output = MDU_n*chi_n
+    output = np.squeeze(output)
+
     return output
 
 
@@ -399,6 +453,60 @@ def FOC_labor(r, w, b, b_splus1, n, BQ, factor, T_H, params):
         marg_ut_labor(n, lab_params)
 
     return euler
+
+def solve_c(guess, params):
+    '''
+    Computes Euler errors for the FOC for savings in the steady state.
+    This function is usually looped through over J, so it does one lifetime income group at a time.
+
+    '''
+    cons2, n2, b_splus1, r, w, T_H, BQ, theta, factor, e, sigma, beta, g_y, chi_b, tau_bq, rho, lambdas, J, S, \
+        analytical_mtrs, etr_params, mtry_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, method, s = params
+
+    cons1 = guess
+
+    # In order to not have 2 savings euler equations (one that solves the first S-1 equations, and one that solves the last one),
+    # we combine them.  In order to do this, we have to compute a consumption term in period t+1, which requires us to have a shifted
+    # e and n matrix.  We append a zero on the end of both of these so they will be the right size.  We could append any value to them,
+    # since in the euler equation, the coefficient on the marginal utility of
+    # consumption for this term will be zero (since rho is one).
+    if method == 'TPI_scalar':
+        # e_extended = np.array([e] + [0])
+        # n_extended = np.array([n] + [0])
+        etr_params_to_use = etr_params[S-s-1,:]
+        mtry_params_to_use = mtry_params[S-s-1,:]
+    else:
+        # e_extended = np.array(list(e) + [0])
+        # n_extended = np.array(list(n) + [0])
+        # etr_params_to_use = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+        # mtry_params_to_use = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+        etr_params_to_use = etr_params[S-s-1,:]
+        mtry_params_to_use = mtry_params[S-s-1,:]
+
+    # mtr_cap_params = (e_extended[1:], etr_params_to_use,
+    #                   mtry_params_to_use,analytical_mtrs)
+    mtr_cap_params = (e[S-s-1], etr_params_to_use,
+                      mtry_params_to_use,analytical_mtrs)
+    deriv = (1+r) - r*(tax.MTR_capital(r, w, b_splus1, n2, factor, mtr_cap_params))
+
+    savings_ut = rho[S-s-2] * np.exp(-sigma * g_y) * chi_b * b_splus1 ** (-sigma)
+
+    # Again, note timing in this equation, the (1-rho) term will zero out in the last period, so the last entry of cons2 can be complete
+    # gibberish (which it is).  It just has to exist so cons2 is the right
+    # size to match all other arrays in the equation.
+    # print 'm_ut_cons1 = ', marg_ut_cons(cons1, sigma)
+    # print 'm_ut_cons2 = ', marg_ut_cons(cons2, sigma)
+    # print 'savings_ut = ', savings_ut
+    # print 'c1 c2 bsp1= ', cons1, cons2, b_splus1
+
+    euler_error = marg_ut_cons(cons1, sigma) - beta * (1 - rho[S-s-2]) * deriv * marg_ut_cons(
+        cons2, sigma) * np.exp(-sigma * g_y) - savings_ut
+
+    if cons1 <= 0:
+        euler_error = 1e14
+
+
+    return euler_error
 
 
 def constraint_checker_SS(bssmat, nssmat, cssmat, ltilde):

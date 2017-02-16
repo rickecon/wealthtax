@@ -9,7 +9,7 @@ import numpy as np
 import time
 
 import ogusa
-from ogusa import calibrate
+from ogusa import calibrate, wealth
 ogusa.parameters.DATASET = 'REAL'
 
 
@@ -96,14 +96,15 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
         # create function to match SS revenue
         def matcher(d_guess, params):
-            income_tax_params, lump_to_match = params
+            income_tax_params, lump_to_match, ss_params, iterative_params,\
+                              chi_params, baseline, baseline_dir = params
             analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
             etr_params[:,3] = d_guess
             mtrx_params[:,3] = d_guess
             mtry_params[:,3] = d_guess
             income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                              chi_params, baseline,baseline_dir=baseline_dir)
+                              chi_params, baseline ,baseline_dir=baseline_dir)
 
             lump_new = ss_outputs['T_Hss']
             error = abs(lump_to_match - lump_new)
@@ -115,7 +116,8 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         print 'Computing new income tax to match wealth tax'
         d_guess= .219 # initial guess
         import scipy.optimize as opt
-        params = [income_tax_params, lump_to_match]
+        params = [income_tax_params, lump_to_match, ss_params, iterative_params,
+                          chi_params, baseline, baseline_dir]
         new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-13)
         print '\tOld income tax:', d_guess
         print '\tNew income tax:', new_d_inc
@@ -125,10 +127,9 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         mtrx_params[:,3] = new_d_inc
         mtry_params[:,3] = new_d_inc
 
-        run_params['etr_params'] = etr_params
-        run_params['mtrx_params'] = mtrx_params
-        run_params['mtry_params'] = mtry_params
-
+        run_params['etr_params'] = np.tile(np.reshape(etr_params,(1,run_params['S'],etr_params.shape[1])),(run_params['BW'],1,1))
+        run_params['mtrx_params'] = np.tile(np.reshape(mtrx_params,(1,run_params['S'],mtrx_params.shape[1])),(run_params['BW'],1,1))
+        run_params['mtry_params'] = np.tile(np.reshape(mtry_params,(1,run_params['S'],mtry_params.shape[1])),(run_params['BW'],1,1))
 
     '''
     ------------------------------------------------------------------------
@@ -246,7 +247,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         run_params['sigma'] = user_params['sigma']
         run_params.update(user_params)
 
-    from ogusa import SS, TPI
+    from ogusa import SS, TPI, SS_alt
 
 
     # List of parameter names that will not be changing (unless we decide to
@@ -263,6 +264,13 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
                 'omega', 'g_n_ss', 'omega_SS', 'surv_rate', 'imm_rates', 'e', 'rho', 'omega_S_preTP']
 
 
+    sim_params = {}
+    for key in param_names:
+        sim_params[key] = run_params[key]
+
+    sim_params['output_dir'] = output_base
+    sim_params['run_params'] = run_params
+
     '''
     ------------------------------------------------------------------------
         If using income tax reform, need to determine parameters that yield
@@ -270,12 +278,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
     ------------------------------------------------------------------------
     '''
     if reform == 1:
-        sim_params = {}
-        for key in param_names:
-            sim_params[key] = run_params[key]
 
-        sim_params['output_dir'] = output_base
-        sim_params['run_params'] = run_params
         income_tax_params, ss_params, iterative_params, chi_params= SS.create_steady_state_parameters(**sim_params)
 
         # find SS revenue from wealth tax reform
@@ -286,14 +289,15 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
         # create function to match SS revenue
         def matcher(d_guess, params):
-            income_tax_params, lump_to_match = params
+            income_tax_params, lump_to_match, ss_params, iterative_params,\
+                              chi_params, baseline, baseline_dir = params
             analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
             etr_params[:,3] = d_guess
             mtrx_params[:,3] = d_guess
             mtry_params[:,3] = d_guess
             income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                              chi_params, baseline,baseline_dir=baseline_dir)
+                              chi_params, baseline ,baseline_dir=baseline_dir)
 
             lump_new = ss_outputs['T_Hss']
             error = abs(lump_to_match - lump_new)
@@ -303,21 +307,123 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             return error
 
         print 'Computing new income tax to match wealth tax'
-        d_guess= .219 # initial guess
+        d_guess= .452 # initial guess 0.452 works for sigma = 2, frisch 1.5
+        new_d_inc = d_guess
         import scipy.optimize as opt
-        params = [income_tax_params, lump_to_match]
-        new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-13)
-        print '\tOld income tax:', d_guess
-        print '\tNew income tax:', new_d_inc
+        # params = [income_tax_params, lump_to_match, ss_params, iterative_params,
+        #                   chi_params, baseline, baseline_dir]
+        # new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-8)
+        # print '\tOld income tax:', d_guess
+        # print '\tNew income tax:', new_d_inc
+
+        # def samesign(a, b):
+        #     return a * b > 0
+        #
+        # def bisect_method(func, params, low, high):
+        #     'Find root of continuous function where f(low) and f(high) have opposite signs'
+        #
+        #     #assert not samesign(func(params,low), func(params,high))
+        #
+        #     for i in range(54):
+        #         midpoint = (low + high) / 2.0
+        #         if samesign(func(params,low), func(params,midpoint)):
+        #             low = midpoint
+        #         else:
+        #             high = midpoint
+        #
+        #     return midpoint
+        #
+        # def solve_model(params,d):
+        #     income_tax_params, ss_params, iterative_params,\
+        #                       chi_params, baseline ,baseline_dir = params
+        #     analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+        #     etr_params[:,3] = d
+        #     mtrx_params[:,3] = d
+        #     mtry_params[:,3] = d
+        #     income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        #     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                       chi_params, baseline ,baseline_dir=baseline_dir)
+        #     ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        #     pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        #     lump_new = ss_outputs['T_Hss']
+        #     new_error = lump_to_match - lump_new
+        #     print 'Error in taxes:', error
+        #     print 'New income tax:', d
+        #     return new_error
+        #
+        # print 'Computing new income tax to match wealth tax'
+        # d_guess= .42 # initial guess
+        # # income_tax_params, lump_to_match, ss_params, iterative_params,\
+        # #                   chi_params, baseline, baseline_dir = params
+        # analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+        # etr_params[:,3] = d_guess
+        # mtrx_params[:,3] = d_guess
+        # mtry_params[:,3] = d_guess
+        # income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        # ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                   chi_params, baseline ,baseline_dir=baseline_dir)
+        # ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        # pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        # lump_new = ss_outputs['T_Hss']
+        # error = lump_to_match - lump_new
+        # new_error = error
+        # print "ERROR: ", error
+        # max_loop_iter = 300
+        # output_list = np.zeros((max_loop_iter,3))
+        # loop_iter = 0
+        # bisect = 0
+        # d_guess_old = d_guess
+        # while np.abs(new_error) > 1e-8 and loop_iter < max_loop_iter:
+        #     # if new_error > 0 and new_error > 0 and bisect == 0:
+        #     #     d_guess_old = d_guess
+        #     #     d_guess+=0.001
+        #     # elif new_error < 0 and new_error < 0 and bisect == 0:
+        #     #     d_guess_old = d_guess
+        #     #     d_guess-=0.001
+        #     #     d_guess = max(0.0,d_guess) # constrain so not negative
+        #     # else:
+        #     #     bisect = 1
+        #     #     print 'Entering bisection method'
+        #     #     params = income_tax_params, ss_params, iterative_params,\
+        #     #                       chi_params, baseline ,baseline_dir
+        #     #     high = max(d_guess,d_guess_old)
+        #     #     low = min(d_guess,d_guess_old)
+        #     #     d_guess = bisect_method(solve_model, params, low, high)
+        #     #     loop_iter = max_loop_iter
+        #
+        #     d_guess+=0.001
+        #
+        #     error = new_error
+        #     etr_params[:,3] = d_guess
+        #     mtrx_params[:,3] = d_guess
+        #     mtry_params[:,3] = d_guess
+        #     income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        #     print 'now here$$$'
+        #     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                       chi_params, baseline ,baseline_dir=baseline_dir)
+        #     ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        #     pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        #     lump_new = ss_outputs['T_Hss']
+        #     new_error = (lump_to_match - lump_new)
+        #     print "ERROR: ", new_error
+        #     output_list[loop_iter,0]=new_error
+        #     output_list[loop_iter,1]=d_guess
+        #     output_list[loop_iter,2]=ss_outputs['Yss']-ss_outputs['Iss']-ss_outputs['Css']
+        #     pickle.dump(output_list, open("output_list.pkl", "wb"))
+        #     print 'Error in taxes:', error
+        #     print 'Old income tax:', d_guess_old
+        #     print 'New income tax:', d_guess
+        #     print 'iteration: ', loop_iter
+        #     loop_iter += 1
 
         analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
         etr_params[:,3] = new_d_inc
         mtrx_params[:,3] = new_d_inc
         mtry_params[:,3] = new_d_inc
 
-        run_params['etr_params'] = etr_params
-        run_params['mtrx_params'] = mtrx_params
-        run_params['mtry_params'] = mtry_params
+        sim_params['etr_params'] = np.tile(np.reshape(etr_params,(run_params['S'],1,etr_params.shape[1])),(1,run_params['BW'],1))
+        sim_params['mtrx_params'] = np.tile(np.reshape(mtrx_params,(run_params['S'],1,mtrx_params.shape[1])),(1,run_params['BW'],1))
+        sim_params['mtry_params'] = np.tile(np.reshape(mtry_params,(run_params['S'],1,mtry_params.shape[1])),(1,run_params['BW'],1))
 
 
     '''
@@ -325,15 +431,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         Run SS
     ------------------------------------------------------------------------
     '''
-
-    sim_params = {}
-    for key in param_names:
-        sim_params[key] = run_params[key]
-
-    sim_params['output_dir'] = output_base
-    sim_params['run_params'] = run_params
-
     income_tax_params, ss_params, iterative_params, chi_params= SS.create_steady_state_parameters(**sim_params)
+    analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
 
     '''
     ****
@@ -344,8 +443,24 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         chi_params = calibrate.chi_estimate(income_tax_params, ss_params,
                       iterative_params, chi_params, baseline_dir=baseline_dir)
 
+    # ss_outputs = SS_alt.run_SS(income_tax_params, ss_params, iterative_params,
+    #                   chi_params, baseline, baseline_dir=baseline_dir)
     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                      chi_params, baseline,baseline_dir=baseline_dir)
+                      chi_params, baseline, baseline_dir=baseline_dir)
+
+
+
+    model_moments = ogusa.calibrate.calc_moments(ss_outputs,
+                                                 sim_params['omega_SS'],
+                                                 sim_params['lambdas'],
+                                                 sim_params['S'],
+                                                 sim_params['J'])
+
+    scf, data = ogusa.wealth.get_wealth_data()
+    wealth_moments = ogusa.wealth.compute_wealth_moments(scf, sim_params['lambdas'], sim_params['J'])
+
+    print 'model moments: ', model_moments[:sim_params['J']+2]
+    print 'data moments: ', wealth_moments
 
     '''
     ------------------------------------------------------------------------

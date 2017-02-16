@@ -20,16 +20,29 @@ def run_micro_macro(user_params):
         Run calibration
     -----------------------------------------------------------------------
     '''
-    output_base = baseline_dir
-    input_dir = baseline_dir
-    user_params = {'frisch':(1/1.5), 'sigma':3.0}
-    kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-            'baseline':True, 'reform':0, 'user_params':user_params,
-            'guid':'wealth_tax_baseline','calibrate_model':True}
-    runner_SS(**kwargs)
-    quit()
+    # output_base = baseline_dir
+    # input_dir = baseline_dir
+    # user_params = {'frisch':1.5, 'sigma':3.0}
+    # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+    #         'baseline':True, 'reform':0, 'user_params':user_params,
+    #         'guid':'wealth_tax_baseline','calibrate_model':False}
+    # runner_SS(**kwargs)
+    # quit()
+    # # sig_val = 3.0
+    # # while sig_val < 3.05:
+    # #     user_params = {'frisch':1.5, 'sigma':sig_val}
+    # #     print 'SIMGA = ', sig_val
+    # #     kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+    # #             'baseline':True, 'reform':0, 'user_params':user_params,
+    # #             'guid':'wealth_tax_baseline','calibrate_model':False}
+    # #     runner_SS(**kwargs)
+    # #     sig_val += 0.05
+    # #     quit()
+    # #     time.sleep(10.5)
+    # # quit()
 
-    sigma_list = [3.0, 1.1, 2.1, 3.2]
+
+    sigma_list = [2.0, 1.1, 1.0, 2.0, 2.1, 3.1, 3.2]
 
     '''
     Loop over value of sigma and run all baselines and reforms
@@ -37,7 +50,7 @@ def run_micro_macro(user_params):
     for item in sigma_list:
         print 'item= ', item
         # parameters that may update at each iteration
-        user_params = {'frisch':(1/1.5), 'sigma':item}
+        user_params = {'frisch':1.5, 'sigma':item}
 
         # set up directories to save output to
         baseline_dir = "./OUTPUT_BASELINE" + '/sigma' + str(item)
@@ -55,7 +68,9 @@ def run_micro_macro(user_params):
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':True, 'reform':0, 'user_params':user_params,
                 'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        runner_SS(**kwargs)
+        #runner_SS(**kwargs)
+        runner(**kwargs)
+        quit()
 
 
         '''
@@ -83,6 +98,7 @@ def run_micro_macro(user_params):
                 'baseline':False, 'reform':2, 'user_params':user_params,
                 'guid':'wealth_tax_reform2','calibrate_model':False}
         runner_SS(**kwargs)
+        quit()
 
         '''
         ------------------------------------------------------------------------
@@ -93,9 +109,10 @@ def run_micro_macro(user_params):
         input_dir = income_dir
         guid_iter = 'reform_' + str(0)
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-                'baseline':True, 'reform':1, 'user_params':user_params,
+                'baseline':False, 'reform':1, 'user_params':user_params,
                 'guid':'wealth_tax_reform1','calibrate_model':False}
         runner_SS(**kwargs)
+        quit()
 
 
 
