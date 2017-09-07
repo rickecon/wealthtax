@@ -212,8 +212,8 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     PLOT_TPI = False
     maxiter = 250
     mindist_SS = 1e-9
-    mindist_TPI = 1e-9 #2e-5
-    nu = .4
+    mindist_TPI = 1e-4
+    nu = .1
     flag_graphs = False
     #   Calibration parameters
     # These guesses are close to the calibrated values - with sigma = 3, frisch = 1/1.5

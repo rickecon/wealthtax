@@ -49,7 +49,7 @@ Grab some values from prior run to serve as starting values
 #START_VALUES = pickle.load(open("./OUTPUT_INCOME_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
 #START_VALUES = pickle.load(open("./OUTPUT_WEALTH_REFORM/sigma3.0/SS/SS_vars.pkl", "rb"))
 # START_VALUES = pickle.load(open("./OUTPUT_BASELINE/SS/SS_vars.pkl", "rb"))
-START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
+# START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
 
 
 '''
@@ -335,7 +335,7 @@ def inner_loop(outer_loop_vars, params, baseline):
         # print solutions
         # quit()
         #
-        # euler_errors[:,j] = infodict['fvec']
+        euler_errors[:,j] = infodict['fvec']
         # print 'j = ', j
         # print 'Max Euler errors: ', np.absolute(euler_errors[:,j]).max()
 
@@ -554,23 +554,23 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss, params, baselin
                 - only exists to help debug
     ------------------------------------------------------------------------
     '''
-    etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
-    etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
-    mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
-    mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
-    e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
-    nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
-    mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
-    mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
-    mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
-    mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
-
-    etr_ss_params = (e, etr_params_3D)
-    etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
-
-    np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
-    np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
-    np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
+    # etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+    # etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
+    # mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+    # mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
+    # e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
+    # nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
+    # mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
+    # mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
+    # mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
+    # mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
+    #
+    # etr_ss_params = (e, etr_params_3D)
+    # etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
+    #
+    # np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
+    # np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
+    # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
 
 
     print 'interest rate: ', rss
@@ -753,7 +753,6 @@ def SS_fsolve_reform(guesses, params):
     # Rename the inputs
     r = guesses[0]
     T_H = guesses[1]
-    factor = guesses[2]
 
     print 'Reform SS factor is: ', factor
 
@@ -781,7 +780,7 @@ def SS_fsolve_reform(guesses, params):
 
 
 
-def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=True, baseline_dir="./OUTPUT"):
+def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=True, baseline_dir="./OUTPUT", output_base="./OUTPUT_BASELINE"):
     '''
     --------------------------------------------------------------------
     Solve for SS of OG-USA.
@@ -830,6 +829,10 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
 
     maxiter, mindist_SS = iterative_params
 
+    start_dir = output_base + "/SS"
+    START_VALUES = pickle.load(open(start_dir + "/SS_vars.pkl", "rb"))
+    BASELINE_VALUES = pickle.load(open(baseline_dir + "/SS/SS_vars.pkl", "rb"))
+
     # b_guess = np.ones((S, J)).flatten() * 0.05
     # n_guess = np.ones((S, J)).flatten() * .4 * ltilde
     b_guess = START_VALUES['bssmat_splus1'].flatten()
@@ -877,7 +880,7 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params, baseline=
         # wguess = START_VALUES['wss'] #0.968167841907 #1.16
         rguess = START_VALUES['rss'] #0.116998690192 #.068
         T_Hguess = START_VALUES['T_Hss'] #0.0304546765599 #0.046
-        factor = START_VALUES['factor_ss'] #274072.825051 #239344.894517
+        factor = BASELINE_VALUES['factor_ss'] #274072.825051 #239344.894517
         # wguess = 0.968167841907 #1.16
         # rguess = 0.086998690192 #.068
         # T_Hguess = 0.0304546765599 #0.046
