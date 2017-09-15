@@ -2,7 +2,7 @@
 ------------------------------------------------------------------------
 Last updated 4/7/2015
 
-Firm functions for firms in the steady state and along the transition 
+Firm functions for firms in the steady state and along the transition
 path.
 
 ------------------------------------------------------------------------
@@ -23,7 +23,7 @@ def get_r(Y, K, params):
     Generates vector of interest rates.
 
     Inputs:
-        Y      = [T+S,] vector, aggregate output 
+        Y      = [T+S,] vector, aggregate output
         K      = [T+S,] vector, aggregate capital
         params = length 2 tuple, (alpha, delta)
         alpha  = scalar, capital's share of output
@@ -32,7 +32,7 @@ def get_r(Y, K, params):
     Functions called: None
 
     Objects in function:
-        r = [T+S,] vector, rental rate 
+        r = [T+S,] vector, rental rate
 
     Returns: r
     '''
@@ -42,12 +42,42 @@ def get_r(Y, K, params):
     return r
 
 
+def get_w_from_r(r, params):
+    '''
+    --------------------------------------------------------------------
+    Solve for steady-state wage w or time path of wages w_t
+    --------------------------------------------------------------------
+    INPUTS:
+    params = length 4 tuple, (Z, alpha, delta, tau_c)
+    Z      = scalar > 0, total factor productivity
+    alpha  = scalar in (0, 1), capital share of income
+    delta  = scalar in (0, 1), per period depreciation rate
+    r      = scalar or (T+S-2) vector, real interest rate
+
+    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION: None
+
+    OBJECTS CREATED WITHIN FUNCTION:
+    w = scalar > 0 or (T+S-2) vector, steady-state wage or time path of
+        wage
+
+    FILES CREATED BY THIS FUNCTION: None
+
+    RETURNS: w
+    --------------------------------------------------------------------
+    '''
+    Z, alpha, delta = params
+    w = ((1 - alpha) * Z * ((alpha * Z) / (r + delta))
+         ** (alpha / (1 - alpha)))
+
+    return w
+
+
 def get_w(Y, L, params):
     '''
     Generates vector of aggregate output.
 
     Inputs:
-        Y      = [T+S,] vector, aggregate output 
+        Y      = [T+S,] vector, aggregate output
         L      = [T+S,] vector, aggregate labor
         params = length 1 tuple, (alpha)
         alpha  = scalar, capital's share of output
@@ -55,7 +85,7 @@ def get_w(Y, L, params):
     Functions called: None
 
     Objects in function:
-        w = [T+S,] vector, rental rate 
+        w = [T+S,] vector, rental rate
 
     Returns: w
     '''
@@ -78,7 +108,7 @@ def get_Y(K, L, params):
     Functions called: None
 
     Objects in function:
-        Y = [T+S,] vector, aggregate output 
+        Y = [T+S,] vector, aggregate output
 
     Returns: Y
     '''
@@ -103,7 +133,7 @@ def get_L(n, params):
 
     Objects in function:
         L_presum = [T,S,J] array, weighted labor supply
-        L = [T+S,] vector, aggregate labor 
+        L = [T+S,] vector, aggregate labor
 
     Returns: L
 
@@ -123,17 +153,17 @@ def get_I(b_splus1, K_p1, K, params):
     Generates vector of aggregate investment.
 
     Inputs:
-        K_p1   = [T,] vector, aggregate capital, one period ahead        
+        K_p1   = [T,] vector, aggregate capital, one period ahead
         K      = [T,] vector, aggregate capital
         params = length 3 tuple, (delta, g_y, g_n)
-        delta  = scalar, depreciation rate of capital 
-        g_y    = scalar, production growth rate 
+        delta  = scalar, depreciation rate of capital
+        g_y    = scalar, production growth rate
         g_n    = [T,] vector, population growth rate
 
     Functions called: None
 
     Objects in function:
-        aggI = [T,] vector, aggregate investment 
+        aggI = [T,] vector, aggregate investment
 
     Returns: aggI
 

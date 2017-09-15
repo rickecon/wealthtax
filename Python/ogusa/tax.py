@@ -208,7 +208,8 @@ def tau_income(r, w, b, n, factor, params):
 
     num = (A*(I**2)) + (B*I)
     denom = (A*(I**2)) + (B*I) + C
-    tau =  D*(num/denom)
+    tau = D*(num/denom)
+
     return tau
 
 
