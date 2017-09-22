@@ -61,6 +61,10 @@ Lss = {}
 wss = {}
 rss = {}
 T_Hss = {}
+yss = {}
+y_aftertax_ss = {}
+utility_ss = {}
+b_aftertax_ss = {}
 ss_dir = os.path.join(baseline_dir, "sigma2.0/SS/SS_vars.pkl")
 ss_output = pickle.load(open(ss_dir, "rb"))
 bssmat['base'] = ss_output['bssmat']
@@ -74,6 +78,11 @@ Lss['base'] = ss_output['Lss']
 wss['base'] = ss_output['wss']
 rss['base'] = ss_output['rss']
 T_Hss['base'] = ss_output['T_Hss']
+yss['base'] = ss_output['yss']
+y_aftertax_ss['base'] = ss_output['y_aftertax_ss']
+utility_ss['base'] = ss_output['utility_ss']
+b_aftertax_ss['base'] = ss_output['b_aftertax_ss']
+
 
 for item in ('wealth','income'):
     ss_dir = os.path.join(reform_dir[item], "sigma2.0/SS/SS_vars.pkl")
@@ -89,6 +98,10 @@ for item in ('wealth','income'):
     wss[item] = ss_output['wss']
     rss[item] = ss_output['rss']
     T_Hss[item] = ss_output['T_Hss']
+    yss[item] = ss_output['yss']
+    y_aftertax_ss[item] = ss_output['y_aftertax_ss']
+    utility_ss[item] = ss_output['utility_ss']
+    b_aftertax_ss[item] = ss_output['b_aftertax_ss']
 
 
 '''
@@ -143,7 +156,7 @@ weights['Total'] = np.tile(omega_SS.reshape(S, 1), (1, J)) * lambdas.reshape(1, 
 weights['Ability $j$'] = lambdas
 weights['Age $s$'] = omega_SS
 for tax_run in ('base','wealth','income'):
-    income = ((wss[tax_run]*e*n[tax_run]) + (rss[tax_run]*bssmat[tax_run]))*factor['base']
+    income = yss[tax_run]*factor['base']
     b_dict[tax_run,'Total'] = bssmat[tax_run]
     b_dict[tax_run,'Ability $j$'] = bssmat[tax_run].sum(axis=0)
     b_dict[tax_run,'Age $s$'] = bssmat[tax_run].sum(axis=1)
@@ -201,6 +214,78 @@ for var in ('b','y','c','n'):
         row+=1
 
 
+'''
+Comparision of changes in the SS gini (total, by age, by type) from baseline
+vs wealth tax and income tax reforms -- ****for after-tax variables*****
+'''
+weights = {}
+b_dict = {}
+y_dict = {}
+c_dict = {}
+n_dict = {}
+gini = {}
+weights['Total'] = np.tile(omega_SS.reshape(S, 1), (1, J)) * lambdas.reshape(1, J)
+weights['Ability $j$'] = lambdas
+weights['Age $s$'] = omega_SS
+for tax_run in ('base','wealth','income'):
+    income = y_aftertax_ss[tax_run]*factor['base']
+    b_dict[tax_run,'Total'] = b_aftertax_ss[tax_run]
+    b_dict[tax_run,'Ability $j$'] = b_aftertax_ss[tax_run].sum(axis=0)
+    b_dict[tax_run,'Age $s$'] = b_aftertax_ss[tax_run].sum(axis=1)
+    y_dict[tax_run,'Total'] = income
+    y_dict[tax_run,'Ability $j$'] = income.sum(axis=0)
+    y_dict[tax_run,'Age $s$'] = income.sum(axis=1)
+    c_dict[tax_run,'Total'] = c[tax_run]
+    c_dict[tax_run,'Ability $j$'] = c[tax_run].sum(axis=0)
+    c_dict[tax_run,'Age $s$'] = c[tax_run].sum(axis=1)
+    n_dict[tax_run,'Total'] = n[tax_run]
+    n_dict[tax_run,'Ability $j$'] = n[tax_run].sum(axis=0)
+    n_dict[tax_run,'Age $s$'] = n[tax_run].sum(axis=1)
+    for item in ('Total','Ability $j$','Age $s$'):
+        gini['b',item,tax_run] = inequal.gini(b_dict[tax_run,item], weights[item])
+        gini['y',item,tax_run] = inequal.gini(y_dict[tax_run,item], weights[item])
+        gini['c',item,tax_run] = inequal.gini(c_dict[tax_run,item], weights[item])
+        gini['n',item,tax_run] = inequal.gini(n_dict[tax_run,item], weights[item])
+
+# write to workbook
+worksheet = workbook.add_worksheet('Gini Changes -- After Tax')
+top_line = ['Wealth Tax', 'Income Tax']
+headings = ['Steady-State Variable', 'Gini Type','Baseline','Treatment','% Change','Treatment','% Change']
+tex_vars = ['$\\bar{b}_{j,s}$','$\\bar{y}_{j,s}$','$\\bar{c}_{j,s}$','$\\bar{n}_{j,s}$']
+vars_names = ['Wealth','Income','$Consumption','Labor Supply']
+row = 1
+col = 0
+for item in headings:
+    worksheet.write(row,col,item)
+    col+=1
+worksheet.merge_range('D1:E1', top_line[0])
+worksheet.merge_range('F1:G1', top_line[1])
+
+col = 0
+row = 2
+for i in range(len(tex_vars)):
+    worksheet.write(row,col,tex_vars[i])
+    row+=1
+    worksheet.write(row,col,vars_names[i])
+    row+=2
+row = 2
+col = 1
+for var in ('b','y','c','n'):
+    for item in ('Total','Ability $j$','Age $s$'):
+        col=1
+        worksheet.write(row,col,item)
+        col=2
+        worksheet.write(row,col,gini[(var,item,'base')])
+        col=3
+        for tax_run in ('wealth','income'):
+            worksheet.write(row,col,gini[(var,item,tax_run)])
+            col += 1
+            pct_diff = (gini[(var,item,tax_run)]-gini[(var,item,'base')])/gini[(var,item,tax_run)]
+            worksheet.write(row,col,pct_diff)
+            col += 1
+        row+=1
+
+
 
 '''
 Compare changes in aggregate variables in SS - baseline vs two reforms
@@ -213,9 +298,7 @@ for tax_run in ('base','wealth','income'):
     agg_dict['Lss',tax_run] = Lss[tax_run]
     agg_dict['Css',tax_run] = (c[tax_run]*(np.tile(omega_SS.reshape(S, 1), (1, J))
                                            * lambdas.reshape(1, J))).sum()
-    #u = ((c[tax_run]**(1-sigma))/(1-sigma)) + np.exp(g_y_ss*(1-sigma))*chi_n
-    u = 50
-    agg_dict['Uss',tax_run] = (u*(np.tile(omega_SS.reshape(S, 1), (1, J))
+    agg_dict['Uss',tax_run] = (utility_ss[tax_run]*(np.tile(omega_SS.reshape(S, 1), (1, J))
                                            * lambdas.reshape(1, J))).sum()
 
 # write to workbook
