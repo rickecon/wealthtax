@@ -457,6 +457,45 @@ def FOC_labor(r, w, b, b_splus1, n, BQ, factor, T_H, params):
     return euler
 
 
+def get_u(c, n, b_splus1, params):
+    '''
+    Computes flow utility for the household.
+
+    Inputs:
+        b_splus1 = [S,J] array, steady state distribution of capital
+        n = [S,J] array, steady state distribution of labor
+        c = [S,J] array, steady state distribution of consumption
+        sigma = scalar, coefficient of relative risk aversion
+        chi_n  = [S,] vector of utility weights for disulity of labor
+        b_ellipse = scalar, scale parameter on elliptical utility
+        ltilde = scalar, upper bound of household labor supply
+        upsilon = scalar, curvature parameter on elliptical utility
+        k_ellipse = scalar, shift parameter on elliptical utility
+        rho_s = [S,] vector, mortality rates by age
+        chi_b = [J,] vector, utility weights on bequests
+        g_y = scalar, economic growth rate
+
+    Functions called: None
+
+    Objects in function:
+        utility = [S,J] array, utility for all agents
+
+    Returns:
+        utility
+    '''
+    sigma, chi_n, b_ellipse, ltilde, upsilon, rho_s, chi_b = params
+
+    utility = (((c ** (1-sigma) - 1) / (1 - sigma)) +
+               (chi_n * ((b_ellipse * (1 - (n / ltilde) ** upsilon)
+                          ** (1 / upsilon)))) +
+               (rho_s * chi_b * ((b_splus1 ** (1-sigma) - 1)
+                                 / (1 - sigma))))
+
+    return utility
+
+
+
+
 def constraint_checker_SS(bssmat, nssmat, cssmat, ltilde):
     '''
     Checks constraints on consumption, savings, and labor supply in the steady state.

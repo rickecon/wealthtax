@@ -735,6 +735,30 @@ def run_TPI(income_tax_params, tpi_params, iterative_params, initial_values, SS_
     C = household.get_C(c_path, C_params)
     I_params = (delta, g_y, omega[:T].reshape(T, S, 1), lambdas, imm_rates[:T].reshape(T, S, 1), g_n_vector[1:T+1], 'TPI')
     I = firm.get_I(bmat_splus1[:T], K[1:T+1], K[:T], I_params)
+
+    # compute utility
+    u_params = (sigma, np.tile(chi_n.reshape(1, S, 1),(T, 1, J)),
+                b_ellipse, ltilde, upsilon,
+                np.tile(rho.reshape(1, S, 1),(T, 1, J)),
+                np.tile(chi_b.reshape(1, 1, J),(T, S, 1)))
+    utility_path = household.get_u(c_path[:T,:,:], n_mat[:T,:,:], bmat_splus1[:T,:,:], u_params)
+
+    # compute before and after-tax income
+    y_path = (np.tile(r[:T].reshape(T, 1, 1),(1,S,J)) * bmat_s[:T,:,:] +
+              np.tile(w[:T].reshape(T, 1, 1),(1,S,J)) *
+              np.tile(e.reshape(1, S, J),(T,1,1)) * n_mat[:T,:,:])
+    inctax_params = (np.tile(e.reshape(1, S, J),(T,1,1)),
+                     etr_params_path)
+    y_aftertax_path = (y_path -
+                       tax.tau_income(np.tile(r[:T].reshape(T, 1, 1),(1,S,J)),
+                                      np.tile(w[:T].reshape(T, 1, 1),(1,S,J)),
+                                      bmat_s[:T,:,:], n_mat[:T,:,:], factor, inctax_params))
+
+    # compute after-tax wealth
+    wtax_params = (h_wealth, p_wealth, m_wealth)
+    b_aftertax_path = bmat_s[:T,:,:] - tax.tau_wealth(bmat_s[:T,:,:], wtax_params)
+
+
     rc_error = Y[:T] - C[:T] - I[:T]
     print 'Resource Constraint Difference:', rc_error
 
@@ -759,13 +783,10 @@ def run_TPI(income_tax_params, tpi_params, iterative_params, initial_values, SS_
 
     output = {'Y': Y, 'K': K, 'L': L, 'C': C, 'I': I, 'BQ': BQ,
               'T_H': T_H, 'r': r, 'w': w, 'b_mat': b_mat, 'n_mat': n_mat,
-              'c_path': c_path, 'tax_path': tax_path,
+              'c_path': c_path, 'tax_path': tax_path, 'bmat_s': bmat_s,
+              'utility_path': utility_path, 'b_aftertax_path': b_aftertax_path,
+              'y_aftertax_path': y_aftertax_path, 'y_path': y_path,
               'eul_savings': eul_savings, 'eul_laborleisure': eul_laborleisure}
-
-    # tpi_dir = os.path.join(output_dir, "TPI")
-    # utils.mkdirs(tpi_dir)
-    # tpi_vars = os.path.join(tpi_dir, "TPI_vars.pkl")
-    # pickle.dump(output, open(tpi_vars, "wb"))
 
     macro_output = {'Y': Y, 'K': K, 'L': L, 'C': C, 'I': I,
                     'BQ': BQ, 'T_H': T_H, 'r': r, 'w': w,

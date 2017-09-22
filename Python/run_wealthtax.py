@@ -68,8 +68,9 @@ def run_micro_macro(user_params):
         # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
         #         'baseline':True, 'reform':0, 'user_params':user_params,
         #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        # #runner_SS(**kwargs)
+        # # runner_SS(**kwargs)
         # runner(**kwargs)
+        #
 
 
         # '''
@@ -84,12 +85,12 @@ def run_micro_macro(user_params):
         #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
         # runner(**kwargs)
 
-        # '''
-        # ------------------------------------------------------------------------
-        #     Run wealth tax reform (needs to be run before income tax reform
-        #     because it determines the SS revenue target)
-        # ------------------------------------------------------------------------
-        # '''
+        '''
+        ------------------------------------------------------------------------
+            Run wealth tax reform (needs to be run before income tax reform
+            because it determines the SS revenue target)
+        ------------------------------------------------------------------------
+        '''
         # output_base = wealth_dir
         # input_dir = wealth_dir
         # guid_iter = 'reform_' + str(0)
@@ -98,11 +99,11 @@ def run_micro_macro(user_params):
         #         'guid':'wealth_tax_reform2','calibrate_model':False}
         # runner(**kwargs)
 
-        '''
-        ------------------------------------------------------------------------
-            Run income tax reform
-        ------------------------------------------------------------------------
-        '''
+        # '''
+        # ------------------------------------------------------------------------
+        #     Run income tax reform
+        # ------------------------------------------------------------------------
+        # '''
         output_base = income_dir
         input_dir = income_dir
         guid_iter = 'reform_' + str(1)

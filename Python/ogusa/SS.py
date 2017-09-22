@@ -544,34 +544,23 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss, params, baselin
     Css_params = (omega_SS.reshape(S, 1), lambdas, 'SS')
     Css = household.get_C(cssmat, Css_params)
 
+    # compute utility
+    u_params = (sigma, chi_n.reshape(S, 1), b_ellipse, ltilde, upsilon,
+                rho.reshape(S, 1), chi_b)
+    utility_ss = household.get_u(cssmat, nssmat, bssmat_splus1, u_params)
+
+    # compute before and after-tax income
+    yss = rss * bssmat + wss * e * nssmat
+    inctax_params = (e, etr_params_3D)
+    y_aftertax_ss = yss - tax.tau_income(rss, wss, bssmat, nssmat,
+                                         factor_ss, inctax_params)
+
+    # compute after-tax wealth
+    wtax_params = (h_wealth, p_wealth, m_wealth)
+    b_aftertax_ss = bssmat - tax.tau_wealth(bssmat, wtax_params)
+
+
     resource_constraint = Yss - (Css + Iss)
-
-
-
-    '''
-    ------------------------------------------------------------------------
-        The code below is to calulate and save model MTRs
-                - only exists to help debug
-    ------------------------------------------------------------------------
-    '''
-    # etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
-    # etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
-    # mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
-    # mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
-    # e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
-    # nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
-    # mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
-    # mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
-    # mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
-    # mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
-    #
-    # etr_ss_params = (e, etr_params_3D)
-    # etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
-    #
-    # np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
-    # np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
-    # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
-
 
     print 'interest rate: ', rss
     print 'wage rate: ', wss
@@ -606,6 +595,8 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss, params, baselin
               'nssmat': nssmat, 'Yss': Yss,'wss': wss, 'rss': rss, 'theta': theta,
               'BQss': BQss, 'factor_ss': factor_ss, 'bssmat_s': bssmat_s,
               'cssmat': cssmat, 'bssmat_splus1': bssmat_splus1,
+              'utility_ss': utility_ss, 'yss': yss,
+              'y_aftertax_ss': y_aftertax_ss, 'b_aftertax_ss': b_aftertax_ss,
               'T_Hss': T_Hss, 'euler_savings': euler_savings,
               'euler_labor_leisure': euler_labor_leisure, 'chi_n': chi_n,
               'chi_b': chi_b, 'ss_flag':ss_flag}

@@ -46,6 +46,7 @@ ending_age = run_params['ending_age']
 J = run_params['J']
 lambdas = run_params['lambdas']
 l_tilde = run_params['ltilde']
+chi_n_vec = run_params['chi_n_guess']
 theta = 1/run_params['frisch']
 b_ellipse = run_params['b_ellipse']
 upsilon = run_params['upsilon']
@@ -126,9 +127,10 @@ plt.savefig(labor_dist_data_withfit)
 plt.close()
 
 ## Calibrated values of chi_n
-est_dir = os.path.join(baseline_dir, "Calibration/chi_estimation.pkl")
-est_output = pickle.load(open(est_dir, "rb"))
-chi_n = est_output.x[J:]
+# est_dir = os.path.join(baseline_dir, "Calibration/chi_estimation.pkl")
+# est_output = pickle.load(open(est_dir, "rb"))
+# chi_n = est_output.x[J:]
+chi_n = chi_n_vec
 plt.clf()
 plt.figure()
 plt.rc('text', usetex=True)
@@ -192,186 +194,186 @@ labor_dist_2D = os.path.join(GRAPH_DIR, "labor_dist_2D")
 plt.savefig(labor_dist_2D)
 plt.close()
 
-# ## SS distribution of consumption, baseline, by ability type
-# plt.clf()
-# plt.figure()
-# domain = np.arange(80) + 20
-# plt.rc('text', usetex=True)
-# plt.rc('font', family='serif')
-# ax = plt.subplot(111)
-# ax.plot(domain, c_base[:, 0], label='0 - 24%', linestyle='-', color='black')
-# ax.plot(domain, c_base[:, 1], label='25 - 49%', linestyle='--', color='black')
-# ax.plot(domain, c_base[:, 2], label='50 - 69%', linestyle='-.', color='black')
-# ax.plot(domain, c_base[:, 3], label='70 - 79%', linestyle=':', color='black')
-# ax.plot(domain, c_base[:, 4], label='80 - 89%', marker='x', color='black')
-# ax.plot(domain, c_base[:, 5], label='90 - 99%', marker='v', color='black')
-# ax.plot(domain, c_base[:, 6], label='99 - 100%', marker='1', color='black')
-# box = ax.get_position()
-# ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-# ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
-# ax.set_xlabel(r'age-$s$')
-# ax.set_ylabel(r'individual consumption, \ $\bar{c}_{j,s}$')
-# consumption_2D = os.path.join(GRAPH_DIR, "consumption_2D")
-# plt.savefig(consumption_2D)
-# plt.close()
-#
-#
-# ## percentage change in consumption over lifecycle, baseline vs reform (wealth
-# ## and income tax reforms), separate for each type
-#
-# # Compute percent diffs
-# pct_diff = {}
-# for item in ('wealth','income'):
-#     pct_diff['bssmat_'+item] = (bssmat_base - bssmat[item]) / bssmat_base
-#     pct_diff['n_'+item] = (bssmat_base - n[item]) / bssmat_base
-#     pct_diff['c_'+item] = (bssmat_base - c[item]) / bssmat_base
-#     pct_diff['BQ_'+item] = (bssmat_base - BQ[item]) / bssmat_base
-#
-# for item in ('wealth','income'):
-#     plt.clf()
-#     plt.figure()
-#     plt.rc('text', usetex=True)
-#     plt.rc('font', family='serif')
-#     ax = plt.subplot(312)
-#     ax.plot(domain, pct_diff['c_'+item][:, 0],
-#             label='0 - 24%', linestyle='-', color='black')
-#     ax.plot(domain, pct_diff['c_'+item][:, 1],
-#             label='25 - 49%', linestyle='--', color='black')
-#     ax.plot(domain, pct_diff['c_'+item][:, 2],
-#             label='50 - 69%', linestyle='-.', color='black')
-#     ax.plot(domain, pct_diff['c_'+item][:, 3],
-#             label='70 - 79%', linestyle=':', color='black')
-#     ax.plot(domain, pct_diff['c_'+item][:, 4],
-#             label='80 - 89%', marker='x', color='black')
-#     ax.plot(domain, pct_diff['c_'+item][:, 5],
-#             label='90 - 99%', marker='v', color='black')
-#     ax.plot(domain, pct_diff['c_'+item][:, 6],
-#             label='99 - 100%', marker='1', color='black')
-#     box = ax.get_position()
-#     ax.set_position([box.x0, box.y0, box.width * .4, box.height])
-#     # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
-#     ax.set_xlabel(r'age-$s$')
-#     ax.set_ylabel(r'\% change in \ $\bar{c}_{j,s}$')
-#     plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_c_'+item)
-#     plt.savefig(plot_dir)
-#     plt.close()
-#
-#
-# ## percentage change in savings over lifecycle, baseline vs reform (wealth
-# ## and income tax reforms), separate for each type
-# for item in ('wealth','income'):
-#     plt.clf()
-#     plt.figure()
-#     plt.rc('text', usetex=True)
-#     plt.rc('font', family='serif')
-#     ax = plt.subplot(312)
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 0],
-#             label='0 - 24%', linestyle='-', color='black')
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 1],
-#             label='25 - 49%', linestyle='--', color='black')
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 2],
-#             label='50 - 69%', linestyle='-.', color='black')
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 3],
-#             label='70 - 79%', linestyle=':', color='black')
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 4],
-#             label='80 - 89%', marker='x', color='black')
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 5],
-#             label='90 - 99%', marker='v', color='black')
-#     ax.plot(domain, pct_diff['bssmat_'+item][:, 6],
-#             label='99 - 100%', marker='1', color='black')
-#     box = ax.get_position()
-#     ax.set_position([box.x0, box.y0, box.width * .4, box.height])
-#     # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
-#     ax.set_xlabel(r'age-$s$')
-#     ax.set_ylabel(r'\% change in \ $\bar{b}_{j,s}$')
-#     plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_b_'+item)
-#     plt.savefig(plot_dir)
-#     plt.close()
-#
-# ## percentage change in labor supply over lifecycle, baseline vs reform (wealth
-# ## and income tax reforms), separate for each type
-# for item in ('wealth','income'):
-#     plt.clf()
-#     plt.figure()
-#     plt.rc('text', usetex=True)
-#     plt.rc('font', family='serif')
-#     ax = plt.subplot(312)
-#     ax.plot(domain, pct_diff['n_'+item][:, 0],
-#             label='0 - 24%', linestyle='-', color='black')
-#     ax.plot(domain, pct_diff['n_'+item][:, 1],
-#             label='25 - 49%', linestyle='--', color='black')
-#     ax.plot(domain, pct_diff['n_'+item][:, 2],
-#             label='50 - 69%', linestyle='-.', color='black')
-#     ax.plot(domain, pct_diff['n_'+item][:, 3],
-#             label='70 - 79%', linestyle=':', color='black')
-#     ax.plot(domain, pct_diff['n_'+item][:, 4],
-#             label='80 - 89%', marker='x', color='black')
-#     ax.plot(domain, pct_diff['n_'+item][:, 5],
-#             label='90 - 99%', marker='v', color='black')
-#     ax.plot(domain, pct_diff['n_'+item][:, 6],
-#             label='99 - 100%', marker='1', color='black')
-#     box = ax.get_position()
-#     ax.set_position([box.x0, box.y0, box.width * .4, box.height])
-#     # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
-#     ax.set_xlabel(r'age-$s$')
-#     ax.set_ylabel(r'\% change in \ $\bar{n}_{j,s}$')
-#     plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_n_'+item)
-#     plt.savefig(plot_dir)
-#     plt.close()
-#
-# ## Mortality rates by age
-# ## Fertility rates by age
-# ## Immigration rates by age - before and after SS change
-# ## Time path of population growth rate
-# ## Initial population distribution by age
-# ## SS population distribution
-# # handle all of these in demographics.py
+## SS distribution of consumption, baseline, by ability type
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, c_base[:, 0], label='0 - 24%', linestyle='-', color='black')
+ax.plot(domain, c_base[:, 1], label='25 - 49%', linestyle='--', color='black')
+ax.plot(domain, c_base[:, 2], label='50 - 69%', linestyle='-.', color='black')
+ax.plot(domain, c_base[:, 3], label='70 - 79%', linestyle=':', color='black')
+ax.plot(domain, c_base[:, 4], label='80 - 89%', marker='x', color='black')
+ax.plot(domain, c_base[:, 5], label='90 - 99%', marker='v', color='black')
+ax.plot(domain, c_base[:, 6], label='99 - 100%', marker='1', color='black')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'individual consumption, \ $\bar{c}_{j,s}$')
+consumption_2D = os.path.join(GRAPH_DIR, "consumption_2D")
+plt.savefig(consumption_2D)
+plt.close()
+
+
+## percentage change in consumption over lifecycle, baseline vs reform (wealth
+## and income tax reforms), separate for each type
+
+# Compute percent diffs
+pct_diff = {}
+for item in ('wealth','income'):
+    pct_diff['bssmat_'+item] = (bssmat_base - bssmat[item]) / bssmat_base
+    pct_diff['n_'+item] = (bssmat_base - n[item]) / bssmat_base
+    pct_diff['c_'+item] = (bssmat_base - c[item]) / bssmat_base
+    pct_diff['BQ_'+item] = (bssmat_base - BQ[item]) / bssmat_base
+
+for item in ('wealth','income'):
+    plt.clf()
+    plt.figure()
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    ax = plt.subplot(312)
+    ax.plot(domain, pct_diff['c_'+item][:, 0],
+            label='0 - 24%', linestyle='-', color='black')
+    ax.plot(domain, pct_diff['c_'+item][:, 1],
+            label='25 - 49%', linestyle='--', color='black')
+    ax.plot(domain, pct_diff['c_'+item][:, 2],
+            label='50 - 69%', linestyle='-.', color='black')
+    ax.plot(domain, pct_diff['c_'+item][:, 3],
+            label='70 - 79%', linestyle=':', color='black')
+    ax.plot(domain, pct_diff['c_'+item][:, 4],
+            label='80 - 89%', marker='x', color='black')
+    ax.plot(domain, pct_diff['c_'+item][:, 5],
+            label='90 - 99%', marker='v', color='black')
+    ax.plot(domain, pct_diff['c_'+item][:, 6],
+            label='99 - 100%', marker='1', color='black')
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * .4, box.height])
+    # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+    ax.set_xlabel(r'age-$s$')
+    ax.set_ylabel(r'\% change in \ $\bar{c}_{j,s}$')
+    plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_c_'+item)
+    plt.savefig(plot_dir)
+    plt.close()
+
+
+## percentage change in savings over lifecycle, baseline vs reform (wealth
+## and income tax reforms), separate for each type
+for item in ('wealth','income'):
+    plt.clf()
+    plt.figure()
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    ax = plt.subplot(312)
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 0],
+            label='0 - 24%', linestyle='-', color='black')
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 1],
+            label='25 - 49%', linestyle='--', color='black')
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 2],
+            label='50 - 69%', linestyle='-.', color='black')
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 3],
+            label='70 - 79%', linestyle=':', color='black')
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 4],
+            label='80 - 89%', marker='x', color='black')
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 5],
+            label='90 - 99%', marker='v', color='black')
+    ax.plot(domain, pct_diff['bssmat_'+item][:, 6],
+            label='99 - 100%', marker='1', color='black')
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * .4, box.height])
+    # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+    ax.set_xlabel(r'age-$s$')
+    ax.set_ylabel(r'\% change in \ $\bar{b}_{j,s}$')
+    plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_b_'+item)
+    plt.savefig(plot_dir)
+    plt.close()
+
+## percentage change in labor supply over lifecycle, baseline vs reform (wealth
+## and income tax reforms), separate for each type
+for item in ('wealth','income'):
+    plt.clf()
+    plt.figure()
+    plt.rc('text', usetex=True)
+    plt.rc('font', family='serif')
+    ax = plt.subplot(312)
+    ax.plot(domain, pct_diff['n_'+item][:, 0],
+            label='0 - 24%', linestyle='-', color='black')
+    ax.plot(domain, pct_diff['n_'+item][:, 1],
+            label='25 - 49%', linestyle='--', color='black')
+    ax.plot(domain, pct_diff['n_'+item][:, 2],
+            label='50 - 69%', linestyle='-.', color='black')
+    ax.plot(domain, pct_diff['n_'+item][:, 3],
+            label='70 - 79%', linestyle=':', color='black')
+    ax.plot(domain, pct_diff['n_'+item][:, 4],
+            label='80 - 89%', marker='x', color='black')
+    ax.plot(domain, pct_diff['n_'+item][:, 5],
+            label='90 - 99%', marker='v', color='black')
+    ax.plot(domain, pct_diff['n_'+item][:, 6],
+            label='99 - 100%', marker='1', color='black')
+    box = ax.get_position()
+    ax.set_position([box.x0, box.y0, box.width * .4, box.height])
+    # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
+    ax.set_xlabel(r'age-$s$')
+    ax.set_ylabel(r'\% change in \ $\bar{n}_{j,s}$')
+    plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_n_'+item)
+    plt.savefig(plot_dir)
+    plt.close()
+
+## Mortality rates by age
+## Fertility rates by age
+## Immigration rates by age - before and after SS change
+## Time path of population growth rate
+## Initial population distribution by age
+## SS population distribution
+# handle all of these in demographics.py
 # omega, g_n_ss, omega_SS, surv_rate, rho, g_n_vector, imm_rates, omega_S_preTP = demographics.get_pop_objs(
 #     E, S, T, 1, 100, 2016, True)
-#
-#
-# # ## Time path for K in baseline
-# tpi_dir = os.path.join(baseline_dir, "sigma2.0/TPI/TPI_vars.pkl")
-# tpi_output = pickle.load(open(tpi_dir, "rb"))
-# Kpath_TPI = tpi_output['K']
-# plt.figure()
-# plt.axhline(
-#     y=Kss_base, color='r', linewidth=2, label=r"Steady State $\hat{K}$", ls='--')
-# plt.plot(np.arange(
-#      T+10), Kpath_TPI[:T+10], 'b', linewidth=2, label=r"TPI time path $\hat{K}_t$")
-# plot_dir = os.path.join(GRAPH_DIR, 'TPI_K')
-# plt.savefig(plot_dir)
-# plt.close()
-#
-# ## Time path for L
-# Lpath_TPI = tpi_output['L']
-# plt.figure()
-# plt.axhline(
-#     y=Lss_base, color='r', linewidth=2, label=r"Steady State $\hat{L}$", ls='--')
-# plt.plot(np.arange(
-#      T+10), Lpath_TPI[:T+10], 'b', linewidth=2, label=r"TPI time path $\hat{L}_t$")
-# plot_dir = os.path.join(GRAPH_DIR, 'TPI_L')
-# plt.savefig(plot_dir)
-# plt.close()
-#
-# ## compare standard utility to elliptical
-# n_grid = np.linspace(0.01, 0.8, num=101)
-# CFE_MU = (1.0/l_tilde)*((n_grid/l_tilde)**theta)
-# ellipse_MU = (1.0*b_ellipse * (1.0 / l_tilde) * ((1.0 - (n_grid / l_tilde) ** upsilon)
-#              ** ((1.0 / upsilon) - 1.0)) * (n_grid / l_tilde) ** (upsilon - 1.0))
-# fig, ax = plt.subplots()
-# plt.plot(n_grid, CFE_MU, 'r--', label='CFE')
-# plt.plot(n_grid, ellipse_MU, 'b', label='Elliptical U')
-# # for the minor ticks, use no labels; default NullFormatter
-# # ax.xaxis.set_minor_locator(MinorLocator)
-# # plt.grid(b=True, which='major', color='0.65',linestyle='-')
-# plt.legend(loc='center right')
-# plt.xlabel(r'Labor Supply')
-# plt.ylabel(r'Marginal Utility')
-# plot_dir = os.path.join(GRAPH_DIR, 'EllipseUtilComp')
-# plt.savefig(plot_dir)
-# plt.close()
-#
+
+
+# ## Time path for K in baseline
+tpi_dir = os.path.join(baseline_dir, "sigma2.0/TPI/TPI_vars.pkl")
+tpi_output = pickle.load(open(tpi_dir, "rb"))
+Kpath_TPI = tpi_output['K']
+plt.figure()
+plt.axhline(
+    y=Kss_base, color='r', linewidth=2, label=r"Steady State $\hat{K}$", ls='--')
+plt.plot(np.arange(
+     T+10), Kpath_TPI[:T+10], 'b', linewidth=2, label=r"TPI time path $\hat{K}_t$")
+plot_dir = os.path.join(GRAPH_DIR, 'TPI_K')
+plt.savefig(plot_dir)
+plt.close()
+
+## Time path for L
+Lpath_TPI = tpi_output['L']
+plt.figure()
+plt.axhline(
+    y=Lss_base, color='r', linewidth=2, label=r"Steady State $\hat{L}$", ls='--')
+plt.plot(np.arange(
+     T+10), Lpath_TPI[:T+10], 'b', linewidth=2, label=r"TPI time path $\hat{L}_t$")
+plot_dir = os.path.join(GRAPH_DIR, 'TPI_L')
+plt.savefig(plot_dir)
+plt.close()
+
+## compare standard utility to elliptical
+n_grid = np.linspace(0.01, 0.8, num=101)
+CFE_MU = (1.0/l_tilde)*((n_grid/l_tilde)**theta)
+ellipse_MU = (1.0*b_ellipse * (1.0 / l_tilde) * ((1.0 - (n_grid / l_tilde) ** upsilon)
+             ** ((1.0 / upsilon) - 1.0)) * (n_grid / l_tilde) ** (upsilon - 1.0))
+fig, ax = plt.subplots()
+plt.plot(n_grid, CFE_MU, 'r--', label='CFE')
+plt.plot(n_grid, ellipse_MU, 'b', label='Elliptical U')
+# for the minor ticks, use no labels; default NullFormatter
+# ax.xaxis.set_minor_locator(MinorLocator)
+# plt.grid(b=True, which='major', color='0.65',linestyle='-')
+plt.legend(loc='center right')
+plt.xlabel(r'Labor Supply')
+plt.ylabel(r'Marginal Utility')
+plot_dir = os.path.join(GRAPH_DIR, 'EllipseUtilComp')
+plt.savefig(plot_dir)
+plt.close()
+
 
 '''
 Figres in paper, but that don't need updating:
