@@ -14,7 +14,7 @@ ogusa.parameters.DATASET = 'REAL'
 
 
 def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
-           age_specific=False, reform=0, user_params={}, guid='',
+           age_specific=False, reform=0, 'fix_transfers':False, user_params={}, guid='',
            run_micro=True, calibrate_model=False):
 
     #from ogusa import parameters, wealth, labor, demographics, income
@@ -153,6 +153,7 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
 
     ss_outputs = SS.run_SS(income_tax_params, ss_parameters, iterative_params, chi_params, baseline,
+                                     fix_transfers=fix_transfers,
                                      baseline_dir=baseline_dir, output_base=output_base)
 
 
@@ -189,7 +190,8 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
     income_tax_params, tpi_params, iterative_params, initial_values, SS_values = TPI.create_tpi_params(**sim_params)
 
     tpi_output, macro_output = TPI.run_TPI(income_tax_params,
-        tpi_params, iterative_params, initial_values, SS_values, output_dir=output_base)
+        tpi_params, iterative_params, initial_values, SS_values,
+        fix_transfers=fix_transfers, output_dir=output_base)
 
 
     '''
@@ -213,7 +215,7 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
 
 def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
-              age_specific=False, reform=0, user_params={}, guid='',
+              age_specific=False, reform=0, 'fix_transfers':False, user_params={}, guid='',
               calibrate_model=False, run_micro=True):
 
     from ogusa import parameters, demographics, income, utils
@@ -304,7 +306,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             mtry_params[:,3] = d_guess
             income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                              chi_params, baseline ,baseline_dir=baseline_dir, output_base=output_base)
+                              chi_params, baseline, fix_transfers=fix_transfers,
+                              baseline_dir=baseline_dir, output_base=output_base)
 
             lump_new = ss_outputs['T_Hss']
             error = abs(lump_to_match - lump_new)
@@ -349,7 +352,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             mtry_params[:,3] = d
             income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                              chi_params, baseline ,baseline_dir=baseline_dir)
+                              chi_params, baseline, fix_transfers=fix_transfers,
+                              baseline_dir=baseline_dir)
             ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
             pickle.dump(ss_outputs, open(ss_dir, "wb"))
             lump_new = ss_outputs['T_Hss']
@@ -368,7 +372,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         mtry_params[:,3] = d_guess
         income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
         ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                          chi_params, baseline ,baseline_dir=baseline_dir)
+                          chi_params, baseline, fix_transfers=fix_transfers,
+                          baseline_dir=baseline_dir)
         ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
         pickle.dump(ss_outputs, open(ss_dir, "wb"))
         lump_new = ss_outputs['T_Hss']
@@ -407,7 +412,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
             print 'now here$$$'
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                              chi_params, baseline ,baseline_dir=baseline_dir)
+                              chi_params, baseline, fix_transfers=fix_transfers,
+                              baseline_dir=baseline_dir)
             ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
             pickle.dump(ss_outputs, open(ss_dir, "wb"))
             lump_new = ss_outputs['T_Hss']
@@ -453,7 +459,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
     # ss_outputs = SS_alt.run_SS(income_tax_params, ss_params, iterative_params,
     #                   chi_params, baseline, baseline_dir=baseline_dir)
     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                      chi_params, baseline, baseline_dir=baseline_dir, output_base=output_base)
+                      chi_params, baseline, fix_transfers=fix_transfers,
+                      baseline_dir=baseline_dir, output_base=output_base)
 
 
 
