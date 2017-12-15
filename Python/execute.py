@@ -14,7 +14,7 @@ ogusa.parameters.DATASET = 'REAL'
 
 
 def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
-           age_specific=False, reform=0, 'fix_transfers':False, user_params={}, guid='',
+           age_specific=False, reform=0, fix_transfers=False, user_params={}, guid='',
            run_micro=True, calibrate_model=False):
 
     #from ogusa import parameters, wealth, labor, demographics, income
@@ -215,7 +215,7 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
 
 def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
-              age_specific=False, reform=0, 'fix_transfers':False, user_params={}, guid='',
+              age_specific=False, reform=0, fix_transfers=False, user_params={}, guid='',
               calibrate_model=False, run_micro=True):
 
     from ogusa import parameters, demographics, income, utils
@@ -307,7 +307,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
             ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
                               chi_params, baseline, fix_transfers=fix_transfers,
-                              baseline_dir=baseline_dir, output_base=output_base)
+                              baseline_dir=baseline_dir)
 
             lump_new = ss_outputs['T_Hss']
             error = abs(lump_to_match - lump_new)
@@ -458,9 +458,10 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
 
     # ss_outputs = SS_alt.run_SS(income_tax_params, ss_params, iterative_params,
     #                   chi_params, baseline, baseline_dir=baseline_dir)
+    print 'Fix transfers = ', fix_transfers
     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
                       chi_params, baseline, fix_transfers=fix_transfers,
-                      baseline_dir=baseline_dir, output_base=output_base)
+                      baseline_dir=baseline_dir)
 
 
 
