@@ -63,27 +63,27 @@ def run_micro_macro(user_params):
             Run SS for Baseline first
         ------------------------------------------------------------------------
         '''
-        # output_base = baseline_dir
-        # input_dir = baseline_dir
-        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-        #         'baseline':True, 'reform':0, 'user_params':user_params,
-        #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        # # runner_SS(**kwargs)
-        # runner(**kwargs)
-        #
+        output_base = baseline_dir
+        input_dir = baseline_dir
+        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+                'baseline':True, 'reform':0, 'fix_transfers':False, 'user_params':user_params,
+                'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
+        #runner_SS(**kwargs)
+        runner(**kwargs)
+        quit()
 
 
-        # '''
-        # ------------------------------------------------------------------------
-        #     Run baseline TPI
-        # ------------------------------------------------------------------------
-        # '''
-        # output_base = baseline_dir
-        # input_dir = baseline_dir
-        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-        #         'baseline':True,'reform':0,'user_params':user_params,
-        #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        # runner(**kwargs)
+        '''
+        ------------------------------------------------------------------------
+            Run baseline TPI
+        ------------------------------------------------------------------------
+        '''
+        output_base = baseline_dir
+        input_dir = baseline_dir
+        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+                'baseline':True,'reform':0,'fix_transfers':True, 'user_params':user_params,
+                'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
+        runner(**kwargs)
 
         '''
         ------------------------------------------------------------------------
@@ -91,26 +91,28 @@ def run_micro_macro(user_params):
             because it determines the SS revenue target)
         ------------------------------------------------------------------------
         '''
-        # output_base = wealth_dir
-        # input_dir = wealth_dir
-        # guid_iter = 'reform_' + str(0)
-        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-        #         'baseline':False, 'reform':2, 'user_params':user_params,
-        #         'guid':'wealth_tax_reform2','calibrate_model':False}
-        # runner(**kwargs)
+        output_base = wealth_dir
+        input_dir = wealth_dir
+        guid_iter = 'reform_' + str(0)
+        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+                'baseline':False, 'reform':2, 'fix_transfers':True, 'user_params':user_params,
+                'guid':'wealth_tax_reform2','calibrate_model':False}
+        runner_SS(**kwargs)
+        quit()
 
-        # '''
-        # ------------------------------------------------------------------------
-        #     Run income tax reform
-        # ------------------------------------------------------------------------
-        # '''
+        '''
+        ------------------------------------------------------------------------
+            Run income tax reform
+        ------------------------------------------------------------------------
+        '''
         output_base = income_dir
         input_dir = income_dir
-        guid_iter = 'reform_' + str(1)
+        guid_iter = 'reform_' + str(0)
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-                'baseline':False, 'reform':1, 'user_params':user_params,
-                'guid':'income_tax_reform1','calibrate_model':False}
-        runner(**kwargs)
+                'baseline':False, 'reform':1, 'fix_transfers':True, 'user_params':user_params,
+                'guid':'wealth_tax_reform1','calibrate_model':False}
+        runner_SS(**kwargs)
+        quit()
 
 
 
