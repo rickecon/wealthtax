@@ -322,22 +322,7 @@ def inner_loop(outer_loop_vars, params, baseline):
         [solutions, infodict, ier, message] = opt.fsolve(euler_equation_solver, guesses * .9,
                                     args=euler_params, xtol=MINIMIZER_TOL, full_output=True)
 
-        #opt_fun = lambda x: euler_equation_solver(x, euler_params) # need this to pass args to scipy functions with out arg option
-        #solutions = opt.broyden2(opt_fun, guesses) # fails w/ no converge in linear solver
-        #[solutions_fsolve, infodict, ier, message] = opt.broyden1(opt_fun, guesses) # fails w/ no converge in linear solver
-        #[solutions_fsolve, infodict, ier, message] = opt.newton_krylov(opt_fun, guesses) # fails w/ no converge in linear solver
-        #[solutions_fsolve, infodict, ier, message] = opt.anderson(opt_fun, guesses) # fails w/ no converge in linear solver
-        #[solutions_fsolve, infodict, ier, message] = opt.excitingmixing(opt_fun, guesses) # fails w/ no converge in linear solver
-        #[solutions_fsolve, infodict, ier, message] = opt.linearmixing(opt_fun, guesses) # fails w/ no converge in linear solver
-        #[solutions_fsolve, infodict, ier, message] = opt.diagbroyden(opt_fun, guesses) # fails before start bc array has nans and/or infs
-
-        # print solutions
-        # quit()
-        #
-        # euler_errors[:,j] = infodict['fvec']
-        # print 'j = ', j
-        # print 'Max Euler errors: ', np.absolute(euler_errors[:,j]).max()
-
+        euler_errors[:,j] = infodict['fvec']
         bssmat[:, j] = solutions[:S]
         nssmat[:, j] = solutions[S:]
     K_params = (omega_SS.reshape(S, 1), lambdas.reshape(1, J), imm_rates, g_n_ss, 'SS')
@@ -368,9 +353,7 @@ def inner_loop(outer_loop_vars, params, baseline):
     net_tax_receipts = tax.get_lump_sum(new_r, new_w, b_s, nssmat, new_BQ, factor, T_H_params)
 
     print 'Inner Loop Max Euler Error: ', (np.absolute(euler_errors)).max()
-    # print 'K: ', K
-    # print 'L: ', L
-    #print 'bssmat: ', bssmat
+
     return euler_errors, bssmat, nssmat, new_r, new_w, \
              net_tax_receipts, new_factor, new_BQ, average_income_model
 
@@ -944,8 +927,12 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params,
             T_Hss = base_ss_solutions['T_Hss']
             ss_params_reform = [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params, factor, T_Hss]
             guesses = [rguess]
-            [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve_reform_fixed, guesses, args=ss_params_reform, xtol=mindist_SS, full_output=True)
-            [rss] = solutions_fsolve
+            # [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve_reform_fixed, guesses, args=ss_params_reform, xtol=mindist_SS, full_output=True)
+            solution =\
+                opt.root(SS_fsolve_reform_fixed, guesses,
+                           args=ss_params_reform, method='lm', tol=mindist_SS)
+            rss = solution.x
+            # [rss] = solutions_fsolve
         else:
             ss_params_reform = [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params, factor]
             guesses = [rguess, T_Hguess]
