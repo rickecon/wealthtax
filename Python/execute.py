@@ -92,11 +92,11 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         reform3_ss_dir = os.path.join(
         "./OUTPUT_WEALTH_REFORM"    + '/sigma' + str(run_params['sigma']), "SS/SS_vars.pkl")
         reform3_ss_solutions = pickle.load(open(reform3_ss_dir, "rb"))
-        lump_to_match = reform3_ss_solutions['T_Hss']
+        receipts_to_match = reform3_ss_solutions['T_Hss']
 
         # create function to match SS revenue
         # def matcher(d_guess, params):
-        #     income_tax_params, lump_to_match, ss_params, iterative_params,\
+        #     income_tax_params, receipts_to_match, ss_params, iterative_params,\
         #                       chi_params, baseline, baseline_dir = params
         #     analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
         #     etr_params[:,3] = d_guess
@@ -106,20 +106,20 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         #     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
         #                       chi_params, baseline ,baseline_dir=baseline_dir, output_base=output_base)
         #
-        #     lump_new = ss_outputs['T_Hss']
-        #     error = abs(lump_to_match - lump_new)
+        #     receipts_new = ss_outputs['T_Hss'] + ss_outputs['Gss']
+        #     error = abs(receipts_to_match - receipts_new)
         #     if d_guess <= 0:
         #         error = 1e14
         #     print 'Error in taxes:', error
         #     return error
 
         # print 'Computing new income tax to match wealth tax'
-        d_guess= .453 # initial guess
+        d_guess= 0.503 # initial guess
         # import scipy.optimize as opt
-        # params = [income_tax_params, lump_to_match, ss_params, iterative_params,
+        # params = [income_tax_params, receipts_to_match, ss_params, iterative_params,
         #                   chi_params, baseline, baseline_dir]
         # new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-6)
-        new_d_inc = 0.4269413  # this value comes out given default parameter values
+        new_d_inc = 0.503  # this value comes out given default parameter values (if fix_transfers=True this is 0.503 if False then 0.453)
 
         print '\tOld income tax:', d_guess
         print '\tNew income tax:', new_d_inc
@@ -294,11 +294,11 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         reform3_ss_dir = os.path.join(
         "./OUTPUT_WEALTH_REFORM"    + '/sigma' + str(run_params['sigma']), "SS/SS_vars.pkl")
         reform3_ss_solutions = pickle.load(open(reform3_ss_dir, "rb"))
-        lump_to_match = reform3_ss_solutions['T_Hss']
+        receipts_to_match = reform3_ss_solutions['T_Hss'] + reform3_ss_solutions['Gss']
 
         # create function to match SS revenue
         def matcher(d_guess, params):
-            income_tax_params, lump_to_match, ss_params, iterative_params,\
+            income_tax_params, receipts_to_match, ss_params, iterative_params,\
                               chi_params, baseline, baseline_dir = params
             analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
             etr_params[:,3] = d_guess
@@ -309,8 +309,8 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
                               chi_params, baseline, fix_transfers=fix_transfers,
                               baseline_dir=baseline_dir)
 
-            lump_new = ss_outputs['T_Hss']
-            error = abs(lump_to_match - lump_new)
+            receipts_new = ss_outputs['T_Hss'] + ss_outputs['Gss']
+            error = abs(receipts_to_match - receipts_new)
             if d_guess <= 0:
                 error = 1e14
             print 'Error in taxes:', error
@@ -320,7 +320,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         # d_guess= .452 # initial guess 0.452 works for sigma = 2, frisch 1.5
         # new_d_inc = d_guess
         # import scipy.optimize as opt
-        # params = [income_tax_params, lump_to_match, ss_params, iterative_params,
+        # params = [income_tax_params, receipts_to_match, ss_params, iterative_params,
         #                   chi_params, baseline, baseline_dir]
         # new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-8)
         # print '\tOld income tax:', d_guess
@@ -356,80 +356,83 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
                               baseline_dir=baseline_dir)
             ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
             pickle.dump(ss_outputs, open(ss_dir, "wb"))
-            lump_new = ss_outputs['T_Hss']
-            new_error = lump_to_match - lump_new
+            receipts_new = ss_outputs['T_Hss'] + ss_outputs['Gss']
+            new_error = receipts_to_match - receipts_new
             print 'Error in taxes:', error
             print 'New income tax:', d
             return new_error
 
-        print 'Computing new income tax to match wealth tax'
-        d_guess= .0 # initial guess
-        # income_tax_params, lump_to_match, ss_params, iterative_params,\
-        #                   chi_params, baseline, baseline_dir = params
+        # print 'Computing new income tax to match wealth tax'
+        # d_guess= 0.36#0.219 # initial guess
+        # # income_tax_params, receipts_to_match, ss_params, iterative_params,\
+        # #                   chi_params, baseline, baseline_dir = params
+        # analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+        # etr_params[:,3] = d_guess
+        # mtrx_params[:,3] = d_guess
+        # mtry_params[:,3] = d_guess
+        # income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        # ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                   chi_params, baseline, fix_transfers=fix_transfers,
+        #                   baseline_dir=baseline_dir)
+        # ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        # pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        # receipts_new = ss_outputs['T_Hss'] + ss_outputs['Gss']
+        # error = receipts_to_match - receipts_new
+        # new_error = error
+        # print "ERROR: ", error
+        # max_loop_iter = 500
+        # output_list = np.zeros((max_loop_iter,3))
+        # loop_iter = 0
+        # bisect = 0
+        # d_guess_old = d_guess
+        # # while np.abs(new_error) > 1e-8 and loop_iter < max_loop_iter:
+        # while loop_iter < max_loop_iter:
+        #     # if new_error > 0 and new_error > 0 and bisect == 0:
+        #     #     d_guess_old = d_guess
+        #     #     d_guess+=0.001
+        #     # elif new_error < 0 and new_error < 0 and bisect == 0:
+        #     #     d_guess_old = d_guess
+        #     #     d_guess-=0.001
+        #     #     d_guess = max(0.0,d_guess) # constrain so not negative
+        #     # else:
+        #     #     bisect = 1
+        #     #     print 'Entering bisection method'
+        #     #     params = income_tax_params, ss_params, iterative_params,\
+        #     #                       chi_params, baseline ,baseline_dir
+        #     #     high = max(d_guess,d_guess_old)
+        #     #     low = min(d_guess,d_guess_old)
+        #     #     d_guess = bisect_method(solve_model, params, low, high)
+        #     #     loop_iter = max_loop_iter
+        #     d_guess_old = d_guess
+        #     d_guess+=0.001
+        #
+        #     error = new_error
+        #     etr_params[:,3] = d_guess
+        #     mtrx_params[:,3] = d_guess
+        #     mtry_params[:,3] = d_guess
+        #     income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
+        #     print 'now here$$$'
+        #     ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
+        #                       chi_params, baseline, fix_transfers=fix_transfers,
+        #                       baseline_dir=baseline_dir)
+        #     ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
+        #     pickle.dump(ss_outputs, open(ss_dir, "wb"))
+        #     receipts_new = ss_outputs['T_Hss'] + ss_outputs['Gss']
+        #     new_error = (receipts_to_match - receipts_new)
+        #     print "ERROR: ", new_error
+        #     output_list[loop_iter,0]=new_error
+        #     output_list[loop_iter,1]=d_guess
+        #     output_list[loop_iter,2]=ss_outputs['Yss']-ss_outputs['Iss']-ss_outputs['Css']-ss_outputs['Gss']
+        #     np.savetxt('inc_tax_out.csv',output_list, delimiter=",")
+        #     pickle.dump(output_list, open("output_list.pkl", "wb"))
+        #     print 'Error in taxes:', error
+        #     print 'Old income tax:', d_guess_old
+        #     print 'New income tax:', d_guess
+        #     print 'iteration: ', loop_iter
+        #     loop_iter += 1
+
         analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
-        etr_params[:,3] = d_guess
-        mtrx_params[:,3] = d_guess
-        mtry_params[:,3] = d_guess
-        income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
-        ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                          chi_params, baseline, fix_transfers=fix_transfers,
-                          baseline_dir=baseline_dir)
-        ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
-        pickle.dump(ss_outputs, open(ss_dir, "wb"))
-        lump_new = ss_outputs['T_Hss']
-        error = lump_to_match - lump_new
-        new_error = error
-        print "ERROR: ", error
-        max_loop_iter = 1000
-        output_list = np.zeros((max_loop_iter,3))
-        loop_iter = 0
-        bisect = 0
-        d_guess_old = d_guess
-        while np.abs(new_error) > 1e-8 and loop_iter < max_loop_iter:
-            # if new_error > 0 and new_error > 0 and bisect == 0:
-            #     d_guess_old = d_guess
-            #     d_guess+=0.001
-            # elif new_error < 0 and new_error < 0 and bisect == 0:
-            #     d_guess_old = d_guess
-            #     d_guess-=0.001
-            #     d_guess = max(0.0,d_guess) # constrain so not negative
-            # else:
-            #     bisect = 1
-            #     print 'Entering bisection method'
-            #     params = income_tax_params, ss_params, iterative_params,\
-            #                       chi_params, baseline ,baseline_dir
-            #     high = max(d_guess,d_guess_old)
-            #     low = min(d_guess,d_guess_old)
-            #     d_guess = bisect_method(solve_model, params, low, high)
-            #     loop_iter = max_loop_iter
-
-            d_guess+=0.001
-
-            error = new_error
-            etr_params[:,3] = d_guess
-            mtrx_params[:,3] = d_guess
-            mtry_params[:,3] = d_guess
-            income_tax_params = analytical_mtrs, etr_params, mtrx_params, mtry_params
-            print 'now here$$$'
-            ss_outputs = SS.run_SS(income_tax_params, ss_params, iterative_params,
-                              chi_params, baseline, fix_transfers=fix_transfers,
-                              baseline_dir=baseline_dir)
-            ss_dir = os.path.join("./OUTPUT_INCOME_REFORM/sigma2.0", "SS/SS_vars.pkl")
-            pickle.dump(ss_outputs, open(ss_dir, "wb"))
-            lump_new = ss_outputs['T_Hss']
-            new_error = (lump_to_match - lump_new)
-            print "ERROR: ", new_error
-            output_list[loop_iter,0]=new_error
-            output_list[loop_iter,1]=d_guess
-            output_list[loop_iter,2]=ss_outputs['Yss']-ss_outputs['Iss']-ss_outputs['Css']
-            pickle.dump(output_list, open("output_list.pkl", "wb"))
-            print 'Error in taxes:', error
-            print 'Old income tax:', d_guess_old
-            print 'New income tax:', d_guess
-            print 'iteration: ', loop_iter
-            loop_iter += 1
-
-        analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
+        new_d_inc = 0.503 # this is 0.453 if fix_transfers=False, 0.503 if True
         etr_params[:,3] = new_d_inc
         mtrx_params[:,3] = new_d_inc
         mtry_params[:,3] = new_d_inc
