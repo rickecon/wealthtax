@@ -77,12 +77,12 @@ def run_micro_macro(user_params):
             Run baseline TPI
         ------------------------------------------------------------------------
         '''
-        # output_base = baseline_dir
-        # input_dir = baseline_dir
-        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-        #         'baseline':True,'reform':0,'fix_transfers':True, 'user_params':user_params,
-        #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
-        # runner(**kwargs)
+        output_base = baseline_dir
+        input_dir = baseline_dir
+        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+                'baseline':True,'reform':0,'fix_transfers':False, 'user_params':user_params,
+                'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
+        runner(**kwargs)
 
         '''
         ------------------------------------------------------------------------
@@ -90,14 +90,14 @@ def run_micro_macro(user_params):
             because it determines the SS revenue target)
         ------------------------------------------------------------------------
         '''
-        output_base = wealth_dir
-        input_dir = wealth_dir
-        guid_iter = 'reform_' + str(0)
-        kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
-                'baseline':False, 'reform':2, 'fix_transfers':True, 'user_params':user_params,
-                'guid':'wealth_tax_reform2','calibrate_model':False}
-        runner_SS(**kwargs)
-        quit()
+        # output_base = wealth_dir
+        # input_dir = wealth_dir
+        # guid_iter = 'reform_' + str(0)
+        # kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
+        #         'baseline':False, 'reform':2, 'fix_transfers':True, 'user_params':user_params,
+        #         'guid':'wealth_tax_reform2','calibrate_model':False}
+        # runner_SS(**kwargs)
+        # quit()
 
         '''
         ------------------------------------------------------------------------
@@ -110,7 +110,7 @@ def run_micro_macro(user_params):
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':False, 'reform':1, 'fix_transfers':True, 'user_params':user_params,
                 'guid':'wealth_tax_reform1','calibrate_model':False}
-        runner_SS(**kwargs)
+        runner(**kwargs)
         quit()
 
 
