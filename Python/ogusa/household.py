@@ -370,9 +370,7 @@ def FOC_savings(r, w, b, b_splus1, b_splus2, n, BQ, factor, T_H, params):
 
     mtr_cap_params = (e_extended[1:], etr_params_to_use,
                       mtry_params_to_use,analytical_mtrs)
-    deriv = ((1+r) - r*(tax.MTR_capital(r, w, b_splus1, n_extended[1:], factor, mtr_cap_params)) -
-             tax.tau_w_prime(b_splus1, (h_wealth, p_wealth, m_wealth))*b_splus1 -
-             tax.tau_wealth(b_splus1, (h_wealth, p_wealth, m_wealth)))
+    deriv = (1+r) - r*(tax.MTR_capital(r, w, b_splus1, n_extended[1:], factor, mtr_cap_params))
 
     savings_ut = rho * np.exp(-sigma * g_y) * chi_b * b_splus1 ** (-sigma)
 
@@ -456,44 +454,59 @@ def FOC_labor(r, w, b, b_splus1, n, BQ, factor, T_H, params):
 
     return euler
 
-
-def get_u(c, n, b_splus1, params):
+def solve_c(guess, params):
     '''
-    Computes flow utility for the household.
+    Computes Euler errors for the FOC for savings in the steady state.
+    This function is usually looped through over J, so it does one lifetime income group at a time.
 
-    Inputs:
-        b_splus1 = [S,J] array, steady state distribution of capital
-        n = [S,J] array, steady state distribution of labor
-        c = [S,J] array, steady state distribution of consumption
-        sigma = scalar, coefficient of relative risk aversion
-        chi_n  = [S,] vector of utility weights for disulity of labor
-        b_ellipse = scalar, scale parameter on elliptical utility
-        ltilde = scalar, upper bound of household labor supply
-        upsilon = scalar, curvature parameter on elliptical utility
-        k_ellipse = scalar, shift parameter on elliptical utility
-        rho_s = [S,] vector, mortality rates by age
-        chi_b = [J,] vector, utility weights on bequests
-        g_y = scalar, economic growth rate
-
-    Functions called: None
-
-    Objects in function:
-        utility = [S,J] array, utility for all agents
-
-    Returns:
-        utility
     '''
-    sigma, chi_n, b_ellipse, ltilde, upsilon, rho_s, chi_b = params
+    cons2, n2, b_splus1, r, w, T_H, BQ, theta, factor, e, sigma, beta, g_y, chi_b, tau_bq, rho, lambdas, J, S, \
+        analytical_mtrs, etr_params, mtry_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, method, s = params
 
-    utility = (((c ** (1-sigma) - 1) / (1 - sigma)) +
-               (chi_n * ((b_ellipse * (1 - (n / ltilde) ** upsilon)
-                          ** (1 / upsilon)))) +
-               (rho_s * chi_b * ((b_splus1 ** (1-sigma) - 1)
-                                 / (1 - sigma))))
+    cons1 = guess
 
-    return utility
+    # In order to not have 2 savings euler equations (one that solves the first S-1 equations, and one that solves the last one),
+    # we combine them.  In order to do this, we have to compute a consumption term in period t+1, which requires us to have a shifted
+    # e and n matrix.  We append a zero on the end of both of these so they will be the right size.  We could append any value to them,
+    # since in the euler equation, the coefficient on the marginal utility of
+    # consumption for this term will be zero (since rho is one).
+    if method == 'TPI_scalar':
+        # e_extended = np.array([e] + [0])
+        # n_extended = np.array([n] + [0])
+        etr_params_to_use = etr_params[S-s-1,:]
+        mtry_params_to_use = mtry_params[S-s-1,:]
+    else:
+        # e_extended = np.array(list(e) + [0])
+        # n_extended = np.array(list(n) + [0])
+        # etr_params_to_use = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+        # mtry_params_to_use = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+        etr_params_to_use = etr_params[S-s-1,:]
+        mtry_params_to_use = mtry_params[S-s-1,:]
+
+    # mtr_cap_params = (e_extended[1:], etr_params_to_use,
+    #                   mtry_params_to_use,analytical_mtrs)
+    mtr_cap_params = (e[S-s-1], etr_params_to_use,
+                      mtry_params_to_use,analytical_mtrs)
+    deriv = (1+r) - r*(tax.MTR_capital(r, w, b_splus1, n2, factor, mtr_cap_params))
+
+    savings_ut = rho[S-s-2] * np.exp(-sigma * g_y) * chi_b * b_splus1 ** (-sigma)
+
+    # Again, note timing in this equation, the (1-rho) term will zero out in the last period, so the last entry of cons2 can be complete
+    # gibberish (which it is).  It just has to exist so cons2 is the right
+    # size to match all other arrays in the equation.
+    # print 'm_ut_cons1 = ', marg_ut_cons(cons1, sigma)
+    # print 'm_ut_cons2 = ', marg_ut_cons(cons2, sigma)
+    # print 'savings_ut = ', savings_ut
+    # print 'c1 c2 bsp1= ', cons1, cons2, b_splus1
+
+    euler_error = marg_ut_cons(cons1, sigma) - beta * (1 - rho[S-s-2]) * deriv * marg_ut_cons(
+        cons2, sigma) * np.exp(-sigma * g_y) - savings_ut
+
+    if cons1 <= 0:
+        euler_error = 1e14
 
 
+    return euler_error
 
 
 def constraint_checker_SS(bssmat, nssmat, cssmat, ltilde):
