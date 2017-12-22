@@ -151,11 +151,9 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
     analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
     print('ETR param shape = ', etr_params.shape)
 
-
-    ss_outputs = SS.run_SS(income_tax_params, ss_parameters, iterative_params, chi_params, baseline,
-                                     fix_transfers=fix_transfers,
-                                     baseline_dir=baseline_dir, output_base=output_base)
-
+    ss_outputs = SS.run_SS(income_tax_params, ss_parameters, iterative_params,
+                           chi_params, baseline, fix_transfers=fix_transfers,
+                           baseline_dir=baseline_dir)
 
     '''
     ------------------------------------------------------------------------
