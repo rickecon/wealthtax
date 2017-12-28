@@ -381,24 +381,38 @@ def inner_loop(guesses, outer_loop_vars, params):
     b_mat = np.zeros((T + S, S, J))
     n_mat = np.zeros((T + S, S, J))
     euler_errors = np.zeros((T, 2 * S, J))
+    euler_errors_n = np.zeros((T + S, S, J))
+    euler_errors_b = np.zeros((T + S, S, J))
 
     for j in xrange(J):
         first_doughnut_params = (income_tax_params, tpi_params, initial_b)
-        b_mat[0, -1, j], n_mat[0, -1, j] = np.array(opt.fsolve(firstdoughnutring, [guesses_b[0, -1, j], guesses_n[0, -1, j]],
-                                                               args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,
-                                                               first_doughnut_params), xtol=MINIMIZER_TOL))
-        [solutions, infodict, ier, message] = opt.fsolve(firstdoughnutring, [guesses_b[0, -1, j], guesses_n[0, -1, j]],
-                                                               args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,
-                                                               first_doughnut_params), xtol=MINIMIZER_TOL,full_output=True)
+        # b_mat[0, -1, j], n_mat[0, -1, j] = np.array(opt.fsolve(firstdoughnutring, [guesses_b[0, -1, j], guesses_n[0, -1, j]],
+        #                                                        args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,
+        #                                                        first_doughnut_params), xtol=MINIMIZER_TOL))
+        # [solutions, infodict, ier, message] = opt.fsolve(firstdoughnutring, [guesses_b[0, -1, j], guesses_n[0, -1, j]],
+        #                                                        args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,
+        #                                                        first_doughnut_params), xtol=MINIMIZER_TOL,full_output=True)
+        # euler_errors_b[0, -1, j], euler_errors_n[0, -1, j] = infodict['fvec']
+
+        first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
+        # if j == 0:
+        #     first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
+        # else:
+        #     first_guesses = [guesses_b[0, -1, j - 1], guesses_n[0, -1, j - 1]]
+        root_result =\
+            opt.root(firstdoughnutring, first_guesses,
+                     args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,first_doughnut_params),
+                     method='lm', tol=MINIMIZER_TOL)
+        b_mat[0, -1, j], n_mat[0, -1, j] = root_result.x
+        euler_errors_b[0, -1, j], euler_errors_n[0, -1, j]  = root_result.fun
+
+
 
         # print 'J= ', j
         # print 'first donut errors: ', np.absolute(infodict['fvec']).max()
 
         for s in xrange(S - 2):  # Upper triangle
             ind2 = np.arange(s + 2)
-            b_guesses_to_use = np.diag(
-                guesses_b[:S, :, j], S - (s + 2))
-            n_guesses_to_use = np.diag(guesses_n[:S, :, j], S - (s + 2))
 
             # initialize array of diagonal elements
             length_diag = (np.diag(np.transpose(etr_params[:,:S,0]),S-(s+2))).shape[0]
@@ -414,13 +428,36 @@ def inner_loop(guesses, outer_loop_vars, params):
             inc_tax_params_upper = (analytical_mtrs, etr_params_to_use, mtrx_params_to_use, mtry_params_to_use)
 
             TPI_solver_params = (inc_tax_params_upper, tpi_params, initial_b)
-            solutions = opt.fsolve(twist_doughnut, list(
-                b_guesses_to_use) + list(n_guesses_to_use), args=(
-                r, w, BQ[:, j], T_H, j, s, 0, TPI_solver_params), xtol=MINIMIZER_TOL)
+            # solutions = opt.fsolve(twist_doughnut, list(
+            #     b_guesses_to_use) + list(n_guesses_to_use), args=(
+            #     r, w, BQ[:, j], T_H, j, s, 0, TPI_solver_params), xtol=MINIMIZER_TOL)
 
-            [solutions, infodict, ier, message] = opt.fsolve(twist_doughnut, list(
-                b_guesses_to_use) + list(n_guesses_to_use), args=(
-                r, w, BQ[:, j], T_H, j, s, 0, TPI_solver_params), xtol=MINIMIZER_TOL,full_output=True)
+            # [solutions, infodict, ier, message] = opt.fsolve(twist_doughnut, list(
+            #     b_guesses_to_use) + list(n_guesses_to_use), args=(
+            #     r, w, BQ[:, j], T_H, j, s, 0, TPI_solver_params), xtol=MINIMIZER_TOL,full_output=True)
+            # euler_errors_b[ind2,  S - (s + 2) + ind2, j] = infodict['fvec'][:len(solutions) / 2]
+            # euler_errors_n[ind2,  S - (s + 2) + ind2, j] = infodict['fvec'][len(solutions) / 2:]
+
+            b_guesses_to_use = np.diag(
+                guesses_b[:S, :, j], S - (s + 2))
+            n_guesses_to_use = np.diag(guesses_n[:S, :, j], S - (s + 2))
+            # if j == 0:
+            #     b_guesses_to_use = np.diag(
+            #         guesses_b[:S, :, j], S - (s + 2))
+            #     n_guesses_to_use = np.diag(guesses_n[:S, :, j], S - (s + 2))
+            # else:
+            #     b_guesses_to_use = np.diag(
+            #         guesses_b[:S, :, j - 1], S - (s + 2))
+            #     n_guesses_to_use = np.diag(guesses_n[:S, :, j - 1], S - (s + 2))
+            twist_guesses = list(b_guesses_to_use) + list(n_guesses_to_use)
+            root_result =\
+                opt.root(twist_doughnut, twist_guesses,
+                         args=(r, w, BQ[:, j], T_H, j, s, 0, TPI_solver_params),
+                         method='lm', tol=MINIMIZER_TOL)
+            solutions = root_result.x
+            euler_errors_b[ind2,  S - (s + 2) + ind2, j] = root_result.fun[:len(solutions) / 2]
+            euler_errors_n[ind2,  S - (s + 2) + ind2, j] = root_result.fun[len(solutions) / 2:]
+
 
             # print 'J= ', j
             # print 'S = ', s
@@ -438,9 +475,6 @@ def inner_loop(guesses, outer_loop_vars, params):
             # b_guesses_to_use = .75 * \
             #     np.diag(guesses_b[t:t + S, :, j])
             # n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
-            b_guesses_to_use = 1.0 * \
-                np.diag(guesses_b[t:t + S, :, j])
-            n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
 
             # initialize array of diagonal elements
             length_diag = (np.diag(np.transpose(etr_params[:,t:t+S,0]))).shape[0]
@@ -456,10 +490,30 @@ def inner_loop(guesses, outer_loop_vars, params):
 
 
             TPI_solver_params = (inc_tax_params_TP, tpi_params, None)
-            [solutions, infodict, ier, message] = opt.fsolve(twist_doughnut, list(
-                b_guesses_to_use) + list(n_guesses_to_use), args=(
-                r, w, BQ[:, j], T_H, j, None, t, TPI_solver_params), xtol=MINIMIZER_TOL, full_output=True)
-            euler_errors[t, :, j] = infodict['fvec']
+            # [solutions, infodict, ier, message] = opt.fsolve(twist_doughnut, list(
+            #     b_guesses_to_use) + list(n_guesses_to_use), args=(
+            #     r, w, BQ[:, j], T_H, j, None, t, TPI_solver_params), xtol=MINIMIZER_TOL, full_output=True)
+            # euler_errors[t, :, j] = infodict['fvec']
+
+            b_guesses_to_use = 1.0 * \
+                np.diag(guesses_b[t:t + S, :, j])
+            n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
+            # if j == 0:
+            #     b_guesses_to_use = 1.0 * \
+            #         np.diag(guesses_b[t:t + S, :, j])
+            #     n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
+            # else:
+            #     b_guesses_to_use = 1.0 * \
+            #         np.diag(guesses_b[t:t + S, :, j - 1])
+            #     n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j - 1])
+            twist_guesses = list(b_guesses_to_use) + list(n_guesses_to_use)
+            root_result =\
+                opt.root(twist_doughnut, twist_guesses,
+                           args=(r, w, BQ[:, j], T_H, j, None, t, TPI_solver_params), method='lm', tol=MINIMIZER_TOL)
+            solutions = root_result.x
+            euler_errors[t, :, j] = root_result.fun
+            euler_errors_b[t, :, j] = root_result.fun[:S]
+            euler_errors_n[t, :, j] = root_result.fun[S:]
 
             # print 'J= ', j
             # print 't = ', t
@@ -469,6 +523,11 @@ def inner_loop(guesses, outer_loop_vars, params):
             b_mat[t + ind, ind, j] = b_vec
             n_vec = solutions[S:]
             n_mat[t + ind, ind, j] = n_vec
+
+        print 'j = ', j
+        print 'inner loop euler errors: ', np.absolute(euler_errors).max()
+        print 'max savings euler errors: ', np.absolute(euler_errors_b).max()
+        print 'max labor euler errors: ', np.absolute(euler_errors_n).max()
 
     return euler_errors, b_mat, n_mat
 

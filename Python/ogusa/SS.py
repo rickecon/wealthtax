@@ -588,7 +588,7 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
     '''
 
     output = {'Kss': Kss, 'bssmat': bssmat, 'Lss': Lss, 'Css':Css, 'Iss':Iss,
-              'Gss': Gss, 'nssmat': nssmat, 'Yss': Yss,'wss': wss, 'rss': rss, 'theta': theta,
+              'Gss': Gss, 'nssmat': nssmat, 'Yss': Yss, 'wss': wss, 'rss': rss, 'theta': theta,
               'BQss': BQss, 'factor_ss': factor_ss, 'bssmat_s': bssmat_s,
               'cssmat': cssmat, 'bssmat_splus1': bssmat_splus1,
               'T_Hss': T_Hss, 'euler_savings': euler_savings,
@@ -902,7 +902,7 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params,
         [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve, guesses, args=ss_params_baseline, xtol=mindist_SS, full_output=True)
         if ENFORCE_SOLUTION_CHECKS and not ier == 1:
             raise RuntimeError("Steady state equilibrium not found")
-        [wss, rss, T_Hss, factor_ss] = solutions_fsolve
+        [rss, T_Hss, factor_ss] = solutions_fsolve
         # wss = wguess
         # rss = rguess
         # T_Hss = T_Hguess
