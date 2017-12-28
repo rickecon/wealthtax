@@ -18,9 +18,9 @@ import numpy as np
 import pandas as pd
 import os
 from scipy import stats
-import cPickle as pickle
+# import cPickle as pickle
+import pickle
 import xlsxwriter
-
 from ogusa import parameters, labor, utils, inequal, demographics
 
 baseline_dir = "./OUTPUT_BASELINE"

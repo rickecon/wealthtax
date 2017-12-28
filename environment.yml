@@ -9,6 +9,7 @@ dependencies:
 - matplotlib=2.0.0
 - taxcalc=0.8.3
 - numba
+- xlsxwriter
 - numpy=1.11.2
 - pandas=0.18.0
 - pytest
