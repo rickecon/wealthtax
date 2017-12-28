@@ -189,6 +189,9 @@ def estimation(frisch, l_tilde):
     ellipse_MU_params_til = opt.minimize(sumsq_MU, ellipse_MU_params_init,
                         args=(ellipse_MU_objs), method="L-BFGS-B", bounds=bnds_MU,
                         tol=1e-15)
+    # ellipse_MU_params_til = opt.least_squares(sumsq_MU, ellipse_MU_params_init,
+    #                     args=(ellipse_MU_objs),
+    #                     xtol=1e-15)
     (b_MU_til, upsilon_MU_til) = ellipse_MU_params_til.x
 
     # Print tax function computation time
