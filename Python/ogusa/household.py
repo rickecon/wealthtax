@@ -457,8 +457,8 @@ def FOC_labor(r, w, b, b_splus1, n, BQ, factor, T_H, params):
 def solve_c(guess, params):
     '''
     Computes Euler errors for the FOC for savings in the steady state.
-    This function is usually looped through over J, so it does one lifetime income group at a time.
-
+    This function is usually looped through over J, so it does one
+    lifetime income group at a time.
     '''
     cons2, n2, b_splus1, r, w, T_H, BQ, theta, factor, e, sigma, beta, g_y, chi_b, tau_bq, rho, lambdas, J, S, \
         analytical_mtrs, etr_params, mtry_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, method, s = params
@@ -486,8 +486,10 @@ def solve_c(guess, params):
     # mtr_cap_params = (e_extended[1:], etr_params_to_use,
     #                   mtry_params_to_use,analytical_mtrs)
     mtr_cap_params = (e[S-s-1], etr_params_to_use,
-                      mtry_params_to_use,analytical_mtrs)
-    deriv = (1+r) - r*(tax.MTR_capital(r, w, b_splus1, n2, factor, mtr_cap_params))
+                      mtry_params_to_use, analytical_mtrs)
+    deriv = ((1+r) - r*(tax.MTR_capital(r, w, b_splus1, n_extended[1:], factor, mtr_cap_params)) -
+             tax.tau_w_prime(b_splus1, (h_wealth, p_wealth, m_wealth))*b_splus1 -
+             tax.tau_wealth(b_splus1, (h_wealth, p_wealth, m_wealth)))
 
     savings_ut = rho[S-s-2] * np.exp(-sigma * g_y) * chi_b * b_splus1 ** (-sigma)
 
@@ -507,6 +509,44 @@ def solve_c(guess, params):
 
 
     return euler_error
+
+
+def get_u(c, n, b_splus1, params):
+    '''
+    Computes flow utility for the household.
+
+    Inputs:
+        b_splus1 = [S,J] array, steady state distribution of capital
+        n = [S,J] array, steady state distribution of labor
+        c = [S,J] array, steady state distribution of consumption
+        sigma = scalar, coefficient of relative risk aversion
+        chi_n  = [S,] vector of utility weights for disulity of labor
+        b_ellipse = scalar, scale parameter on elliptical utility
+        ltilde = scalar, upper bound of household labor supply
+        upsilon = scalar, curvature parameter on elliptical utility
+        k_ellipse = scalar, shift parameter on elliptical utility
+        rho_s = [S,] vector, mortality rates by age
+        chi_b = [J,] vector, utility weights on bequests
+        g_y = scalar, economic growth rate
+        cons1 = guess
+
+        Functions called: None
+
+    Objects in function:
+        utility = [S,J] array, utility for all agents
+
+    Returns:
+        utility
+    '''
+    sigma, chi_n, b_ellipse, ltilde, upsilon, rho_s, chi_b = params
+
+    utility = (((c ** (1-sigma) - 1) / (1 - sigma)) +
+               (chi_n * ((b_ellipse * (1 - (n / ltilde) ** upsilon)
+                          ** (1 / upsilon)))) +
+               (rho_s * chi_b * ((b_splus1 ** (1-sigma) - 1)
+                                 / (1 - sigma))))
+
+    return utility
 
 
 def constraint_checker_SS(bssmat, nssmat, cssmat, ltilde):

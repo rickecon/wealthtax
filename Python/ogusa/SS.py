@@ -515,6 +515,21 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
     theta_params = (e, S, retire)
     theta = tax.replacement_rate_vals(nssmat, wss, factor_ss, theta_params)
 
+    # compute utility
+    u_params = (sigma, chi_n.reshape(S, 1), b_ellipse, ltilde, upsilon,
+                rho.reshape(S, 1), chi_b)
+    utility_ss = household.get_u(cssmat, nssmat, bssmat_splus1, u_params)
+
+    # compute before and after-tax income
+    yss = rss * bssmat + wss * e * nssmat
+    inctax_params = (e, etr_params_3D)
+    y_aftertax_ss = yss - tax.tau_income(rss, wss, bssmat, nssmat,
+                                         factor_ss, inctax_params)
+
+    # compute after-tax wealth
+    wtax_params = (h_wealth, p_wealth, m_wealth)
+    b_aftertax_ss = bssmat - tax.tau_wealth(bssmat, wtax_params)
+
     # solve resource constraint
     etr_params_3D = np.tile(np.reshape(etr_params,(S,1,etr_params.shape[1])),(1,J,1))
     mtrx_params_3D = np.tile(np.reshape(mtrx_params,(S,1,mtrx_params.shape[1])),(1,J,1))
@@ -587,13 +602,17 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
     ------------------------------------------------------------------------
     '''
 
-    output = {'Kss': Kss, 'bssmat': bssmat, 'Lss': Lss, 'Css':Css, 'Iss':Iss,
-              'Gss': Gss, 'nssmat': nssmat, 'Yss': Yss, 'wss': wss, 'rss': rss, 'theta': theta,
+    output = {'Kss': Kss, 'bssmat': bssmat, 'Lss': Lss, 'Css': Css,
+              'Iss': Iss, 'nssmat': nssmat, 'Yss': Yss, 'wss': wss,
+              'rss': rss, 'theta': theta, 'Gss': Gss, 'nssmat': nssmat,
+              'Yss': Yss, 'wss': wss, 'rss': rss, 'theta': theta,
               'BQss': BQss, 'factor_ss': factor_ss, 'bssmat_s': bssmat_s,
               'cssmat': cssmat, 'bssmat_splus1': bssmat_splus1,
+              'utility_ss': utility_ss, 'yss': yss,
+              'y_aftertax_ss': y_aftertax_ss, 'b_aftertax_ss': b_aftertax_ss,
               'T_Hss': T_Hss, 'euler_savings': euler_savings,
               'euler_labor_leisure': euler_labor_leisure, 'chi_n': chi_n,
-              'chi_b': chi_b, 'ss_flag':ss_flag}
+              'chi_b': chi_b, 'ss_flag': ss_flag}
 
     return output
 
