@@ -69,7 +69,6 @@ def run_micro_macro(user_params):
         #         'baseline':True, 'reform':0, 'fix_transfers':False, 'user_params':user_params,
         #         'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
         # runner_SS(**kwargs)
-        # runner(**kwargs)
 
 
         '''
@@ -83,6 +82,7 @@ def run_micro_macro(user_params):
                 'baseline':True,'reform':0,'fix_transfers':False, 'user_params':user_params,
                 'guid':'baseline_sigma_'+str(item),'calibrate_model':False}
         runner(**kwargs)
+        quit()
 
         '''
         ------------------------------------------------------------------------
@@ -110,7 +110,7 @@ def run_micro_macro(user_params):
         kwargs={'output_base':output_base, 'baseline_dir':baseline_dir,
                 'baseline':False, 'reform':1, 'fix_transfers':True, 'user_params':user_params,
                 'guid':'wealth_tax_reform1','calibrate_model':False}
-        runner(**kwargs)
+        runner_SS(**kwargs)
         quit()
 
 

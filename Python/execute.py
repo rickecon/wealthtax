@@ -361,7 +361,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
             return new_error
 
         # print 'Computing new income tax to match wealth tax'
-        # d_guess= 0.36#0.219 # initial guess
+        # d_guess= 0.5025 # initial guess
         # # income_tax_params, receipts_to_match, ss_params, iterative_params,\
         # #                   chi_params, baseline, baseline_dir = params
         # analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
@@ -378,7 +378,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         # error = receipts_to_match - receipts_new
         # new_error = error
         # print "ERROR: ", error
-        # max_loop_iter = 500
+        # max_loop_iter = 1
         # output_list = np.zeros((max_loop_iter,3))
         # loop_iter = 0
         # bisect = 0
@@ -402,7 +402,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         #     #     d_guess = bisect_method(solve_model, params, low, high)
         #     #     loop_iter = max_loop_iter
         #     d_guess_old = d_guess
-        #     d_guess+=0.001
+        #     d_guess+=0.0005
         #
         #     error = new_error
         #     etr_params[:,3] = d_guess
@@ -430,7 +430,7 @@ def runner_SS(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         #     loop_iter += 1
 
         analytical_mtrs, etr_params, mtrx_params, mtry_params = income_tax_params
-        new_d_inc = 0.503 # this is 0.453 if fix_transfers=False, 0.503 if True
+        new_d_inc = 0.5025 # this is 0.453 if fix_transfers=False, 0.503 if True
         etr_params[:,3] = new_d_inc
         mtrx_params[:,3] = new_d_inc
         mtry_params[:,3] = new_d_inc
