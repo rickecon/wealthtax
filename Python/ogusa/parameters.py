@@ -24,6 +24,7 @@ import demographics as dem
 import income as inc
 import pickle
 import txfunc
+import utils
 import elliptical_u_est as ellip
 import matplotlib.pyplot as plt
 

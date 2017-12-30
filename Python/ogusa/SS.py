@@ -46,9 +46,9 @@ Grab some values from prior run to serve as starting values
 #START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma2.0_baseline.pkl", "rb"))
 #START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma2.0_wealth.pkl", "rb"))
 #START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma3.0_baseline.pkl", "rb"))
-START_VALUES = pickle.load(open("./OUTPUT_INCOME_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
+# START_VALUES = pickle.load(open("./OUTPUT_INCOME_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
 # START_VALUES = pickle.load(open("./OUTPUT_WEALTH_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
-# START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
+START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
 
 
 '''
@@ -515,21 +515,6 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
     theta_params = (e, S, retire)
     theta = tax.replacement_rate_vals(nssmat, wss, factor_ss, theta_params)
 
-    # compute utility
-    u_params = (sigma, chi_n.reshape(S, 1), b_ellipse, ltilde, upsilon,
-                rho.reshape(S, 1), chi_b)
-    utility_ss = household.get_u(cssmat, nssmat, bssmat_splus1, u_params)
-
-    # compute before and after-tax income
-    yss = rss * bssmat + wss * e * nssmat
-    inctax_params = (e, etr_params_3D)
-    y_aftertax_ss = yss - tax.tau_income(rss, wss, bssmat, nssmat,
-                                         factor_ss, inctax_params)
-
-    # compute after-tax wealth
-    wtax_params = (h_wealth, p_wealth, m_wealth)
-    b_aftertax_ss = bssmat - tax.tau_wealth(bssmat, wtax_params)
-
     # solve resource constraint
     etr_params_3D = np.tile(np.reshape(etr_params,(S,1,etr_params.shape[1])),(1,J,1))
     mtrx_params_3D = np.tile(np.reshape(mtrx_params,(S,1,mtrx_params.shape[1])),(1,J,1))
@@ -546,7 +531,20 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
 
     resource_constraint = Yss - (Css + Iss + Gss)
 
+    # compute utility
+    u_params = (sigma, chi_n.reshape(S, 1), b_ellipse, ltilde, upsilon,
+                rho.reshape(S, 1), chi_b)
+    utility_ss = household.get_u(cssmat, nssmat, bssmat_splus1, u_params)
 
+    # compute before and after-tax income
+    yss = rss * bssmat + wss * e * nssmat
+    inctax_params = (e, etr_params_3D)
+    y_aftertax_ss = yss - tax.tau_income(rss, wss, bssmat, nssmat,
+                                         factor_ss, inctax_params)
+
+    # compute after-tax wealth
+    wtax_params = (h_wealth, p_wealth, m_wealth)
+    b_aftertax_ss = bssmat - tax.tau_wealth(bssmat, wtax_params)
 
     '''
     ------------------------------------------------------------------------
