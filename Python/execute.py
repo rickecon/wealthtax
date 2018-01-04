@@ -17,7 +17,6 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
            age_specific=False, reform=0, fix_transfers=False, user_params={}, guid='',
            run_micro=True, calibrate_model=False):
 
-    #from ogusa import parameters, wealth, labor, demographics, income
     from ogusa import parameters, demographics, income, utils
 
     tick = time.time()

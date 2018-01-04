@@ -98,113 +98,216 @@ def get_BQ(r, b_splus1, params):
     return BQ
 
 
-def marg_ut_cons(c, sigma):
+def marg_ut_cons(cvec, sigma):
     '''
-    Computation of marginal utility of consumption.
+    --------------------------------------------------------------------
+    Generate marginal utility(ies) of consumption with CRRA consumption
+    utility and stitched function at lower bound such that the new
+    hybrid function is defined over all consumption on the real
+    line but the function has similar properties to the Inada condition.
 
-    Inputs:
-        c     = [T,S,J] array, household consumption
-        sigma = scalar, coefficient of relative risk aversion
+    u'(c) = c ** (-sigma) if c >= epsilon
+          = g'(c) = 2 * b2 * c + b1 if c < epsilon
 
-    Functions called: None
+        such that g'(epsilon) = u'(epsilon)
+        and g''(epsilon) = u''(epsilon)
 
-    Objects in function:
-        output = [T,S,J] array, marginal utility of consumption
+        u(c) = (c ** (1 - sigma) - 1) / (1 - sigma)
+        g(c) = b2 * (c ** 2) + b1 * c + b0
+    --------------------------------------------------------------------
+    INPUTS:
+    cvec  = scalar or (p,) vector, individual consumption value or
+            lifetime consumption over p consecutive periods
+    sigma = scalar >= 1, coefficient of relative risk aversion for CRRA
+            utility function: (c**(1-sigma) - 1) / (1 - sigma)
+    graph = boolean, =True if want plot of stitched marginal utility of
+            consumption function
 
-    Returns: output
+    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION: None
+
+    OBJECTS CREATED WITHIN FUNCTION:
+    epsilon    = scalar > 0, positive value close to zero
+    c_s        = scalar, individual consumption
+    c_s_cnstr  = boolean, =True if c_s < epsilon
+    b1         = scalar, intercept value in linear marginal utility
+    b2         = scalar, slope coefficient in linear marginal utility
+    MU_c       = scalar or (p,) vector, marginal utility of consumption
+                 or vector of marginal utilities of consumption
+    p          = integer >= 1, number of periods remaining in lifetime
+    cvec_cnstr = (p,) boolean vector, =True for values of cvec < epsilon
+
+    FILES CREATED BY THIS FUNCTION:
+        MU_c_stitched.png
+
+    RETURNS: MU_c
+    --------------------------------------------------------------------
     '''
-    # output = c**(-sigma)
-
-    if np.ndim(c) == 0:
-        c = np.array([c])
-    #p = c.shape[0]
     epsilon = 0.0001
-    cvec_cnstr = c < epsilon
-    MU_c = np.zeros(c.shape)
-    MU_c[~cvec_cnstr] = c[~cvec_cnstr] ** (-sigma)
-    b2 = (-sigma * (epsilon ** (-sigma - 1))) / 2
-    b1 = (epsilon ** (-sigma)) - 2 * b2 * epsilon
-    MU_c[cvec_cnstr] = 2 * b2 * c[cvec_cnstr] + b1
-    output = MU_c
-    output = np.squeeze(output)
+    if np.ndim(cvec) == 0:
+        c_s = cvec
+        c_s_cnstr = c_s < epsilon
+        if c_s_cnstr:
+            b2 = (-sigma * (epsilon ** (-sigma - 1))) / 2
+            b1 = (epsilon ** (-sigma)) - 2 * b2 * epsilon
+            MU_c = 2 * b2 * c_s + b1
+        else:
+            MU_c = c_s ** (-sigma)
+    elif np.ndim(cvec) == 1:
+        p = cvec.shape[0]
+        cvec_cnstr = cvec < epsilon
+        MU_c = np.zeros(p)
+        MU_c[~cvec_cnstr] = cvec[~cvec_cnstr] ** (-sigma)
+        b2 = (-sigma * (epsilon ** (-sigma - 1))) / 2
+        b1 = (epsilon ** (-sigma)) - 2 * b2 * epsilon
+        MU_c[cvec_cnstr] = 2 * b2 * cvec[cvec_cnstr] + b1
 
-    return output
+    return MU_c
 
 
-
-def marg_ut_labor(n, params):
+def marg_ut_labor(nvec, params):
     '''
-    Computation of marginal disutility of labor.
+    --------------------------------------------------------------------
+    Generate marginal disutility(ies) of labor with elliptical
+    disutility of labor function and stitched functions at lower bound
+    and upper bound of labor supply such that the new hybrid function is
+    defined over all labor supply on the real line but the function has
+    similar properties to the Inada conditions at the upper and lower
+    bounds.
 
-    Inputs:
-        n         = [T,S,J] array, household labor supply
-        params    = length 4 tuple (b_ellipse, upsilon, ltilde, chi_n)
-        b_ellipse = scalar, scaling parameter in elliptical utility function
-        upsilon   = curvature parameter in elliptical utility function
-        ltilde    = scalar, upper bound of household labor supply
-        chi_n     = [S,] vector, utility weights on disutility of labor
+    v'(n) = (b / l_tilde) * ((n / l_tilde) ** (upsilon - 1)) *
+            ((1 - ((n / l_tilde) ** upsilon)) ** ((1-upsilon)/upsilon))
+            if n >= eps_low <= n <= eps_high
+          = g_low'(n)  = 2 * b2 * n + b1 if n < eps_low
+          = g_high'(n) = 2 * d2 * n + d1 if n > eps_high
 
-    Functions called: None
+        such that g_low'(eps_low) = u'(eps_low)
+        and g_low''(eps_low) = u''(eps_low)
+        and g_high'(eps_high) = u'(eps_high)
+        and g_high''(eps_high) = u''(eps_high)
 
-    Objects in function:
-        output = [T,S,J] array, marginal disutility of labor supply
+        v(n) = -b *(1 - ((n/l_tilde) ** upsilon)) ** (1/upsilon)
+        g_low(n)  = b2 * (n ** 2) + b1 * n + b0
+        g_high(n) = d2 * (n ** 2) + d1 * n + d0
+    --------------------------------------------------------------------
+    INPUTS:
+    nvec   = scalar or (p,) vector, labor supply value or labor supply
+             values over remaining periods of lifetime
+    params = length 3 tuple, (l_tilde, b_ellip, upsilon)
+    graph  = Boolean, =True if want plot of stitched marginal disutility
+             of labor function
 
-    Returns: output
+    OTHER FUNCTIONS AND FILES CALLED BY THIS FUNCTION: None
+
+    OBJECTS CREATED WITHIN FUNCTION:
+    l_tilde       = scalar > 0, time endowment for each agent each per
+    b_ellip       = scalar > 0, scale parameter for elliptical utility
+                    of leisure function
+    upsilon       = scalar > 1, shape parameter for elliptical utility
+                    of leisure function
+    eps_low       = scalar > 0, positive value close to zero
+    eps_high      = scalar > 0, positive value just less than l_tilde
+    n_s           = scalar, individual labor supply
+    n_s_low       = boolean, =True for n_s < eps_low
+    n_s_high      = boolean, =True for n_s > eps_high
+    n_s_uncstr    = boolean, =True for n_s >= eps_low and
+                    n_s <= eps_high
+    MDU_n         = scalar or (p,) vector, marginal disutility or
+                    marginal utilities of labor supply
+    b1            = scalar, intercept value in linear marginal
+                    disutility of labor at lower bound
+    b2            = scalar, slope coefficient in linear marginal
+                    disutility of labor at lower bound
+    d1            = scalar, intercept value in linear marginal
+                    disutility of labor at upper bound
+    d2            = scalar, slope coefficient in linear marginal
+                    disutility of labor at upper bound
+    p             = integer >= 1, number of periods remaining in life
+    nvec_s_low    = boolean, =True for n_s < eps_low
+    nvec_s_high   = boolean, =True for n_s > eps_high
+    nvec_s_uncstr = boolean, =True for n_s >= eps_low and
+                    n_s <= eps_high
+
+    FILES CREATED BY THIS FUNCTION:
+        MDU_n_stitched.png
+
+    RETURNS: MDU_n
+    --------------------------------------------------------------------
     '''
-    b_ellipse, upsilon, ltilde, chi_n = params
+    b_ellip, upsilon, l_tilde, chi_n = params
 
-    # try:
-    #     deriv = b_ellipse * (1.0 / ltilde) * ((1.0 - (n / ltilde) ** upsilon) ** (
-    #         (1.0 / upsilon) - 1.0)) * (n / ltilde) ** (upsilon - 1.0)
-    # except ValueError as ve:
-    #     # I think TJ added this in.  We need to be careful with doing stuff like this --
-    #     # it could lead to incorrect output, if we are setting deriv to be something that
-    #     # is actually close to the solution (or a possible solution).  If anything,
-    #     # we might want to set deriv to be some huge number (ie, 1e12).  That would almost
-    #     # certainly be far from the true value, which would force the euler error to be quite large,
-    #     # and so the fsolve will not pick this solution.
-    #     deriv = 1e12
-    #
-    # output = chi_n * deriv
-
-    b_ellip = b_ellipse
-    nvec = n
-    if np.ndim(nvec) == 0:
-        nvec = np.array([nvec])
-    # p = nvec.shape[0]
     eps_low = 0.000001
-    eps_high = ltilde - 0.000001
-    nvec_low = nvec < eps_low
-    nvec_high = nvec > eps_high
-    nvec_uncstr = np.logical_and(~nvec_low, ~nvec_high)
-    MDU_n = np.zeros(nvec.shape)
-    MDU_n[nvec_uncstr] = (
-        (b_ellip / ltilde) *
-        ((nvec[nvec_uncstr] / ltilde) ** (upsilon - 1)) *
-        ((1 - ((nvec[nvec_uncstr] / ltilde) ** upsilon)) **
-         ((1 - upsilon) / upsilon)))
-    b2 = (0.5 * b_ellip * (ltilde ** (-upsilon)) * (upsilon - 1) *
-          (eps_low ** (upsilon - 2)) *
-          ((1 - ((eps_low / ltilde) ** upsilon)) **
-          ((1 - upsilon) / upsilon)) *
-          (1 + ((eps_low / ltilde) ** upsilon) *
-          ((1 - ((eps_low / ltilde) ** upsilon)) ** (-1))))
-    b1 = ((b_ellip / ltilde) * ((eps_low / ltilde) ** (upsilon - 1)) *
-          ((1 - ((eps_low / ltilde) ** upsilon)) **
-          ((1 - upsilon) / upsilon)) - (2 * b2 * eps_low))
-    MDU_n[nvec_low] = 2 * b2 * nvec[nvec_low] + b1
-    d2 = (0.5 * b_ellip * (ltilde ** (-upsilon)) * (upsilon - 1) *
-          (eps_high ** (upsilon - 2)) *
-          ((1 - ((eps_high / ltilde) ** upsilon)) **
-          ((1 - upsilon) / upsilon)) *
-          (1 + ((eps_high / ltilde) ** upsilon) *
-          ((1 - ((eps_high / ltilde) ** upsilon)) ** (-1))))
-    d1 = ((b_ellip / ltilde) * ((eps_high / ltilde) **
-          (upsilon - 1)) * ((1 - ((eps_high / ltilde) ** upsilon)) **
-          ((1 - upsilon) / upsilon)) - (2 * d2 * eps_high))
-    MDU_n[nvec_high] = 2 * d2 * nvec[nvec_high] + d1
-    output = MDU_n*chi_n
-    output = np.squeeze(output)
+    eps_high = l_tilde - 0.000001
+    # This if is for when nvec is a scalar
+    if np.ndim(nvec) == 0:
+        n_s = nvec
+        n_s_low = n_s < eps_low
+        n_s_high = n_s > eps_high
+        n_s_uncstr = (n_s >= eps_low) and (n_s <= eps_high)
+        if n_s_uncstr:
+            MDU_n = \
+                ((b_ellip / l_tilde) * ((n_s / l_tilde) **
+                 (upsilon - 1)) * ((1 - ((n_s / l_tilde) ** upsilon)) **
+                 ((1 - upsilon) / upsilon)))
+        elif n_s_low:
+            b2 = (0.5 * b_ellip * (l_tilde ** (-upsilon)) *
+                  (upsilon - 1) * (eps_low ** (upsilon - 2)) *
+                  ((1 - ((eps_low / l_tilde) ** upsilon)) **
+                  ((1 - upsilon) / upsilon)) *
+                  (1 + ((eps_low / l_tilde) ** upsilon) *
+                  ((1 - ((eps_low / l_tilde) ** upsilon)) ** (-1))))
+            b1 = ((b_ellip / l_tilde) * ((eps_low / l_tilde) **
+                  (upsilon - 1)) *
+                  ((1 - ((eps_low / l_tilde) ** upsilon)) **
+                  ((1 - upsilon) / upsilon)) - (2 * b2 * eps_low))
+            MDU_n = 2 * b2 * n_s + b1
+        elif n_s_high:
+            d2 = (0.5 * b_ellip * (l_tilde ** (-upsilon)) *
+                  (upsilon - 1) * (eps_high ** (upsilon - 2)) *
+                  ((1 - ((eps_high / l_tilde) ** upsilon)) **
+                  ((1 - upsilon) / upsilon)) *
+                  (1 + ((eps_high / l_tilde) ** upsilon) *
+                  ((1 - ((eps_high / l_tilde) ** upsilon)) ** (-1))))
+            d1 = ((b_ellip / l_tilde) * ((eps_high / l_tilde) **
+                  (upsilon - 1)) *
+                  ((1 - ((eps_high / l_tilde) ** upsilon)) **
+                  ((1 - upsilon) / upsilon)) - (2 * d2 * eps_high))
+            MDU_n = 2 * d2 * n_s + d1
+    # This if is for when nvec is a one-dimensional vector
+    elif np.ndim(nvec) == 1:
+        p = nvec.shape[0]
+        nvec_low = nvec < eps_low
+        nvec_high = nvec > eps_high
+        nvec_uncstr = np.logical_and(~nvec_low, ~nvec_high)
+        MDU_n = np.zeros(p)
+        MDU_n[nvec_uncstr] = (
+            (b_ellip / l_tilde) *
+            ((nvec[nvec_uncstr] / l_tilde) ** (upsilon - 1)) *
+            ((1 - ((nvec[nvec_uncstr] / l_tilde) ** upsilon)) **
+             ((1 - upsilon) / upsilon)))
+        b2 = (0.5 * b_ellip * (l_tilde ** (-upsilon)) * (upsilon - 1) *
+              (eps_low ** (upsilon - 2)) *
+              ((1 - ((eps_low / l_tilde) ** upsilon)) **
+              ((1 - upsilon) / upsilon)) *
+              (1 + ((eps_low / l_tilde) ** upsilon) *
+              ((1 - ((eps_low / l_tilde) ** upsilon)) ** (-1))))
+        b1 = ((b_ellip / l_tilde) * ((eps_low / l_tilde) **
+              (upsilon - 1)) *
+              ((1 - ((eps_low / l_tilde) ** upsilon)) **
+              ((1 - upsilon) / upsilon)) - (2 * b2 * eps_low))
+        MDU_n[nvec_low] = 2 * b2 * nvec[nvec_low] + b1
+        d2 = (0.5 * b_ellip * (l_tilde ** (-upsilon)) * (upsilon - 1) *
+              (eps_high ** (upsilon - 2)) *
+              ((1 - ((eps_high / l_tilde) ** upsilon)) **
+              ((1 - upsilon) / upsilon)) *
+              (1 + ((eps_high / l_tilde) ** upsilon) *
+              ((1 - ((eps_high / l_tilde) ** upsilon)) ** (-1))))
+        d1 = ((b_ellip / l_tilde) * ((eps_high / l_tilde) **
+              (upsilon - 1)) *
+              ((1 - ((eps_high / l_tilde) ** upsilon)) **
+              ((1 - upsilon) / upsilon)) - (2 * d2 * eps_high))
+        MDU_n[nvec_high] = 2 * d2 * nvec[nvec_high] + d1
+
+    output = chi_n * MDU_n
 
     return output
 

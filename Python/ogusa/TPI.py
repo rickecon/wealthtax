@@ -378,7 +378,7 @@ def inner_loop(guesses, outer_loop_vars, params):
     K0, b_sinit, b_splus1init, factor, initial_b, initial_n, omega_S_preTP = initial_values
 
     guesses_b, guesses_n = guesses
-    r, w, K, BQ, T_H = outer_loop_vars
+    r, w, BQ, T_H = outer_loop_vars
 
     # initialize arrays
     b_mat = np.zeros((T + S, S, J))
@@ -389,17 +389,18 @@ def inner_loop(guesses, outer_loop_vars, params):
 
     for j in xrange(J):
         first_doughnut_params = (income_tax_params, tpi_params, initial_b)
-        first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
+        # first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
         # if j == 0:
         #     first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
         # else:
         #     first_guesses = [guesses_b[0, -1, j - 1], guesses_n[0, -1, j - 1]]
         root_result =\
             opt.root(firstdoughnutring, first_guesses,
-                     args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,first_doughnut_params),
-                     method='lm', tol=MINIMIZER_TOL)
+                     args=(r[0], w[0], initial_b, BQ[0, j], T_H[0], j,
+                           first_doughnut_params), method='lm',
+                     tol=MINIMIZER_TOL)
         b_mat[0, -1, j], n_mat[0, -1, j] = root_result.x
-        euler_errors_b[0, -1, j], euler_errors_n[0, -1, j]  = root_result.fun
+        euler_errors_b[0, -1, j], euler_errors_n[0, -1, j] = root_result.fun
 
 
 
@@ -410,22 +411,22 @@ def inner_loop(guesses, outer_loop_vars, params):
             ind2 = np.arange(s + 2)
 
             # initialize array of diagonal elements
-            length_diag = (np.diag(np.transpose(etr_params[:,:S,0]),S-(s+2))).shape[0]
-            etr_params_to_use = np.zeros((length_diag,etr_params.shape[2]))
-            mtrx_params_to_use = np.zeros((length_diag,mtrx_params.shape[2]))
-            mtry_params_to_use = np.zeros((length_diag,mtry_params.shape[2]))
+            length_diag = (np.diag(np.transpose(etr_params[:, :S, 0]), S-(s+2))).shape[0]
+            etr_params_to_use = np.zeros((length_diag, etr_params.shape[2]))
+            mtrx_params_to_use = np.zeros((length_diag, mtrx_params.shape[2]))
+            mtry_params_to_use = np.zeros((length_diag, mtry_params.shape[2]))
             for i in range(etr_params.shape[2]):
-                etr_params_to_use[:,i] = np.diag(np.transpose(etr_params[:,:S,i]),S-(s+2))
-                mtrx_params_to_use[:,i] = np.diag(np.transpose(mtrx_params[:,:S,i]),S-(s+2))
-                mtry_params_to_use[:,i] = np.diag(np.transpose(mtry_params[:,:S,i]),S-(s+2))
+                etr_params_to_use[:, i] = np.diag(np.transpose(etr_params[:, :S, i]), S-(s+2))
+                mtrx_params_to_use[:, i] = np.diag(np.transpose(mtrx_params[:, :S, i]), S-(s+2))
+                mtry_params_to_use[:, i] = np.diag(np.transpose(mtry_params[:, :S, i]), S-(s+2))
 
 
-            inc_tax_params_upper = (analytical_mtrs, etr_params_to_use, mtrx_params_to_use, mtry_params_to_use)
+            inc_tax_params_upper = (analytical_mtrs, etr_params_to_use,
+                                    mtrx_params_to_use, mtry_params_to_use)
 
             TPI_solver_params = (inc_tax_params_upper, tpi_params, initial_b)
 
-            b_guesses_to_use = np.diag(
-                guesses_b[:S, :, j], S - (s + 2))
+            b_guesses_to_use = np.diag(guesses_b[:S, :, j], S - (s + 2))
             n_guesses_to_use = np.diag(guesses_n[:S, :, j], S - (s + 2))
             # if j == 0:
             #     b_guesses_to_use = np.diag(
@@ -463,16 +464,17 @@ def inner_loop(guesses, outer_loop_vars, params):
             # n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
 
             # initialize array of diagonal elements
-            length_diag = (np.diag(np.transpose(etr_params[:,t:t+S,0]))).shape[0]
-            etr_params_to_use = np.zeros((length_diag,etr_params.shape[2]))
-            mtrx_params_to_use = np.zeros((length_diag,mtrx_params.shape[2]))
-            mtry_params_to_use = np.zeros((length_diag,mtry_params.shape[2]))
+            length_diag = (np.diag(np.transpose(etr_params[:, t:t+S, 0]))).shape[0]
+            etr_params_to_use = np.zeros((length_diag, etr_params.shape[2]))
+            mtrx_params_to_use = np.zeros((length_diag, mtrx_params.shape[2]))
+            mtry_params_to_use = np.zeros((length_diag, mtry_params.shape[2]))
             for i in range(etr_params.shape[2]):
-                etr_params_to_use[:,i] = np.diag(np.transpose(etr_params[:,t:t+S,i]))
-                mtrx_params_to_use[:,i] = np.diag(np.transpose(mtrx_params[:,t:t+S,i]))
-                mtry_params_to_use[:,i] = np.diag(np.transpose(mtry_params[:,t:t+S,i]))
+                etr_params_to_use[:, i] = np.diag(np.transpose(etr_params[:, t:t+S, i]))
+                mtrx_params_to_use[:, i] = np.diag(np.transpose(mtrx_params[:, t:t+S, i]))
+                mtry_params_to_use[:, i] = np.diag(np.transpose(mtry_params[:, t:t+S, i]))
 
-            inc_tax_params_TP = (analytical_mtrs, etr_params_to_use, mtrx_params_to_use, mtry_params_to_use)
+            inc_tax_params_TP = (analytical_mtrs, etr_params_to_use,
+                                 mtrx_params_to_use, mtry_params_to_use)
 
 
             TPI_solver_params = (inc_tax_params_TP, tpi_params, None)
@@ -481,21 +483,20 @@ def inner_loop(guesses, outer_loop_vars, params):
             #     r, w, BQ[:, j], T_H, j, None, t, TPI_solver_params), xtol=MINIMIZER_TOL, full_output=True)
             # euler_errors[t, :, j] = infodict['fvec']
 
-            b_guesses_to_use = 1.0 * \
-                np.diag(guesses_b[t:t + S, :, j])
+            b_guesses_to_use = 1.0 * np.diag(guesses_b[t:t + S, :, j])
             n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
             # if j == 0:
-            #     b_guesses_to_use = 1.0 * \
-            #         np.diag(guesses_b[t:t + S, :, j])
+            #     b_guesses_to_use = 1.0 * np.diag(guesses_b[t:t + S, :, j])
             #     n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j])
             # else:
-            #     b_guesses_to_use = 1.0 * \
-            #         np.diag(guesses_b[t:t + S, :, j - 1])
+            #     b_guesses_to_use = 1.0 * np.diag(guesses_b[t:t + S, :, j - 1])
             #     n_guesses_to_use = np.diag(guesses_n[t:t + S, :, j - 1])
             twist_guesses = list(b_guesses_to_use) + list(n_guesses_to_use)
             root_result =\
                 opt.root(twist_doughnut, twist_guesses,
-                           args=(r, w, BQ[:, j], T_H, j, None, t, TPI_solver_params), method='lm', tol=MINIMIZER_TOL)
+                           args=(r, w, BQ[:, j], T_H, j, None, t,
+                                 TPI_solver_params), method='lm',
+                           tol=MINIMIZER_TOL)
             solutions = root_result.x
             euler_errors[t, :, j] = root_result.fun
             euler_errors_b[t, :, j] = root_result.fun[:S]
@@ -535,24 +536,15 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     TPI_FIG_DIR = output_dir
     # Initialize guesses at time paths
     domain = np.linspace(0, T, T)
-    K_init = (-1 / (domain + 1)) * (Kss - K0) + Kss
-    K_init[-1] = Kss
-    K_init = np.array(list(K_init) + list(np.ones(S) * Kss))
-    L_init = np.ones(T + S) * Lss
-
-    K = K_init
-    L = L_init
-    Y_params = (alpha, Z)
-    Y = firm.get_Y(K, L, Y_params)
-    w = firm.get_w(Y, L, alpha)
-    r_params = (alpha, delta)
-    r = firm.get_r(Y, K, r_params)
+    r = np.ones(T + S) * rss
     BQ = np.zeros((T + S, J))
     BQ0_params = (omega_S_preTP.reshape(S, 1), lambdas, rho.reshape(S, 1), g_n_vector[0], 'SS')
     BQ0 = household.get_BQ(r[0], initial_b, BQ0_params)
     for j in xrange(J):
         BQ[:, j] = list(np.linspace(BQ0[j], BQss[j], T)) + [BQss[j]] * S
     BQ = np.array(BQ)
+    print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
+    print "K0 vs Kss = ", K0-Kss
 
     if fix_transfers:
         T_H = T_H_baseline
@@ -563,6 +555,8 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             T_Hss2 = T_Hss
         T_H = np.ones(T + S) * T_Hss2 * (r/rss)
     G = np.zeros(T + S)
+    print "T_H values = ", T_H[0], T_H[100], T_H[-1], T_Hss
+    print "omega diffs = ", (omega_S_preTP-omega[-1]).max(), (omega[10]-omega[-1]).max()
 
     # Make array of initial guesses for labor supply and savings
     domain2 = np.tile(domain.reshape(T, 1, 1), (1, S, J))
@@ -570,6 +564,7 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     guesses_b = (-1 / (domain2 + 1)) * (ending_b - initial_b) + ending_b
     ending_b_tail = np.tile(ending_b.reshape(1, S, J), (S, 1, 1))
     guesses_b = np.append(guesses_b, ending_b_tail, axis=0)
+    print 'diff btwn start and end b: ', (guesses_b[0]-guesses_b[-1]).max()
 
     domain3 = np.tile(np.linspace(0, 1, T).reshape(T, 1, 1), (1, S, J))
     guesses_n = domain3 * (nssmat - initial_n) + initial_n
@@ -578,6 +573,16 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     b_mat = np.zeros((T + S, S, J))
     n_mat = np.zeros((T + S, S, J))
     ind = np.arange(S)
+    print 'diff btwn start and end n: ', (guesses_n[0]-guesses_n[-1]).max()
+
+    # find economic aggregates
+    K = np.zeros(T)
+    L = np.zeros(T)
+    K[0] = K0
+    K_params = (omega[:T-1].reshape(T-1, S, 1), lambdas.reshape(1, 1, J), imm_rates[:T-1].reshape(T-1,S,1), g_n_vector[1:T], 'TPI')
+    K[1:T] = household.get_K(guesses_b[:T-1], K_params)
+    L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1), lambdas.reshape(1, 1, J), 'TPI')
+    L[:T] = firm.get_L(guesses_n[:T], L_params)
 
     TPIiter = 0
     TPIdist = 10
@@ -605,11 +610,23 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         guesses = (guesses_b, guesses_n)
         w_params = (Z, alpha, delta)
         w = firm.get_w_from_r(r, w_params)
-        outer_loop_vars = (r, w, K, BQ, T_H)
+        # print 'r and rss diff = ', r-rss
+        # print 'w and wss diff = ', w-wss
+        # print 'BQ and BQss diff = ', BQ-BQss
+        # print 'T_H and T_Hss diff = ', T_H - T_Hss
+        print 'guess b and bss = ', (bssmat_splus1 - guesses_b).max()
+        print 'guess n and nss = ', (nssmat - guesses_n).max()
+        outer_loop_vars = (r, w, BQ, T_H)
         inner_loop_params = (income_tax_params, tpi_params, initial_values, ind)
 
         # Solve HH problem in inner loop
         euler_errors, b_mat, n_mat = inner_loop(guesses, outer_loop_vars, inner_loop_params)
+
+        print 'guess b and bss = ', (b_mat - guesses_b).max()
+        print 'guess n and nss over time = ', (n_mat - guesses_n).max(axis=2).max(axis=1)
+        print 'guess n and nss over age = ', (n_mat - guesses_n).max(axis=0).max(axis=1)
+        print 'guess n and nss over ability = ', (n_mat - guesses_n).max(axis=0).max(axis=0)
+        quit()
 
         print 'Max Euler error: ', (np.abs(euler_errors)).max()
 
@@ -626,6 +643,8 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1),
                     lambdas.reshape(1, 1, J), 'TPI')
         L[:T] = firm.get_L(n_mat[:T], L_params)
+        print 'K diffs = ', K-K0
+        print 'L diffs = ', L-L[0]
 
         Y_params = (alpha, Z)
         Ynew = firm.get_Y(K[:T], L[:T], Y_params)
@@ -633,15 +652,27 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         rnew = firm.get_r(Ynew[:T], K[:T], r_params)
         wnew = firm.get_w_from_r(rnew, w_params)
 
-        omega_shift = np.append(omega_S_preTP.reshape(1, S),omega[:T-1,:], axis=0)
-        BQ_params = (omega_shift.reshape(T, S, 1), lambdas.reshape(1, 1, J), rho.reshape(1, S, 1),
-                     g_n_vector[:T].reshape(T, 1), 'TPI')
-        b_mat_shift = np.append(np.reshape(initial_b,(1,S,J)),b_mat[:T-1,:,:],axis=0)
-        BQnew = household.get_BQ(rnew[:T].reshape(T, 1), b_mat_shift, BQ_params)
+        omega_shift = np.append(omega_S_preTP.reshape(1, S),
+                                omega[:T-1, :], axis=0)
+        BQ_params = (omega_shift.reshape(T, S, 1), lambdas.reshape(1, 1, J),
+                     rho.reshape(1, S, 1), g_n_vector[:T].reshape(T, 1), 'TPI')
+        # b_mat_shift = np.append(np.reshape(initial_b, (1, S, J)),
+        #                         b_mat[:T-1, :, :], axis=0)
+        b_mat_shift = bmat_splus1[:T, :, :]
+        print 'b diffs = ', (bmat_splus1[100, :, :] - initial_b).max(), (bmat_splus1[0, :, :] - initial_b).max(), (bmat_splus1[1, :, :] - initial_b).max()
+        print 'r diffs = ', rnew[1]-r[1], rnew[100]-r[100], rnew[-1]-r[-1]
+        BQnew = household.get_BQ(rnew[:T].reshape(T, 1), b_mat_shift,
+                                 BQ_params)
+        BQss2 = np.empty(J)
+        for j in range(J):
+            BQss_params = (omega[1, :], lambdas[j], rho, g_n_vector[1], 'SS')
+            BQss2[j] = household.get_BQ(rnew[1], bmat_splus1[1, :, j],
+                                        BQss_params)
+        print 'BQ test = ', BQss2-BQss, BQss-BQnew[1], BQss-BQnew[100], BQss-BQnew[-1]
 
-        total_tax_params = np.zeros((T,S,J,etr_params.shape[2]))
+        total_tax_params = np.zeros((T, S, J, etr_params.shape[2]))
         for i in range(etr_params.shape[2]):
-            total_tax_params[:,:,:,i] = np.tile(np.reshape(np.transpose(etr_params[:,:T,i]),(T,S,1)),(1,1,J))
+            total_tax_params[:, :, :, i] = np.tile(np.reshape(np.transpose(etr_params[:,:T,i]),(T,S,1)),(1,1,J))
 
         tax_receipt_params = (np.tile(e.reshape(1, S, J),(T,1,1)), lambdas.reshape(1, 1, J), omega[:T].reshape(T, S, 1), 'TPI',
                 total_tax_params, theta, tau_bq, tau_payroll, h_wealth, p_wealth, m_wealth, retire, T, S, J)
@@ -663,10 +694,13 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             TPIdist = np.array(list(utils.pct_diff_func(rnew[:T], r[:T])) +
                                list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten()) +
                                list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
+            print 'r dist = ', np.array(list(utils.pct_diff_func(rnew[:T], r[:T]))).max()
+            print 'BQ dist = ', np.array(list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten())).max()
+            print 'T_H dist = ', np.array(list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
         else:
             TPIdist = np.array(list(utils.pct_diff_func(rnew[:T], r[:T])) +
                                list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten()) +
-                               list(np.abs(T_H[:T]))).max()
+                               list(np.abs(T_H_new[:T]-T_H[:T]))).max()
         TPIdist_vec[TPIiter] = TPIdist
         # After T=10, if cycling occurs, drop the value of nu
         # wait til after T=10 or so, because sometimes there is a jump up
@@ -685,7 +719,7 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
 
     # Solve HH problem in inner loop
     guesses = (guesses_b, guesses_n)
-    outer_loop_vars = (r, w, K, BQ, T_H)
+    outer_loop_vars = (r, w, BQ, T_H)
     inner_loop_params = (income_tax_params, tpi_params, initial_values, ind)
     euler_errors, b_mat, n_mat = inner_loop(guesses, outer_loop_vars, inner_loop_params)
 

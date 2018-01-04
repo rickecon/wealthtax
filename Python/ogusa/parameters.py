@@ -267,24 +267,13 @@ def get_parameters(baseline, reform, guid, user_modifiable):
         (_, _, omega_SS_80, _, _, _, _,_) = dem.get_pop_objs(20, 80,
             320, 1, 100, start_year, False)
 
-
     # make pop constant
-    # omega = np.tile(omega_SS.reshape(1,S),(T+S,1))
-    # g_n_vector[:] = g_n_ss
-    # imm_rates = np.tile(imm_rates[-1,:].reshape(1,S),(T+S,1))
-    # omega_S_preTP = omega_SS
-
-
-    # e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
-    # e = e[:,:2]
-    # # # need to turn 80x7 array into SxJ array
-    # e /= (e * omega_SS.reshape(S, 1)
-    #             * lambdas.reshape(1, J)).sum()
+    omega = np.tile(omega_SS.reshape(1,S),(T+S,1))
+    g_n_vector[:] = g_n_ss
+    imm_rates = np.tile(imm_rates[-1,:].reshape(1,S),(T+S,1))
+    omega_S_preTP = omega_SS
 
     e = inc.get_e_interp(S, omega_SS, omega_SS_80, lambdas, plot=False)
-
-    # e_test = np.tile(np.reshape(e[:,3],(S,1)),(1,J))
-    # e = e_test
 
     allvars = dict(locals())
 
