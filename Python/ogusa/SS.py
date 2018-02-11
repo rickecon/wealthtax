@@ -215,28 +215,36 @@ def euler_equation_solver(guesses, params):
     theta_params = (e[:,j], S, retire)
     theta = tax.replacement_rate_vals(n_guess, w, factor, theta_params)
 
-    foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta, tau_bq[j], rho, lambdas[j], J, S,
-                           analytical_mtrs, etr_params, mtry_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'SS')
-    error1 = household.FOC_savings(r, w, b_s, b_splus1, b_splus2, n_guess, BQ, factor, T_H, foc_save_parms)
-    foc_labor_params = (e[:, j], sigma, g_y, theta, b_ellipse, upsilon, chi_n, ltilde, tau_bq[j], lambdas[j], J, S,
-                            analytical_mtrs, etr_params, mtrx_params, h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'SS')
-    error2 = household.FOC_labor(r, w, b_s, b_splus1, n_guess, BQ, factor, T_H, foc_labor_params)
+        foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta,
+                      tau_bq[j], rho, lambdas[j], j, J, S, analytical_mtrs,
+                      etr_params, mtry_params, h_wealth, p_wealth,
+                      m_wealth, tau_payroll, retire, 'SS')
+    error1 = household.FOC_savings(r, w, b_s, b_splus1, b_splus2,
+                                   n_guess, BQ, factor, T_H,
+                                   foc_save_parms)
+    foc_labor_params = (e[:, j], sigma, g_y, theta, b_ellipse, upsilon,
+                        chi_n, ltilde, tau_bq[j], lambdas[j], j, J, S,
+                        analytical_mtrs, etr_params, mtrx_params,
+                        h_wealth, p_wealth, m_wealth, tau_payroll,
+                        retire, 'SS')
+    error2 = household.FOC_labor(r, w, b_s, b_splus1, n_guess, BQ,
+                                 factor, T_H, foc_labor_params)
 
     # Put in constraints for consumption and savings.
     # According to the euler equations, they can be negative.  When
     # Chi_b is large, they will be.  This prevents that from happening.
     # I'm not sure if the constraints are needed for labor.
     # But we might as well put them in for now.
-    # mask1 = n_guess < 0
-    # mask2 = n_guess > ltilde
-    # mask3 = b_guess <= 0
-    # mask4 = np.isnan(n_guess)
-    # mask5 = np.isnan(b_guess)
-    # error2[mask1] = 1e14
-    # error2[mask2] = 1e14
-    # error1[mask3] = 1e14
-    # error1[mask5] = 1e14
-    # error2[mask4] = 1e14
+    mask1 = n_guess < 0
+    mask2 = n_guess > ltilde
+    mask3 = b_guess <= 0
+    mask4 = np.isnan(n_guess)
+    mask5 = np.isnan(b_guess)
+    error2[mask1] = 1e14
+    error2[mask2] = 1e14
+    error1[mask3] = 1e14
+    error1[mask5] = 1e14
+    error2[mask4] = 1e14
 
     tax1_params = (e[:, j], lambdas[j], 'SS', retire, etr_params, h_wealth, p_wealth,
                    m_wealth, tau_payroll, theta, tau_bq[j], J, S)
@@ -245,7 +253,6 @@ def euler_equation_solver(guesses, params):
     cons = household.get_cons(r, w, b_s, b_splus1, n_guess, BQ, tax1, cons_params)
     mask6 = cons < 0
     error1[mask6] = 1e14
-
 
     return list(error1.flatten()) + list(error2.flatten())
 

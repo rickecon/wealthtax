@@ -188,44 +188,44 @@ def firstdoughnutring(guesses, r, w, b, BQ, T_H, j, params):
     n = float(guesses[1])
     b_s = float(initial_b[-2, j])
 
-    # Euler 1 equations
-    tax1_params = (e[-1, j], lambdas[j], 'TPI_scalar', retire, etr_params[-1,0,:], h_wealth, p_wealth, m_wealth, tau_payroll, theta, tau_bq, J, S)
-    tax1 = tax.total_taxes(r, w, b_s, n, BQ, factor, T_H, j, False, tax1_params)
+    # Find errors from FOC for savings and FOC for labor supply
+    retire_fd = 0  # this sets retire to true in these agents who are
+    # in last period in life
+    # Note using method = "SS" below because just for one period
+    foc_save_params = (np.array([e[-1, j]]), sigma, beta, g_y, chi_b[j],
+                       theta[j], tau_bq[j], rho[-1], lambdas[j], j, J,
+                       S, analytical_mtrs,
+                       np.reshape(etr_params[-1, 0, :],
+                                  (1, etr_params.shape[2])),
+                       np.reshape(mtry_params[-1, 0, :],
+                                  (1, mtry_params.shape[2])), h_wealth,
+                       p_wealth, m_wealth, tau_payroll, retire_fd, 'SS')
+    error1 = household.FOC_savings(np.array([r]), np.array([w]), b_s,
+                                   b_splus1, 0., np.array([n]),
+                                   np.array([BQ]), factor,
+                                   np.array([T_H]), foc_save_params)
 
-    cons_params = (e[-1, j], lambdas[j], g_y)
-    cons = household.get_cons(r, w, b_s, b_splus1, n, BQ, tax1, cons_params)
-
-    bequest_ut = rho[-1] * np.exp(-sigma * g_y) * chi_b[j] * b_splus1 ** (-sigma)
-
-    error1 = household.marg_ut_cons(cons, sigma) - bequest_ut
-    # Euler 2 equations
-    income2 = (r * b_s + w * e[-1, j] * n) * factor
-
-    mtr_labor_params = (e[-1, j], etr_params[-1,0,:], mtrx_params[-1,0,:], analytical_mtrs)
-    deriv2 = 1 - tau_payroll - tax.MTR_labor(r, w, b_s, n, factor, mtr_labor_params)
-
-    mu_labor_params = (b_ellipse, upsilon, ltilde, chi_n[-1])
-    error2 = household.marg_ut_cons(cons, sigma) * w * \
-        e[-1, j] * deriv2 - household.marg_ut_labor(n, mu_labor_params)
-
-    #### TEST THESE FUNCS BELOW TO BE SURE GET SAME OUTPUT, but should use if so ***
-    # foc_save_params = (e[-1, j], sigma, beta, g_y, chi_b, theta, tau_bq, rho, lambdas, J, S,
-    #     analytical_mtrs, etr_params[-1,0,:], mtry_params[-1,0,:], h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'TPI')
-    # error3 = household.FOC_savings(r, w, b_s, b_splus1, 0., n, BQ, factor, T_H, foc_save_params)
-    #
-    # foc_labor_params = (e[-1, j], sigma, g_y, theta, b_ellipse, upsilon, chi_n, ltilde, tau_bq, lambdas, J, S,
-    #     analytical_mtrs, etr_params[-1,0,:], mtrx_params[-1,0,:], h_wealth, p_wealth, m_wealth, tau_payroll, retire, 'TPI')
-    # error4 = household.FOC_labor(r, w, b, b_splus1, n, BQ, factor, T_H, foc_labor_params)
-    # print 'check1:', error2-error4
-    # print 'check2:', error1-error3
+    foc_labor_params = (np.array([e[-1, j]]), sigma, g_y, theta[j],
+                        b_ellipse, upsilon, chi_n[-1], ltilde,
+                        tau_bq[j], lambdas[j], j, J, S, analytical_mtrs,
+                        np.reshape(etr_params[-1, 0, :],
+                                   (1, etr_params.shape[2])),
+                        np.reshape(mtrx_params[-1, 0, :],
+                                   (1, mtrx_params.shape[2])), h_wealth,
+                        p_wealth, m_wealth, tau_payroll, retire_fd,
+                        'SS')
+    error2 = household.FOC_labor(np.array([r]), np.array([w]), b_s,
+                                 b_splus1, np.array([n]),
+                                 np.array([BQ]), factor,
+                                 np.array([T_H]), foc_labor_params)
 
     if n <= 0 or n >= 1:
         error2 += 1e12
     if b_splus1 <= 0:
         error1 += 1e12
-    if cons <= 0:
-        error1 += 1e12
-    return [error1] + [error2]
+    # if cons <= 0:
+    #     error1 += 1e12
+    return [np.squeeze(error1)] + [np.squeeze(error2)]
 
 
 def twist_doughnut(guesses, r, w, BQ, T_H, j, s, t, params):
@@ -283,63 +283,36 @@ def twist_doughnut(guesses, r, w, BQ, T_H, j, s, t, params):
     T_H_s = T_H[t:t + length]
     T_H_splus1 = T_H[t + 1:t + length + 1]
 
+# Errors from FOC for savings
+    foc_save_params = (e_s, sigma, beta, g_y, chi_b[j], theta, tau_bq,
+                       rho[-(length):], lambdas[j], j, J, S,
+                       analytical_mtrs, etr_params, mtry_params,
+                       h_wealth, p_wealth, m_wealth, tau_payroll,
+                       retire, 'TPI')
+    error1 = household.FOC_savings(r_s, w_s, b_s, b_splus1, b_splus2,
+                                   n_s, BQ_s, factor, T_H_s,
+                                   foc_save_params)
 
-    # Savings euler equations
-    tax_s_params = (e_s, lambdas[j], 'TPI', retire, etr_params, h_wealth, p_wealth, m_wealth, tau_payroll, theta, tau_bq, J, S)
+    # Errors from FOC for labor supply
+    foc_labor_params = (e_s, sigma, g_y, theta, b_ellipse, upsilon,
+                        chi_n[-length:], ltilde, tau_bq, lambdas[j], j,
+                        J, S, analytical_mtrs, etr_params, mtrx_params,
+                        h_wealth, p_wealth, m_wealth, tau_payroll,
+                        retire, 'TPI')
+    error2 = household.FOC_labor(r_s, w_s, b_s, b_splus1, n_s, BQ_s,
+                                 factor, T_H_s, foc_labor_params)
 
-    tax_s = tax.total_taxes(r_s, w_s, b_s, n_s, BQ_s, factor, T_H_s, j, False, tax_s_params)
-
-    etr_params_sp1 = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
-    taxsp1_params = (e_extended, lambdas[j], 'TPI', retire, etr_params_sp1, h_wealth, p_wealth, m_wealth, tau_payroll, theta, tau_bq, J, S)
-    tax_splus1 = tax.total_taxes(r_splus1, w_splus1, b_splus1, n_extended, BQ_splus1, factor, T_H_splus1, j, True, taxsp1_params)
-
-
-    cons_s_params = (e_s, lambdas[j], g_y)
-    cons_s = household.get_cons(r_s, w_s, b_s, b_splus1, n_s,
-                   BQ_s, tax_s, cons_s_params)
-
-    cons_sp1_params = (e_extended, lambdas[j], g_y)
-    cons_splus1 = household.get_cons(r_splus1, w_splus1, b_splus1, b_splus2, n_extended,
-                   BQ_splus1, tax_splus1, cons_sp1_params)
-
-    income_splus1 = (r_splus1 * b_splus1 + w_splus1 *
-                     e_extended * n_extended) * factor
-    savings_ut = rho[-(length):] * np.exp(-sigma * g_y) * \
-        chi_b[j] * b_splus1 ** (-sigma)
-
-    mtry_params_sp1 = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
-    mtr_capital_params = (e_extended, etr_params_sp1, mtry_params_sp1, analytical_mtrs)
-    deriv_savings = (1 + r_splus1 * (1 - tax.MTR_capital(r_splus1, w_splus1, b_splus1, n_extended, factor, mtr_capital_params)) -
-                     tax.tau_w_prime(b_splus1, (h_wealth, p_wealth, m_wealth))*b_splus1 -
-                     tax.tau_wealth(b_splus1, (h_wealth, p_wealth, m_wealth)))
-
-    #Note equation below accounts for savings in last period because here rho=1 - so second term drops out.  Which means tax rates after last
-    # period of life don't matter
-    error1= household.marg_ut_cons(cons_s, sigma) - beta * (1 - rho[-(length):]) * np.exp(-sigma * g_y) * deriv_savings * household.marg_ut_cons(
-        cons_splus1, sigma) - savings_ut
-
-
-    # Labor leisure euler equations
-    income_s = (r_s * b_s + w_s * e_s * n_s) * factor
-
-
-    mtr_labor_params = (e_s, etr_params, mtrx_params, analytical_mtrs)
-    deriv_laborleisure = 1 - tau_payroll - tax.MTR_labor(r_s, w_s, b_s, n_s, factor, mtr_labor_params)
-
-    mu_labor_params = (b_ellipse, upsilon, ltilde, chi_n[-length:])
-    error2 = household.marg_ut_cons(cons_s, sigma) * w_s * e[-(
-        length):, j] * deriv_laborleisure - household.marg_ut_labor(n_s, mu_labor_params)
     # Check and punish constraint violations
     mask1 = n_guess < 0
     error2[mask1] += 1e12
     mask2 = n_guess > ltilde
     error2[mask2] += 1e12
-    mask3 = cons_s < 0
-    error2[mask3] += 1e12
+    # mask3 = cons_s < 0
+    # error2[mask3] += 1e12
     mask4 = b_guess <= 0
     error2[mask4] += 1e12
-    mask5 = cons_splus1 < 0
-    mask5[-1] = b_splus1[-1] < 0
+    # mask5 = cons_splus1 < 0
+    mask5 = b_splus1 < 0
     error2[mask5] += 1e12
     return list(error1.flatten()) + list(error2.flatten())
 
@@ -389,7 +362,7 @@ def inner_loop(guesses, outer_loop_vars, params):
 
     for j in xrange(J):
         first_doughnut_params = (income_tax_params, tpi_params, initial_b)
-        # first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
+        first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
         # if j == 0:
         #     first_guesses = [guesses_b[0, -1, j], guesses_n[0, -1, j]]
         # else:
@@ -512,7 +485,7 @@ def inner_loop(guesses, outer_loop_vars, params):
             n_mat[t + ind, ind, j] = n_vec
 
         print 'j = ', j
-        print 'inner loop euler errors: ', np.absolute(euler_errors).max()
+        # print 'inner loop euler errors: ', np.absolute(euler_errors).max()
         print 'max savings euler errors: ', np.absolute(euler_errors_b).max()
         print 'max labor euler errors: ', np.absolute(euler_errors_n).max()
 
@@ -564,7 +537,7 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     guesses_b = (-1 / (domain2 + 1)) * (ending_b - initial_b) + ending_b
     ending_b_tail = np.tile(ending_b.reshape(1, S, J), (S, 1, 1))
     guesses_b = np.append(guesses_b, ending_b_tail, axis=0)
-    print 'diff btwn start and end b: ', (guesses_b[0]-guesses_b[-1]).max()
+    # print 'diff btwn start and end b: ', (guesses_b[0]-guesses_b[-1]).max()
 
     domain3 = np.tile(np.linspace(0, 1, T).reshape(T, 1, 1), (1, S, J))
     guesses_n = domain3 * (nssmat - initial_n) + initial_n
@@ -573,16 +546,20 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     b_mat = np.zeros((T + S, S, J))
     n_mat = np.zeros((T + S, S, J))
     ind = np.arange(S)
-    print 'diff btwn start and end n: ', (guesses_n[0]-guesses_n[-1]).max()
+    # print 'diff btwn start and end n: ', (guesses_n[0]-guesses_n[-1]).max()
 
     # find economic aggregates
-    K = np.zeros(T)
-    L = np.zeros(T)
+    K = np.zeros(T+S)
+    L = np.zeros(T+S)
     K[0] = K0
     K_params = (omega[:T-1].reshape(T-1, S, 1), lambdas.reshape(1, 1, J), imm_rates[:T-1].reshape(T-1,S,1), g_n_vector[1:T], 'TPI')
     K[1:T] = household.get_K(guesses_b[:T-1], K_params)
+    K[T:] = Kss
     L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1), lambdas.reshape(1, 1, J), 'TPI')
     L[:T] = firm.get_L(guesses_n[:T], L_params)
+    L[T:] = Lss
+    Y_params = (alpha, Z)
+    Y = firm.get_Y(K, L, Y_params)
 
     TPIiter = 0
     TPIdist = 10
@@ -614,19 +591,19 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         # print 'w and wss diff = ', w-wss
         # print 'BQ and BQss diff = ', BQ-BQss
         # print 'T_H and T_Hss diff = ', T_H - T_Hss
-        print 'guess b and bss = ', (bssmat_splus1 - guesses_b).max()
-        print 'guess n and nss = ', (nssmat - guesses_n).max()
+        # print 'guess b and bss = ', (bssmat_splus1 - guesses_b).max()
+        # print 'guess n and nss = ', (nssmat - guesses_n).max()
         outer_loop_vars = (r, w, BQ, T_H)
         inner_loop_params = (income_tax_params, tpi_params, initial_values, ind)
 
         # Solve HH problem in inner loop
         euler_errors, b_mat, n_mat = inner_loop(guesses, outer_loop_vars, inner_loop_params)
 
-        print 'guess b and bss = ', (b_mat - guesses_b).max()
-        print 'guess n and nss over time = ', (n_mat - guesses_n).max(axis=2).max(axis=1)
-        print 'guess n and nss over age = ', (n_mat - guesses_n).max(axis=0).max(axis=1)
-        print 'guess n and nss over ability = ', (n_mat - guesses_n).max(axis=0).max(axis=0)
-        quit()
+        # print 'guess b and bss = ', (b_mat - guesses_b).max()
+        # print 'guess n and nss over time = ', (n_mat - guesses_n).max(axis=2).max(axis=1)
+        # print 'guess n and nss over age = ', (n_mat - guesses_n).max(axis=0).max(axis=1)
+        # print 'guess n and nss over ability = ', (n_mat - guesses_n).max(axis=0).max(axis=0)
+        # quit()
 
         print 'Max Euler error: ', (np.abs(euler_errors)).max()
 
