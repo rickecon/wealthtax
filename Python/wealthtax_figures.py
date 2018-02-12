@@ -235,20 +235,34 @@ for item in ('wealth','income'):
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
     ax = plt.subplot(312)
+    # ax.plot(domain, pct_diff['c_'+item][:, 0],
+    #         label='0 - 24%', linestyle='-', color='black')
+    # ax.plot(domain, pct_diff['c_'+item][:, 1],
+    #         label='25 - 49%', linestyle='--', color='black')
+    # ax.plot(domain, pct_diff['c_'+item][:, 2],
+    #         label='50 - 69%', linestyle='-.', color='black')
+    # ax.plot(domain, pct_diff['c_'+item][:, 3],
+    #         label='70 - 79%', linestyle=':', color='black')
+    # ax.plot(domain, pct_diff['c_'+item][:, 4],
+    #         label='80 - 89%', marker='x', color='black')
+    # ax.plot(domain, pct_diff['c_'+item][:, 5],
+    #         label='90 - 99%', marker='v', color='black')
+    # ax.plot(domain, pct_diff['c_'+item][:, 6],
+    #         label='99 - 100%', marker='1', color='black')
     ax.plot(domain, pct_diff['c_'+item][:, 0],
-            label='0 - 24%', linestyle='-', color='black')
+            label='0 - 24%', linestyle='-')
     ax.plot(domain, pct_diff['c_'+item][:, 1],
-            label='25 - 49%', linestyle='--', color='black')
+            label='25 - 49%', linestyle='--')
     ax.plot(domain, pct_diff['c_'+item][:, 2],
-            label='50 - 69%', linestyle='-.', color='black')
+            label='50 - 69%', linestyle='-.')
     ax.plot(domain, pct_diff['c_'+item][:, 3],
-            label='70 - 79%', linestyle=':', color='black')
+            label='70 - 79%', linestyle=':')
     ax.plot(domain, pct_diff['c_'+item][:, 4],
-            label='80 - 89%', marker='x', color='black')
+            label='80 - 89%', linestyle='-')
     ax.plot(domain, pct_diff['c_'+item][:, 5],
-            label='90 - 99%', marker='v', color='black')
+            label='90 - 99%', linestyle='--')
     ax.plot(domain, pct_diff['c_'+item][:, 6],
-            label='99 - 100%', marker='1', color='black')
+            label='99 - 100%', linestyle='-.')
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * .4, box.height])
     # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
@@ -267,27 +281,54 @@ for item in ('wealth','income'):
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
     ax = plt.subplot(312)
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 0],
+    #         label='0 - 24%', linestyle='-', color='black')
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 1],
+    #         label='25 - 49%', linestyle='--', color='black')
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 2],
+    #         label='50 - 69%', linestyle='-.', color='black')
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 3],
+    #         label='70 - 79%', linestyle=':', color='black')
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 4],
+    #         label='80 - 89%', marker='x', color='black')
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 5],
+    #         label='90 - 99%', marker='v', color='black')
+    # ax.plot(domain, pct_diff['bssmat_'+item][:, 6],
+    #         label='99 - 100%', marker='1', color='black')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 0],
-            label='0 - 24%', linestyle='-', color='black')
+            label='0 - 24\%', linestyle='-')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 1],
-            label='25 - 49%', linestyle='--', color='black')
+            label='25 - 49\%', linestyle='--')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 2],
-            label='50 - 69%', linestyle='-.', color='black')
+            label='50 - 69\%', linestyle='-.')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 3],
-            label='70 - 79%', linestyle=':', color='black')
+            label='70 - 79\%', linestyle=':')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 4],
-            label='80 - 89%', marker='x', color='black')
+            label='80 - 89\%', linestyle='-')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 5],
-            label='90 - 99%', marker='v', color='black')
+            label='90 - 99\%', linestyle='--')
     ax.plot(domain, pct_diff['bssmat_'+item][:, 6],
-            label='99 - 100%', marker='1', color='black')
+            label='99 - 100\%', linestyle='-.')
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * .4, box.height])
-    # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
     ax.set_xlabel(r'age-$s$')
     ax.set_ylabel(r'\% change in \ $\bar{b}_{j,s}$')
     plot_dir = os.path.join(GRAPH_DIR, 'SS_pct_change_b_'+item)
+    handles, labels = ax.get_legend_handles_labels()
     plt.savefig(plot_dir)
+    plt.close()
+    # plotting legend separately
+    fig_legend = plt.figure(figsize=(3,2), frameon=False)
+    axi = fig_legend.add_subplot(111)
+    fig_legend.legend(handles, labels, loc='center', ncol=2)
+    axi.xaxis.set_visible(False)
+    axi.yaxis.set_visible(False)
+    for v in axi.spines.values():
+        v.set_visible(False)
+    axi.axis('off')
+    fig_legend.show()
+    legend_dir = os.path.join(GRAPH_DIR, 'lifecycle_legend')
+    plt.savefig(legend_dir)
     plt.close()
 
 ## percentage change in labor supply over lifecycle, baseline vs reform (wealth
@@ -298,20 +339,34 @@ for item in ('wealth','income'):
     plt.rc('text', usetex=True)
     plt.rc('font', family='serif')
     ax = plt.subplot(312)
+    # ax.plot(domain, pct_diff['n_'+item][:, 0],
+    #         label='0 - 24%', linestyle='-', color='black')
+    # ax.plot(domain, pct_diff['n_'+item][:, 1],
+    #         label='25 - 49%', linestyle='--', color='black')
+    # ax.plot(domain, pct_diff['n_'+item][:, 2],
+    #         label='50 - 69%', linestyle='-.', color='black')
+    # ax.plot(domain, pct_diff['n_'+item][:, 3],
+    #         label='70 - 79%', linestyle=':', color='black')
+    # ax.plot(domain, pct_diff['n_'+item][:, 4],
+    #         label='80 - 89%', marker='x', color='black')
+    # ax.plot(domain, pct_diff['n_'+item][:, 5],
+    #         label='90 - 99%', marker='v', color='black')
+    # ax.plot(domain, pct_diff['n_'+item][:, 6],
+    #         label='99 - 100%', marker='1', color='black')
     ax.plot(domain, pct_diff['n_'+item][:, 0],
-            label='0 - 24%', linestyle='-', color='black')
+            label='0 - 24%', linestyle='-')
     ax.plot(domain, pct_diff['n_'+item][:, 1],
-            label='25 - 49%', linestyle='--', color='black')
+            label='25 - 49%', linestyle='--')
     ax.plot(domain, pct_diff['n_'+item][:, 2],
-            label='50 - 69%', linestyle='-.', color='black')
+            label='50 - 69%', linestyle='-.')
     ax.plot(domain, pct_diff['n_'+item][:, 3],
-            label='70 - 79%', linestyle=':', color='black')
+            label='70 - 79%', linestyle=':')
     ax.plot(domain, pct_diff['n_'+item][:, 4],
-            label='80 - 89%', marker='x', color='black')
+            label='80 - 89%', linestyle='-')
     ax.plot(domain, pct_diff['n_'+item][:, 5],
-            label='90 - 99%', marker='v', color='black')
+            label='90 - 99%', linestyle='--')
     ax.plot(domain, pct_diff['n_'+item][:, 6],
-            label='99 - 100%', marker='1', color='black')
+            label='99 - 100%', linestyle='-.')
     box = ax.get_position()
     ax.set_position([box.x0, box.y0, box.width * .4, box.height])
     # ax.legend(loc='center left', bbox_to_anchor=(1.1, 0.5))
