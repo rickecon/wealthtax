@@ -23,7 +23,6 @@ import scipy.ndimage.filters as filter
 import demographics as dem
 import income as inc
 import pickle
-import txfunc
 import utils
 import elliptical_u_est as ellip
 import matplotlib.pyplot as plt
@@ -268,10 +267,10 @@ def get_parameters(baseline, reform, guid, user_modifiable):
             320, 1, 100, start_year, False)
 
     # make pop constant
-    omega = np.tile(omega_SS.reshape(1,S),(T+S,1))
-    g_n_vector[:] = g_n_ss
-    imm_rates = np.tile(imm_rates[-1,:].reshape(1,S),(T+S,1))
-    omega_S_preTP = omega_SS
+    # omega = np.tile(omega_SS.reshape(1,S),(T+S,1))
+    # g_n_vector[:] = g_n_ss
+    # imm_rates = np.tile(imm_rates[-1,:].reshape(1,S),(T+S,1))
+    # omega_S_preTP = omega_SS
 
     e = inc.get_e_interp(S, omega_SS, omega_SS_80, lambdas, plot=False)
 

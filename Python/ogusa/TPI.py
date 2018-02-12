@@ -516,8 +516,8 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     for j in xrange(J):
         BQ[:, j] = list(np.linspace(BQ0[j], BQss[j], T)) + [BQss[j]] * S
     BQ = np.array(BQ)
-    print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
-    print "K0 vs Kss = ", K0-Kss
+    # print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
+    # print "K0 vs Kss = ", K0-Kss
 
     if fix_transfers:
         T_H = T_H_baseline
@@ -528,8 +528,8 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             T_Hss2 = T_Hss
         T_H = np.ones(T + S) * T_Hss2 * (r/rss)
     G = np.zeros(T + S)
-    print "T_H values = ", T_H[0], T_H[100], T_H[-1], T_Hss
-    print "omega diffs = ", (omega_S_preTP-omega[-1]).max(), (omega[10]-omega[-1]).max()
+    # print "T_H values = ", T_H[0], T_H[100], T_H[-1], T_Hss
+    # print "omega diffs = ", (omega_S_preTP-omega[-1]).max(), (omega[10]-omega[-1]).max()
 
     # Make array of initial guesses for labor supply and savings
     domain2 = np.tile(domain.reshape(T, 1, 1), (1, S, J))
@@ -620,8 +620,8 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1),
                     lambdas.reshape(1, 1, J), 'TPI')
         L[:T] = firm.get_L(n_mat[:T], L_params)
-        print 'K diffs = ', K-K0
-        print 'L diffs = ', L-L[0]
+        # print 'K diffs = ', K-K0
+        # print 'L diffs = ', L-L[0]
 
         Y_params = (alpha, Z)
         Ynew = firm.get_Y(K[:T], L[:T], Y_params)
@@ -636,8 +636,8 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         # b_mat_shift = np.append(np.reshape(initial_b, (1, S, J)),
         #                         b_mat[:T-1, :, :], axis=0)
         b_mat_shift = bmat_splus1[:T, :, :]
-        print 'b diffs = ', (bmat_splus1[100, :, :] - initial_b).max(), (bmat_splus1[0, :, :] - initial_b).max(), (bmat_splus1[1, :, :] - initial_b).max()
-        print 'r diffs = ', rnew[1]-r[1], rnew[100]-r[100], rnew[-1]-r[-1]
+        # print 'b diffs = ', (bmat_splus1[100, :, :] - initial_b).max(), (bmat_splus1[0, :, :] - initial_b).max(), (bmat_splus1[1, :, :] - initial_b).max()
+        # print 'r diffs = ', rnew[1]-r[1], rnew[100]-r[100], rnew[-1]-r[-1]
         BQnew = household.get_BQ(rnew[:T].reshape(T, 1), b_mat_shift,
                                  BQ_params)
         BQss2 = np.empty(J)
@@ -645,7 +645,7 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             BQss_params = (omega[1, :], lambdas[j], rho, g_n_vector[1], 'SS')
             BQss2[j] = household.get_BQ(rnew[1], bmat_splus1[1, :, j],
                                         BQss_params)
-        print 'BQ test = ', BQss2-BQss, BQss-BQnew[1], BQss-BQnew[100], BQss-BQnew[-1]
+        # print 'BQ test = ', BQss2-BQss, BQss-BQnew[1], BQss-BQnew[100], BQss-BQnew[-1]
 
         total_tax_params = np.zeros((T, S, J, etr_params.shape[2]))
         for i in range(etr_params.shape[2]):
@@ -671,9 +671,9 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             TPIdist = np.array(list(utils.pct_diff_func(rnew[:T], r[:T])) +
                                list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten()) +
                                list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
-            print 'r dist = ', np.array(list(utils.pct_diff_func(rnew[:T], r[:T]))).max()
-            print 'BQ dist = ', np.array(list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten())).max()
-            print 'T_H dist = ', np.array(list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
+            # print 'r dist = ', np.array(list(utils.pct_diff_func(rnew[:T], r[:T]))).max()
+            # print 'BQ dist = ', np.array(list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten())).max()
+            # print 'T_H dist = ', np.array(list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
         else:
             TPIdist = np.array(list(utils.pct_diff_func(rnew[:T], r[:T])) +
                                list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten()) +

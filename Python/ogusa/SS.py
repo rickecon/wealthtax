@@ -215,7 +215,7 @@ def euler_equation_solver(guesses, params):
     theta_params = (e[:,j], S, retire)
     theta = tax.replacement_rate_vals(n_guess, w, factor, theta_params)
 
-        foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta,
+    foc_save_parms = (e[:, j], sigma, beta, g_y, chi_b[j], theta,
                       tau_bq[j], rho, lambdas[j], j, J, S, analytical_mtrs,
                       etr_params, mtry_params, h_wealth, p_wealth,
                       m_wealth, tau_payroll, retire, 'SS')

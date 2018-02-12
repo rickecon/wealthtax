@@ -326,6 +326,150 @@ def FOC_labor(r, w, b, b_splus1, n, BQ, factor, T_H, params):
     return FOC_error
 
 
+def get_K(b, params):
+    '''
+    Calculates aggregate capital supplied.
+
+    Inputs:
+        b           = [T,S,J] array, distribution of wealth/capital holdings
+        params      = length 4 tuple, (omega, lambdas, g_n, method)
+        omega       = [S,T] array, population weights
+        lambdas     = [J,] vector, fraction in each lifetime income group
+        g_n         = [T,] vector, population growth rate
+        method      = string, 'SS' or 'TPI'
+
+    Functions called: None
+
+    Objects in function:
+        K_presum = [T,S,J] array, weighted distribution of wealth/capital holdings
+        K        = [T,] vector, aggregate capital supply
+
+    Returns: K
+    '''
+
+    omega, lambdas, imm_rates, g_n, method = params
+
+    if method == 'SS':
+        part1 = b* omega * lambdas
+        omega_extended = np.append(omega[1:],[0.0])
+        imm_extended = np.append(imm_rates[1:],[0.0])
+        part2 = b*(omega_extended*imm_extended).reshape(omega.shape[0],1)*lambdas
+        K_presum = part1+part2
+        K = K_presum.sum()
+    elif method == 'TPI':
+        part1 = b* omega * lambdas
+        #omega_extended = np.append(omega[1:,:,:],np.zeros((1,omega.shape[1],omega.shape[2])),axis=0)
+        omega_shift = np.append(omega[:,1:,:],np.zeros((omega.shape[0],1,omega.shape[2])),axis=1)
+        #imm_extended = np.append(imm_rates[1:,:,:],np.zeros((1,imm_rates.shape[1],imm_rates.shape[2])),axis=0)
+        imm_shift = np.append(imm_rates[:,1:,:],np.zeros((imm_rates.shape[0],1,imm_rates.shape[2])),axis=1)
+        #part2 = b*(omega_extended*imm_extended)*lambdas
+        part2 = b*imm_shift*omega_shift*lambdas
+        K_presum = part1+part2
+        K = K_presum.sum(1).sum(1)
+    K /= (1.0 + g_n)
+    return K
+
+
+def get_BQ(r, b_splus1, params):
+    '''
+    Calculation of bequests to each lifetime income group.
+
+    Inputs:
+        r           = [T,] vector, interest rates
+        b_splus1    = [T,S,J] array, distribution of wealth/capital holdings one period ahead
+        params      = length 5 tuple, (omega, lambdas, rho, g_n, method)
+        omega       = [S,T] array, population weights
+        lambdas     = [J,] vector, fraction in each lifetime income group
+        rho         = [S,] vector, mortality rates
+        g_n         = scalar, population growth rate
+        method      = string, 'SS' or 'TPI'
+
+    Functions called: None
+
+    Objects in function:
+        BQ_presum = [T,S,J] array, weighted distribution of wealth/capital holdings one period ahead
+        BQ        = [T,J] array, aggregate bequests by lifetime income group
+
+    Returns: BQ
+    '''
+    omega, lambdas, rho, g_n, method = params
+
+    BQ_presum = b_splus1 * omega * rho * lambdas
+    if method == 'SS':
+        BQ = BQ_presum.sum(0)
+    elif method == 'TPI':
+        BQ = BQ_presum.sum(1)
+    BQ *= (1.0 + r) / (1.0 + g_n)
+    return BQ
+
+
+def get_u(c, n, b_splus1, params):
+    '''
+    Computes flow utility for the household.
+
+    Inputs:
+        b_splus1 = [S,J] array, steady state distribution of capital
+        n = [S,J] array, steady state distribution of labor
+        c = [S,J] array, steady state distribution of consumption
+        sigma = scalar, coefficient of relative risk aversion
+        chi_n  = [S,] vector of utility weights for disulity of labor
+        b_ellipse = scalar, scale parameter on elliptical utility
+        ltilde = scalar, upper bound of household labor supply
+        upsilon = scalar, curvature parameter on elliptical utility
+        k_ellipse = scalar, shift parameter on elliptical utility
+        rho_s = [S,] vector, mortality rates by age
+        chi_b = [J,] vector, utility weights on bequests
+        g_y = scalar, economic growth rate
+
+    Functions called: None
+
+    Objects in function:
+        utility = [S,J] array, utility for all agents
+
+    Returns:
+        utility
+    '''
+    sigma, chi_n, b_ellipse, ltilde, upsilon, rho_s, chi_b = params
+
+    utility = (((c ** (1-sigma) - 1) / (1 - sigma)) +
+               (chi_n * ((b_ellipse * (1 - (n / ltilde) ** upsilon)
+                          ** (1 / upsilon)))) +
+               (rho_s * chi_b * ((b_splus1 ** (1-sigma) - 1)
+                                 / (1 - sigma))))
+
+    return utility
+
+
+def get_C(c, params):
+    '''
+    Calculation of aggregate consumption.
+
+    Inputs:
+        cons        = [T,S,J] array, household consumption
+        params      = length 3 tuple (omega, lambdas, method)
+        omega       = [S,T] array, population weights by age (Sx1 array)
+        lambdas     = [J,1] vector, lifetime income group weights
+        method      = string, 'SS' or 'TPI'
+
+    Functions called: None
+
+    Objects in function:
+        aggC_presum = [T,S,J] array, weighted consumption by household
+        aggC        = [T,] vector, aggregate consumption
+
+    Returns: aggC
+    '''
+
+    omega, lambdas, method = params
+
+    aggC_presum = c * omega * lambdas
+    if method == 'SS':
+        aggC = aggC_presum.sum()
+    elif method == 'TPI':
+        aggC = aggC_presum.sum(1).sum(1)
+    return aggC
+
+
 def constraint_checker_SS(bssmat, nssmat, cssmat, ltilde):
     '''
     Checks constraints on consumption, savings, and labor supply in the
