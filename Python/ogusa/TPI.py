@@ -219,6 +219,18 @@ def firstdoughnutring(guesses, r, w, b, BQ, T_H, j, params):
                                  np.array([BQ]), factor,
                                  np.array([T_H]), foc_labor_params)
 
+    tax_params = (np.array([e[-1, j]]), lambdas[j], 'SS', retire_fd,
+                  np.reshape(etr_params[-1, 0, :],
+                             (1, etr_params.shape[2])), h_wealth,
+                  p_wealth, m_wealth, tau_payroll, theta[j], tau_bq[j],
+                  J, S)
+    tax1 = tax.total_taxes(np.array([r]), np.array([w]), b_s,
+                           np.array([n]), np.array([BQ]), factor,
+                           np.array([T_H]), j, False, tax_params)
+    cons_params = (np.array([e[-1, j]]), lambdas[j], g_y)
+    cons = household.get_cons(np.array([r]), np.array([w]), b_s, b_splus1,
+                    np.array([n]), np.array([BQ]), tax1, cons_params)
+
     if n <= 0 or n >= 1:
         error2 += 1e12
     if b_splus1 <= 0:
@@ -301,6 +313,14 @@ def twist_doughnut(guesses, r, w, BQ, T_H, j, s, t, params):
                         retire, 'TPI')
     error2 = household.FOC_labor(r_s, w_s, b_s, b_splus1, n_s, BQ_s,
                                  factor, T_H_s, foc_labor_params)
+
+    tax_params = (e_s, lambdas[j], 'TPI', retire, etr_params, h_wealth,
+                  p_wealth, m_wealth, tau_payroll, theta, tau_bq, J, S)
+    tax_s = tax.total_taxes(r_s, w_s, b_s, n_s, BQ_s, factor, T_H_s, j,
+                            False, tax_params)
+    cons_params = (e_s, lambdas[j], g_y)
+    cons_s = household.get_cons(r_s, w_s, b_s, b_splus1, n_s, BQ_s, tax_s,
+                      cons_params)
 
     # Check and punish constraint violations
     mask1 = n_guess < 0
@@ -810,16 +830,16 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
                     'tax_path': tax_path}
 
 
-    if ((TPIiter >= maxiter) or (np.absolute(TPIdist) > mindist_TPI)) and ENFORCE_SOLUTION_CHECKS :
-        raise RuntimeError("Transition path equlibrium not found")
-
-    if ((np.any(np.absolute(rc_error) >= 1e-6))
-        and ENFORCE_SOLUTION_CHECKS):
-        raise RuntimeError("Transition path equlibrium not found")
-
-    if ((np.any(np.absolute(eul_savings) >= mindist_TPI) or
-        (np.any(np.absolute(eul_laborleisure) > mindist_TPI)))
-        and ENFORCE_SOLUTION_CHECKS):
-        raise RuntimeError("Transition path equlibrium not found")
+    # if ((TPIiter >= maxiter) or (np.absolute(TPIdist) > mindist_TPI)) and ENFORCE_SOLUTION_CHECKS :
+    #     raise RuntimeError("Transition path equlibrium not found")
+    #
+    # if ((np.any(np.absolute(rc_error) >= 1e-6))
+    #     and ENFORCE_SOLUTION_CHECKS):
+    #     raise RuntimeError("Transition path equlibrium not found")
+    #
+    # if ((np.any(np.absolute(eul_savings) >= mindist_TPI) or
+    #     (np.any(np.absolute(eul_laborleisure) > mindist_TPI)))
+    #     and ENFORCE_SOLUTION_CHECKS):
+    #     raise RuntimeError("Transition path equlibrium not found")
 
     return output, macro_output
