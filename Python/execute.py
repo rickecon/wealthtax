@@ -91,7 +91,7 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         reform3_ss_dir = os.path.join(
         "./OUTPUT_WEALTH_REFORM"    + '/sigma' + str(run_params['sigma']), "SS/SS_vars.pkl")
         reform3_ss_solutions = pickle.load(open(reform3_ss_dir, "rb"))
-        receipts_to_match = reform3_ss_solutions['T_Hss']
+        receipts_to_match = reform3_ss_solutions['net_tax_receipts']
 
         # create function to match SS revenue
         # def matcher(d_guess, params):
@@ -113,12 +113,12 @@ def runner(output_base, baseline_dir, baseline=False, analytical_mtrs=True,
         #     return error
 
         # print 'Computing new income tax to match wealth tax'
-        d_guess= 0.503 # initial guess
+        d_guess= 0.413 # initial guess
         # import scipy.optimize as opt
         # params = [income_tax_params, receipts_to_match, ss_params, iterative_params,
         #                   chi_params, baseline, baseline_dir]
         # new_d_inc = opt.fsolve(matcher, d_guess, args=params, xtol=1e-6)
-        new_d_inc = 0.503  # this value comes out given default parameter values (if fix_transfers=True this is 0.503 if False then 0.453)
+        new_d_inc = 0.413  # this value comes out given default parameter values (if fix_transfers=True this is 0.503 if False then 0.453)
 
         print '\tOld income tax:', d_guess
         print '\tNew income tax:', new_d_inc
