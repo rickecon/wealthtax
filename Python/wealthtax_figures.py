@@ -59,9 +59,11 @@ n_base = ss_output['nssmat']
 c_base = ss_output['cssmat']
 BQ_base = ss_output['BQss']
 #utility_base = ss_output[]
-#income_base = ss_output[]
+income_at_base = ss_output['y_aftertax_ss']
 Kss_base = ss_output['Kss']
 Lss_base = ss_output['Lss']
+T_Hss_base = ss_output['T_Hss']
+Gss_base = ss_output['Gss']
 
 
 bssmat = {}
@@ -69,6 +71,9 @@ factor = {}
 n = {}
 c = {}
 BQ = {}
+T_Hss = {}
+Gss = {}
+income_at = {}
 for item in ('wealth','income'):
     ss_dir = os.path.join(reform_dir[item], "sigma2.0/SS/SS_vars.pkl")
     ss_output = pickle.load(open(ss_dir, "rb"))
@@ -77,8 +82,10 @@ for item in ('wealth','income'):
     n[item] = ss_output['nssmat']
     c[item] = ss_output['cssmat']
     BQ[item] = ss_output['BQss']
+    T_Hss[item] = ss_output['T_Hss']
+    Gss[item] = ss_output['Gss']
     #utility[item] = ss_output[]
-    #income[item] = ss_output[]
+    income_at[item] = ss_output['y_aftertax_ss']
 
 '''
 ------------------------------------------------------------------------
@@ -100,7 +107,7 @@ plt.plot(domain, model_labor_moments,
 plt.plot(domain, labor_dist_data,
          label='Data', color='black', linestyle='-')
 plt.legend()
-plt.ylabel(r'individual labor supply, \ $\bar{l}_{s}$')
+plt.ylabel(r'household labor supply, \ $\bar{l}_{s}$')
 plt.xlabel(r'age-$s$')
 labor_dist_comparison = os.path.join(
     GRAPH_DIR, "labor_dist_comparison")
@@ -119,7 +126,7 @@ plt.plot(np.linspace(S, ending_age, ending_age-S), labor_dist_data[S-starting_ag
 plt.plot(np.linspace(65, S, 15), to_dot, linestyle='--', color='black')
 plt.axvline(x=S, color='black', linestyle='--')
 plt.xlabel(r'age-$s$')
-plt.ylabel(r'individual labor supply, \ ' r"$\bar{l}_s$")
+plt.ylabel(r'household labor supply, \ ' r"$\bar{l}_s$")
 plt.legend()
 labor_dist_data_withfit = os.path.join(
     GRAPH_DIR, "labor_dist_data_withfit")
@@ -164,7 +171,7 @@ for j in xrange(1,J+1) :
     plt.plot(domain, wealth_data_tograph[:, j-1], label='Data')
     plt.plot(domain, wealth_model_tograph[:, j-1], label='Model', linestyle='--')
     plt.xlabel(r'age-$s$')
-    plt.ylabel(r'Individual savings, in millions of dollars')
+    plt.ylabel(r'Household savings, in millions of dollars')
     plt.legend(loc=0)
     fig_j = os.path.join(
         GRAPH_DIR, "wealth_fit_graph_{}".format(whichpercentile[j]))
@@ -189,7 +196,7 @@ box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel(r'age-$s$')
-ax.set_ylabel(r'individual labor supply, \ $\bar{l}_{j,s}$')
+ax.set_ylabel(r'household labor supply, \ $\bar{l}_{j,s}$')
 labor_dist_2D = os.path.join(GRAPH_DIR, "labor_dist_2D")
 plt.savefig(labor_dist_2D)
 plt.close()
@@ -212,11 +219,169 @@ box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
 ax.set_xlabel(r'age-$s$')
-ax.set_ylabel(r'individual consumption, \ $\bar{c}_{j,s}$')
+ax.set_ylabel(r'household consumption, \ $\bar{c}_{j,s}$')
 consumption_2D = os.path.join(GRAPH_DIR, "consumption_2D")
 plt.savefig(consumption_2D)
 plt.close()
 
+
+## SS savings for highest ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, bssmat_base[:, -1], label='Baseline', linestyle='-')
+ax.plot(domain, bssmat['income'][:, -1], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, bssmat['wealth'][:, -1], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household savings, \ $\bar{b}_{7,s+1}$')
+life_save = os.path.join(GRAPH_DIR, "lifecycle_savings_highest_ability")
+plt.savefig(life_save)
+plt.close()
+
+
+## SS savings for middle ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, bssmat_base[:, 3], label='Baseline', linestyle='-')
+ax.plot(domain, bssmat['income'][:, 3], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, bssmat['wealth'][:, 3], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household savings, \ $\bar{b}_{4,s+1}$')
+life_save = os.path.join(GRAPH_DIR, "lifecycle_savings_middle_ability")
+plt.savefig(life_save)
+plt.close()
+
+## SS labor supply for highest ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, n_base[:, -1], label='Baseline', linestyle='-')
+ax.plot(domain, n['income'][:, -1], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, n['wealth'][:, -1], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household labor supply, \ $\bar{n}_{7,s}$')
+life_labor = os.path.join(GRAPH_DIR, "lifecycle_labor_highest_ability")
+plt.savefig(life_labor)
+plt.close()
+
+
+## SS labor supply for middle ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, n_base[:, 3], label='Baseline', linestyle='-')
+ax.plot(domain, n['income'][:, 3], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, n['wealth'][:, 3], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household labor supply, \ $\bar{b}_{4,s}$')
+life_labor = os.path.join(GRAPH_DIR, "lifecycle_labor_middle_ability")
+plt.savefig(life_labor)
+plt.close()
+
+
+## SS after-tax income for highest ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, income_at_base[:, -1], label='Baseline', linestyle='-')
+ax.plot(domain, income_at['income'][:, -1], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, income_at['wealth'][:, -1], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household after-tax income, \ $\bar{y}_{7,s}$')
+life_income = os.path.join(GRAPH_DIR, "lifecycle_income_highest_ability")
+plt.savefig(life_income)
+plt.close()
+
+
+## SS after-tax income for middle ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, income_at_base[:, 3], label='Baseline', linestyle='-')
+ax.plot(domain, income_at['income'][:, 3], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, income_at['wealth'][:, 3], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household after-tax income, \ $\bar{y}_{4,s}$')
+life_income = os.path.join(GRAPH_DIR, "lifecycle_income_middle_ability")
+plt.savefig(life_income)
+plt.close()
+
+
+## SS consumption for highest ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, c_base[:, -1], label='Baseline', linestyle='-')
+ax.plot(domain, c['income'][:, -1], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, c['wealth'][:, -1], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household consumption, \ $\bar{c}_{7,s}$')
+life_cons = os.path.join(GRAPH_DIR, "lifecycle_cons_highest_ability")
+plt.savefig(life_cons)
+plt.close()
+
+
+## SS consumption for middle ability type; baseline and both reforms
+plt.clf()
+plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+ax.plot(domain, c_base[:, 3], label='Baseline', linestyle='-')
+ax.plot(domain, c['income'][:, 3], label='Income Tax Reform', linestyle='--')
+ax.plot(domain, c['wealth'][:, 3], label='Wealth Tax Reform', linestyle='-.')
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+ax.set_xlabel(r'age-$s$')
+ax.set_ylabel(r'household consumption, \ $\bar{c}_{4,s}$')
+life_cons = os.path.join(GRAPH_DIR, "lifecycle_cons_middle_ability")
+plt.savefig(life_cons)
+plt.close()
 
 ## percentage change in consumption over lifecycle, baseline vs reform (wealth
 ## and income tax reforms), separate for each type

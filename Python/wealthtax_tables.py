@@ -1,7 +1,5 @@
 '''
 ------------------------------------------------------------------------
-Last updated 9/9/2016
-
 Creates tables for the wealth tax paper and saves to an excel file.
 
 This py-file calls the following other file(s):
@@ -116,29 +114,30 @@ workbook = xlsxwriter.Workbook('WealthTaxTables.xlsx')
 '''
 Moments, data vs model - plus minstat from GMM estimation (wealth moments only)
 '''
-# read in data saved from calibration
-mom_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
-moment_fit = pickle.load(open(mom_dir, "rb"))
-
-# write to workbook
-worksheet = workbook.add_worksheet('Moments')
-worksheet.write(0,0,'Moment')
-worksheet.write(0,1,'Data')
-worksheet.write(0,2,'Model')
-moment_names=['Share 0-25%','Share 25-50%','Share 50-70%','Share 70-80%',
-             'Share 80-90%','Share 90-99%','Share 99-100%','Gini Coefficient',
-             'var(ln(wealth))']
-row = 1
-for i in range(len(moment_names)):
-    col = 0
-    worksheet.write(row,col,moment_names[i])
-    col+=1
-    worksheet.write(row,col,moment_fit['data_moment'][i])
-    col+=1
-    worksheet.write(row,col,moment_fit['model_moment'][i])
-    row+=1
-worksheet.write(row,0,'Minimum Statistic')
-worksheet.write(row,col,moment_fit['minstat'].loc[0])
+# # read in data saved from calibration
+# mom_dir = os.path.join(baseline_dir, "Calibration/moment_results.pkl")
+# print ' MOMENT DIR = ', mom_dir
+# moment_fit = pickle.load(open(mom_dir, "rb"))
+#
+# # write to workbook
+# worksheet = workbook.add_worksheet('Moments')
+# worksheet.write(0,0,'Moment')
+# worksheet.write(0,1,'Data')
+# worksheet.write(0,2,'Model')
+# moment_names=['Share 0-25%','Share 25-50%','Share 50-70%','Share 70-80%',
+#              'Share 80-90%','Share 90-99%','Share 99-100%','Gini Coefficient',
+#              'var(ln(wealth))']
+# row = 1
+# for i in range(len(moment_names)):
+#     col = 0
+#     worksheet.write(row,col,moment_names[i])
+#     col+=1
+#     worksheet.write(row,col,moment_fit['data_moment'][i])
+#     col+=1
+#     worksheet.write(row,col,moment_fit['model_moment'][i])
+#     row+=1
+# worksheet.write(row,0,'Minimum Statistic')
+# worksheet.write(row,col,moment_fit['minstat'].loc[0])
 
 
 
