@@ -47,8 +47,8 @@ Grab some values from prior run to serve as starting values
 #START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma2.0_wealth.pkl", "rb"))
 #START_VALUES = pickle.load(open("./ogusa/SS_vars_sigma3.0_baseline.pkl", "rb"))
 # START_VALUES = pickle.load(open("./OUTPUT_INCOME_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
-# START_VALUES = pickle.load(open("./OUTPUT_WEALTH_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
-START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
+START_VALUES = pickle.load(open("./OUTPUT_WEALTH_REFORM/sigma2.0/SS/SS_vars.pkl", "rb"))
+# START_VALUES = pickle.load(open("./OUTPUT_BASELINE/sigma2.0/SS/SS_vars.pkl", "rb"))
 
 
 '''
@@ -235,6 +235,9 @@ def euler_equation_solver(guesses, params):
     # Chi_b is large, they will be.  This prevents that from happening.
     # I'm not sure if the constraints are needed for labor.
     # But we might as well put them in for now.
+    # print 'Savings errors = ', error1.shape, error1
+    # print 'Labor errors = ', error2.shape, error2
+    # quit()
     mask1 = n_guess < 0
     mask2 = n_guess > ltilde
     mask3 = b_guess <= 0
@@ -313,8 +316,9 @@ def inner_loop(outer_loop_vars, params, baseline):
         # Solve the euler equations
         # if j == 0:
         #     guesses = np.append(bssmat[:, j], nssmat[:, j])
+        # elif j == J - 1:
+        #     guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
         # else:
-        #     #guesses = np.append(bssmat[:, j-1]*2.0, nssmat[:, j-1])
         #     guesses = np.append(bssmat[:, j-1], nssmat[:, j-1])
 
         guesses = np.append(bssmat[:, j], nssmat[:, j])
@@ -441,7 +445,7 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
     maxiter, mindist_SS = iterative_params
 
     # Rename the inputs
-    r = rss
+    r = float(rss)
     T_H = T_Hss
     factor = factor_ss
 
@@ -494,7 +498,7 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
                 nu /= 2.0
                 #print 'New value of nu:', nu
         iteration += 1
-        #print "Iteration: %02d" % iteration, " Distance: ", dist
+        print "SS Solver Iteration: %02d" % iteration, " Distance: ", dist
 
     '''
     ------------------------------------------------------------------------
@@ -582,6 +586,7 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
     print 'wage rate: ', wss
     print 'factor: ', factor_ss
     print 'T_H', T_Hss
+    print 'Tax Receipts = ', net_tax_receipts
     print 'Resource Constraint Difference:', resource_constraint
     print 'Max Euler Error: ', (np.absolute(euler_errors)).max()
 
@@ -615,7 +620,8 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
               'cssmat': cssmat, 'bssmat_splus1': bssmat_splus1,
               'utility_ss': utility_ss, 'yss': yss,
               'y_aftertax_ss': y_aftertax_ss, 'b_aftertax_ss': b_aftertax_ss,
-              'T_Hss': T_Hss, 'euler_savings': euler_savings,
+              'T_Hss': T_Hss, 'net_tax_receipts': net_tax_receipts,
+              'euler_savings': euler_savings,
               'euler_labor_leisure': euler_labor_leisure, 'chi_n': chi_n,
               'chi_b': chi_b, 'ss_flag': ss_flag}
 
@@ -833,7 +839,7 @@ def SS_fsolve_reform_fixed(guesses, params):
     baseline = False
 
     # Rename the inputs
-    r = guesses
+    r = float(guesses)
     w_params = (Z, alpha, delta)
     w = firm.get_w_from_r(r, w_params)
 
@@ -912,6 +918,7 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params,
 
     # load baseline SS results
     baseline_ss_dir = os.path.join(baseline_dir, 'SS', 'SS_vars.pkl')
+    print('Baseline directory = ', baseline_ss_dir)
     base_ss_solutions = pickle.load(open(baseline_ss_dir, "rb"))
 
 
@@ -921,6 +928,7 @@ def run_SS(income_tax_params, ss_params, iterative_params, chi_params,
         rguess = base_ss_solutions['rss']
         T_Hguess = base_ss_solutions['T_Hss']
         factorguess = base_ss_solutions['factor_ss']
+        print('Starting r: ', rguess)
         ss_params_baseline = [b_guess.reshape(S, J), n_guess.reshape(S, J), chi_params, ss_params, income_tax_params, iterative_params]
         guesses = [rguess, T_Hguess, factorguess]
         [solutions_fsolve, infodict, ier, message] = opt.fsolve(SS_fsolve, guesses, args=ss_params_baseline, xtol=mindist_SS, full_output=True)
