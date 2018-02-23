@@ -81,6 +81,7 @@ def create_tpi_params(**sim_params):
         nssmat = ss_baseline_vars['nssmat']
     elif sim_params['baseline']==False:
         reform_ss = os.path.join(sim_params['input_dir'], "SS/SS_vars.pkl")
+        print('Directory for SS values for TPI = ', reform_ss)
         ss_reform_vars = pickle.load(open(reform_ss, "rb"))
         SS_values = (ss_reform_vars['Kss'],ss_reform_vars['Lss'], ss_reform_vars['rss'],
                  ss_reform_vars['wss'], ss_reform_vars['BQss'], ss_reform_vars['T_Hss'],
@@ -588,7 +589,7 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     euler_errors = np.zeros((T, 2 * S, J))
     TPIdist_vec = np.zeros(maxiter)
 
-    print 'analytical mtrs in tpi = ', analytical_mtrs
+    # print 'analytical mtrs in tpi = ', analytical_mtrs
 
     while (TPIiter < maxiter) and (TPIdist >= mindist_TPI):
         # Plot TPI for K for each iteration, so we can see if there is a
@@ -709,7 +710,6 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
         TPIiter += 1
         print '\tIteration:', TPIiter
         print '\t\tDistance:', TPIdist
-
 
     Y[:T] = Ynew
 

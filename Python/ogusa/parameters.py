@@ -137,15 +137,13 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     T = int(3 * S)
     BW = int(10)
     lambdas = np.array([.25, .25, .2, .1, .1, .09, .01])
-    #lambdas = np.array([0.5, 0.5])
-    #lambdas = np.array([1.,])
     start_year = 2016
     starting_age = 20
     ending_age = 100
     E = int(starting_age * (S / float(ending_age - starting_age)))
     beta_annual = .96 # Carroll (JME, 2009)
     beta = beta_annual ** (float(ending_age - starting_age) / S)
-    sigma = 3.0
+    sigma = 2.0
     alpha = .35 # many use 0.33, but many find that capitals share is
                 # increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
     Z = 1.0
@@ -213,12 +211,12 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     maxiter = 250
     mindist_SS = 1e-9
     mindist_TPI = 1e-4 #2e-5
-    nu = .1
+    nu = .05
     flag_graphs = False
     #   Calibration parameters
-    chi_b_guess =np.array([0.3, 0.3, 2., 14.,
-             12.5, 98., 2150.])*13.0 # this hits about 6% interest and very close on wealth moments for
-    #                                 # Frisch 1.5 and sigma 2.0 ** but with old demographics file!!!
+    chi_b_guess = np.array([0.3, 0.3, 2., 14., 12.5, 98., 2150.]) * 13.0
+    # this hits about 5% interest and very close on wealth moments for
+    # Frisch 1.5 and sigma 2.0
 
     chi_n_raw = np.array([50.35115078, 35.47310428, 23.63926049,
                           22.90508485, 22.63035262, 20.35906224,
