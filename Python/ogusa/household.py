@@ -262,7 +262,10 @@ def FOC_savings(r, w, b, b_splus1, b_splus2, n, BQ, factor, T_H,
                       mtry_params_extended, analytical_mtrs)
     deriv = ((1 + r_extended[1:]) - r_extended[1:] *
              (tax.MTR_capital(r_extended[1:], w_extended[1:], b_splus1,
-                              n_extended[1:], factor, mtr_cap_params)))
+                              n_extended[1:], factor, mtr_cap_params)) -
+             (tax.tau_w_prime(b_splus1, (h_wealth, p_wealth, m_wealth)) *
+             b_splus1) - tax.tau_wealth(b_splus1, (h_wealth, p_wealth,
+                                                   m_wealth)))
 
     savings_ut = (rho * np.exp(-sigma * g_y) * chi_b * b_splus1 **
                   (-sigma))
