@@ -80,6 +80,7 @@ BQ = {}
 T_Hss = {}
 Gss = {}
 Kss = {}
+Lss = {}
 income_at = {}
 rss = {}
 wss = {}
@@ -111,6 +112,7 @@ for item in ('base', 'wealth', 'income'):
     T_Hss[item] = ss_output['T_Hss']
     Gss[item] = ss_output['Gss']
     Kss[item] = ss_output['Kss']
+    Lss[item] = ss_output['Lss']
     #utility[item] = ss_output[]
     income_at[item] = ss_output['y_aftertax_ss']
     rss[item] = ss_output['rss']
@@ -571,7 +573,7 @@ for item in ('wealth','income'):
 
 ## percentage change in labor supply over lifecycle, baseline vs reform (wealth
 ## and income tax reforms), separate for each type
-for item in ('wealth','income'):
+for item in ('wealth', 'income'):
     plt.clf()
     plt.figure()
     plt.rc('text', usetex=True)
