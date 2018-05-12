@@ -36,6 +36,7 @@ import household
 import firm
 import os
 
+TPI_START_VALUES = pickle.load(open("./OUTPUT_INCOME_REFORM/sigma2.0/TPI/TPI_vars.pkl", "rb"))
 
 '''
 Set minimizer tolerance
@@ -75,7 +76,7 @@ def create_tpi_params(**sim_params):
 
     if sim_params['baseline']==True:
         SS_values = (ss_baseline_vars['Kss'],ss_baseline_vars['Lss'], ss_baseline_vars['rss'],
-                 ss_baseline_vars['wss'], ss_baseline_vars['BQss'], ss_baseline_vars['T_Hss'],
+                 ss_baseline_vars['wss'], ss_baseline_vars['BQss'], ss_baseline_vars['T_Hss'], ss_baseline_vars['Gss'],
                  ss_baseline_vars['bssmat_splus1'], ss_baseline_vars['nssmat'])
         wss = ss_baseline_vars['wss']
         nssmat = ss_baseline_vars['nssmat']
@@ -84,7 +85,7 @@ def create_tpi_params(**sim_params):
         print('Directory for SS values for TPI = ', reform_ss)
         ss_reform_vars = pickle.load(open(reform_ss, "rb"))
         SS_values = (ss_reform_vars['Kss'],ss_reform_vars['Lss'], ss_reform_vars['rss'],
-                 ss_reform_vars['wss'], ss_reform_vars['BQss'], ss_reform_vars['T_Hss'],
+                 ss_reform_vars['wss'], ss_reform_vars['BQss'], ss_reform_vars['T_Hss'], ss_reform_vars['Gss'],
                  ss_reform_vars['bssmat_splus1'], ss_reform_vars['nssmat'])
         wss = ss_reform_vars['wss']
         nssmat = ss_reform_vars['nssmat']
@@ -232,8 +233,8 @@ def firstdoughnutring(guesses, r, w, b, BQ, T_H, j, params):
     cons = household.get_cons(np.array([r]), np.array([w]), b_s, b_splus1,
                     np.array([n]), np.array([BQ]), tax1, cons_params)
 
-    if n <= 0 or n >= 1:
-        error2 += 1e12
+    if n < 0 or n > ltilde:
+        error2 = 1e12
     if b_splus1 <= 0:
         error1 += 1e12
     # if cons <= 0:
@@ -325,9 +326,9 @@ def twist_doughnut(guesses, r, w, BQ, T_H, j, s, t, params):
 
     # Check and punish constraint violations
     mask1 = n_guess < 0
-    error2[mask1] += 1e12
+    error2[mask1] = 1e12
     mask2 = n_guess > ltilde
-    error2[mask2] += 1e12
+    error2[mask2] = 1e12
     # mask3 = cons_s < 0
     # error2[mask3] += 1e12
     mask4 = b_guess <= 0
@@ -524,34 +525,34 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
                   g_n_vector, tau_payroll, tau_bq, rho, omega, N_tilde, lambdas, imm_rates, e, retire, mean_income_data,\
                   factor, T_H_baseline, h_wealth, p_wealth, m_wealth, b_ellipse, upsilon, chi_b, chi_n, theta = tpi_params
     K0, b_sinit, b_splus1init, factor, initial_b, initial_n, omega_S_preTP = initial_values
-    Kss, Lss, rss, wss, BQss, T_Hss, bssmat_splus1, nssmat = SS_values
+    Kss, Lss, rss, wss, BQss, T_Hss, Gss, bssmat_splus1, nssmat = SS_values
 
 
     TPI_FIG_DIR = output_dir
     # Initialize guesses at time paths
     domain = np.linspace(0, T, T)
-    r = np.ones(T + S) * rss
-    BQ = np.zeros((T + S, J))
-    BQ0_params = (omega_S_preTP.reshape(S, 1), lambdas, rho.reshape(S, 1), g_n_vector[0], 'SS')
-    BQ0 = household.get_BQ(r[0], initial_b, BQ0_params)
-    for j in xrange(J):
-        BQ[:, j] = list(np.linspace(BQ0[j], BQss[j], T)) + [BQss[j]] * S
-    BQ = np.array(BQ)
-    # print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
-    # print "K0 vs Kss = ", K0-Kss
-
-    if fix_transfers:
-        T_H = T_H_baseline
-    else:
-        if np.abs(T_Hss) < 1e-13 :
-            T_Hss2 = 0.0 # sometimes SS is very small but not zero, even if taxes are zero, this get's rid of the approximation error, which affects the perc changes below
-        else:
-            T_Hss2 = T_Hss
-        T_H = np.ones(T + S) * T_Hss2 * (r/rss)
-    G = np.zeros(T + S)
-    # print "T_H values = ", T_H[0], T_H[100], T_H[-1], T_Hss
-    # print "omega diffs = ", (omega_S_preTP-omega[-1]).max(), (omega[10]-omega[-1]).max()
-
+    # r = np.ones(T + S) * rss
+    # BQ = np.zeros((T + S, J))
+    # BQ0_params = (omega_S_preTP.reshape(S, 1), lambdas, rho.reshape(S, 1), g_n_vector[0], 'SS')
+    # BQ0 = household.get_BQ(r[0], initial_b, BQ0_params)
+    # for j in xrange(J):
+    #     BQ[:, j] = list(np.linspace(BQ0[j], BQss[j], T)) + [BQss[j]] * S
+    # BQ = np.array(BQ)
+    # # print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
+    # # print "K0 vs Kss = ", K0-Kss
+    #
+    # if fix_transfers:
+    #     T_H = T_H_baseline
+    # else:
+    #     if np.abs(T_Hss) < 1e-13 :
+    #         T_Hss2 = 0.0 # sometimes SS is very small but not zero, even if taxes are zero, this get's rid of the approximation error, which affects the perc changes below
+    #     else:
+    #         T_Hss2 = T_Hss
+    #     T_H = np.ones(T + S) * T_Hss2 * (r/rss)
+    # G = np.ones(T + S) * Gss
+    # # print "T_H values = ", T_H[0], T_H[100], T_H[-1], T_Hss
+    # # print "omega diffs = ", (omega_S_preTP-omega[-1]).max(), (omega[10]-omega[-1]).max()
+    #
     # Make array of initial guesses for labor supply and savings
     domain2 = np.tile(domain.reshape(T, 1, 1), (1, S, J))
     ending_b = bssmat_splus1
@@ -559,28 +560,41 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     ending_b_tail = np.tile(ending_b.reshape(1, S, J), (S, 1, 1))
     guesses_b = np.append(guesses_b, ending_b_tail, axis=0)
     # print 'diff btwn start and end b: ', (guesses_b[0]-guesses_b[-1]).max()
-
+    #
     domain3 = np.tile(np.linspace(0, 1, T).reshape(T, 1, 1), (1, S, J))
     guesses_n = domain3 * (nssmat - initial_n) + initial_n
     ending_n_tail = np.tile(nssmat.reshape(1, S, J), (S, 1, 1))
     guesses_n = np.append(guesses_n, ending_n_tail, axis=0)
-    b_mat = np.zeros((T + S, S, J))
-    n_mat = np.zeros((T + S, S, J))
+    # b_mat = np.zeros((T + S, S, J))
+    # n_mat = np.zeros((T + S, S, J))
     ind = np.arange(S)
-    # print 'diff btwn start and end n: ', (guesses_n[0]-guesses_n[-1]).max()
+    # # print 'diff btwn start and end n: ', (guesses_n[0]-guesses_n[-1]).max()
+    #
+    # # find economic aggregates
+    # K = np.zeros(T+S)
+    # L = np.zeros(T+S)
+    # K[0] = K0
+    # K_params = (omega[:T-1].reshape(T-1, S, 1), lambdas.reshape(1, 1, J), imm_rates[:T-1].reshape(T-1,S,1), g_n_vector[1:T], 'TPI')
+    # K[1:T] = household.get_K(guesses_b[:T-1], K_params)
+    # K[T:] = Kss
+    # L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1), lambdas.reshape(1, 1, J), 'TPI')
+    # L[:T] = firm.get_L(guesses_n[:T], L_params)
+    # L[T:] = Lss
+    # Y_params = (alpha, Z)
+    # Y = firm.get_Y(K, L, Y_params)
+    # r_params = (alpha, delta)
+    # r[:T] = firm.get_r(Y[:T], K[:T], r_params)
 
-    # find economic aggregates
-    K = np.zeros(T+S)
-    L = np.zeros(T+S)
-    K[0] = K0
-    K_params = (omega[:T-1].reshape(T-1, S, 1), lambdas.reshape(1, 1, J), imm_rates[:T-1].reshape(T-1,S,1), g_n_vector[1:T], 'TPI')
-    K[1:T] = household.get_K(guesses_b[:T-1], K_params)
-    K[T:] = Kss
-    L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1), lambdas.reshape(1, 1, J), 'TPI')
-    L[:T] = firm.get_L(guesses_n[:T], L_params)
-    L[T:] = Lss
-    Y_params = (alpha, Z)
-    Y = firm.get_Y(K, L, Y_params)
+    r = TPI_START_VALUES['r']
+    K = TPI_START_VALUES['K']
+    L = TPI_START_VALUES['L']
+    Y = TPI_START_VALUES['Y']
+    T_H = TPI_START_VALUES['T_H']
+    BQ = TPI_START_VALUES['BQ']
+    G = TPI_START_VALUES['G']
+    # guesses_b = TPI_START_VALUES['b_mat']
+    # guesses_n = TPI_START_VALUES['n_mat']
+
 
     TPIiter = 0
     TPIdist = 10
@@ -686,15 +700,72 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             T_H_new = net_tax_receipts
             T_H[:T] = utils.convex_combo(T_H_new[:T], T_H[:T], nu)
             G[:T] = 0.0
+
+        etr_params_path = np.zeros((T,S,J,etr_params.shape[2]))
+        for i in range(etr_params.shape[2]):
+            etr_params_path[:,:,:,i] = np.tile(
+                np.reshape(np.transpose(etr_params[:,:T,i]),(T,S,1)),(1,1,J))
+        tax_path_params = (np.tile(e.reshape(1, S, J),(T,1,1)),
+                           lambdas, 'TPI', retire, etr_params_path, h_wealth,
+                           p_wealth, m_wealth, tau_payroll, theta, tau_bq, J, S)
+        b_to_use = np.zeros((T, S, J))
+        b_to_use[0, 1:, :] = initial_b[:-1, :]
+        b_to_use[1:, 1:, :] = b_mat[:T-1, :-1, :]
+        tax_path = tax.total_taxes(
+            np.tile(r[:T].reshape(T, 1, 1),(1,S,J)),
+            np.tile(w[:T].reshape(T, 1, 1),(1,S,J)), b_to_use,
+            n_mat[:T,:,:], BQ[:T, :].reshape(T, 1, J), factor,
+            T_H[:T].reshape(T, 1, 1), None, False, tax_path_params)
+
+        y_path = (np.tile(r[:T].reshape(T, 1, 1), (1, S, J)) * b_to_use[:T, :, :] +
+                  np.tile(w[:T].reshape(T, 1, 1), (1, S, J)) *
+                  np.tile(e.reshape(1, S, J), (T, 1, 1)) * n_mat[:T, :, :])
+        cons_params = (e.reshape(1, S, J), lambdas.reshape(1, 1, J), g_y)
+        c_path = household.get_cons(r[:T].reshape(T, 1, 1), w[:T].reshape(T, 1, 1), b_to_use[:T,:,:], b_mat[:T,:,:], n_mat[:T,:,:],
+                       BQ[:T].reshape(T, 1, J), tax_path, cons_params)
+
+
         guesses_b = utils.convex_combo(b_mat, guesses_b, nu)
         guesses_n = utils.convex_combo(n_mat, guesses_n, nu)
         if T_H.all() != 0:
             TPIdist = np.array(list(utils.pct_diff_func(rnew[:T], r[:T])) +
                                list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten()) +
                                list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
-            # print 'r dist = ', np.array(list(utils.pct_diff_func(rnew[:T], r[:T]))).max()
-            # print 'BQ dist = ', np.array(list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten())).max()
-            # print 'T_H dist = ', np.array(list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
+            print 'r dist = ', np.array(list(utils.pct_diff_func(rnew[:T], r[:T]))).max()
+            print 'BQ dist = ', np.array(list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten())).max()
+            print 'T_H dist = ', np.array(list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
+            # print 'r old = ', r[:T]
+            # print 'r new = ', rnew[:T]
+            # print 'K old = ', K[:T]
+            # print 'L old = ', L[:T]
+            # print 'income = ', y_path[:, :, -1]
+            # print 'taxes = ', tax_path[:, :, -1]
+            # print 'labor supply = ', n_mat[:, :, -1]
+            # print 'max and min labor = ', n_mat.max(), n_mat.min()
+            # print 'max and min labor = ', np.argmax(n_mat), np.argmin(n_mat)
+            # print 'max and min labor, j = 7 = ', n_mat[:,:,-1].max(), n_mat[:,:,-1].min()
+            # print 'max and min labor, j = 6 = ', n_mat[:,:,-2].max(), n_mat[:,:,-2].min()
+            # print 'max and min labor, j = 5 = ', n_mat[:,:,4].max(), n_mat[:,:,4].min()
+            # print 'max and min labor, j = 4 = ', n_mat[:,:,3].max(), n_mat[:,:,3].min()
+            # print 'max and min labor, j = 3 = ', n_mat[:,:,2].max(), n_mat[:,:,2].min()
+            # print 'max and min labor, j = 2 = ', n_mat[:,:,1].max(), n_mat[:,:,1].min()
+            # print 'max and min labor, j = 1 = ', n_mat[:,:,0].max(), n_mat[:,:,0].min()
+            # print 'max and min labor, S = 80 = ', n_mat[:,-1,-1].max(), n_mat[:,-1,-1].min()
+            # print "number  > 1 = ", (n_mat > 1).sum()
+            # print "number  < 0, = ", (n_mat < 0).sum()
+            # print "number  > 1, j=7 = ", (n_mat[:T,:,-1] > 1).sum()
+            # print "number  < 0, j=7 = ", (n_mat[:T,:,-1] < 0).sum()
+            # print "number  > 1, s=80, j=7 = ", (n_mat[:T,-1,-1] > 1).sum()
+            # print "number  < 0, s=80, j=7 = ", (n_mat[:T,-1,-1] < 0).sum()
+            # print "number  > 1, j= 7, age 80= ", (n_mat[:T,-1,-1] > 1).sum()
+            # print "number  < 0, j = 7, age 80= ", (n_mat[:T,-1,-1] < 0).sum()
+            # print "number  > 1, j= 7, age 80, period 0 to 10= ", (n_mat[:30,-1,-1] > 1).sum()
+            # print "number  < 0, j = 7, age 80, period 0 to 10= ", (n_mat[:30,-1,-1] < 0).sum()
+            # print "number  > 1, j= 7, age 70-79, period 0 to 10= ", (n_mat[:30,70:80,-1] > 1).sum()
+            # print "number  < 0, j = 7, age 70-79, period 0 to 10= ", (n_mat[:30,70:80   ,-1] < 0).sum()
+            # diag_dict = {'n_mat': n_mat, 'b_mat': b_mat, 'y_path': y_path, 'c_path': c_path}
+            # pickle.dump(diag_dict, open('tpi_iter1.pkl', 'wb'))
+
         else:
             TPIdist = np.array(list(utils.pct_diff_func(rnew[:T], r[:T])) +
                                list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten()) +

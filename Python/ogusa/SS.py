@@ -563,23 +563,40 @@ def SS_solver(b_guess_init, n_guess_init, rss, T_Hss, factor_ss,
                 - only exists to help debug
     ------------------------------------------------------------------------
     '''
-    etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
-    etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
-    mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
-    mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
-    e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
-    nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
-    mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
-    mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
-    mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
-    mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
-
-    etr_ss_params = (e, etr_params_3D)
-    etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
-
-    np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
-    np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
-    np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
+    # etr_params_extended = np.append(etr_params,np.reshape(etr_params[-1,:],(1,etr_params.shape[1])),axis=0)[1:,:]
+    # etr_params_extended_3D = np.tile(np.reshape(etr_params_extended,(S,1,etr_params_extended.shape[1])),(1,J,1))
+    # mtry_params_extended = np.append(mtry_params,np.reshape(mtry_params[-1,:],(1,mtry_params.shape[1])),axis=0)[1:,:]
+    # mtry_params_extended_3D = np.tile(np.reshape(mtry_params_extended,(S,1,mtry_params_extended.shape[1])),(1,J,1))
+    # e_extended = np.array(list(e) + list(np.zeros(J).reshape(1, J)))
+    # nss_extended = np.array(list(nssmat) + list(np.zeros(J).reshape(1, J)))
+    # mtry_ss_params = (e_extended[1:,:], etr_params_extended_3D, mtry_params_extended_3D, analytical_mtrs)
+    # mtry_ss = tax.MTR_capital(rss, wss, bssmat_splus1, nss_extended[1:,:], factor_ss, mtry_ss_params)
+    # mtrx_ss_params = (e, etr_params_3D, mtrx_params_3D, analytical_mtrs)
+    # mtrx_ss = tax.MTR_labor(rss, wss, bssmat_s, nssmat, factor_ss, mtrx_ss_params)
+    #
+    # etr_ss_params = (e, etr_params_3D)
+    # etr_ss = tax.tau_income(rss, wss, bssmat_s, nssmat, factor_ss, etr_ss_params)
+    #
+    # deriv_ss = ((1 + rss) - rss * (tax.MTR_capital(rss, wss,
+    #                                                bssmat_splus1,
+    #                                                nss_extended[1:, :],
+    #                                                factor,
+    #                                                mtry_ss_params)) -
+    #             (tax.tau_w_prime(bssmat_splus1, (h_wealth, p_wealth,
+    #                                              m_wealth)) *
+    #              bssmat_splus1) - tax.tau_wealth(bssmat_splus1,
+    #                                              (h_wealth, p_wealth,
+    #                                               m_wealth)))
+    # wealth_deriv_ss = ((
+    #     tax.tau_w_prime(bssmat_splus1, (h_wealth, p_wealth, m_wealth)) *
+    #     bssmat_splus1) - tax.tau_wealth(bssmat_splus1,
+    #                                     (h_wealth, p_wealth, m_wealth)))
+    #
+    # np.savetxt("etr_ss.csv", etr_ss, delimiter=",")
+    # np.savetxt("mtr_ss_capital.csv", mtry_ss, delimiter=",")
+    # np.savetxt("mtr_ss_labor.csv", mtrx_ss, delimiter=",")
+    # np.savetxt("save_deriv.csv", deriv_ss, delimiter=",")
+    # np.savetxt("wealth_deriv.csv", wealth_deriv_ss, delimiter=",")
 
 
     print 'interest rate: ', rss
