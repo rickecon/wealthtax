@@ -32,7 +32,8 @@ def marg_ut_cons(c, sigma):
     '''
     if np.ndim(c) == 0:
         c = np.array([c])
-    epsilon = 0.0001
+    # epsilon = 0.0001
+    epsilon = 0.002
     cvec_cnstr = c < epsilon
     MU_c = np.zeros(c.shape)
     MU_c[~cvec_cnstr] = c[~cvec_cnstr] ** (-sigma)
@@ -66,8 +67,8 @@ def marg_ut_labor(n, params):
     nvec = n
     if np.ndim(nvec) == 0:
         nvec = np.array([nvec])
-    eps_low = 0.000001
-    eps_high = ltilde - 0.000001
+    eps_low = 0.0001#0.000001
+    eps_high = ltilde - 0.0001 #0.000001
     nvec_low = nvec < eps_low
     nvec_high = nvec > eps_high
     nvec_uncstr = np.logical_and(~nvec_low, ~nvec_high)
