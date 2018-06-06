@@ -640,8 +640,8 @@ ax.plot(np.arange(
      T+10), rpath['base'][:T+10], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T+10), rpath['income'][:T+10], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T+10), rpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T+10), rpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -664,8 +664,8 @@ ax.plot(np.arange(
      T+10), wpath['base'][:T+10], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T+10), wpath['income'][:T+10], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T+10), wpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T+10), wpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -688,8 +688,8 @@ ax.plot(np.arange(
      T+10), Kpath['base'][:T+10], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T+10), Kpath['income'][:T+10], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T+10), Kpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T+10), Kpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -712,8 +712,8 @@ ax.plot(np.arange(
      T+10), Lpath['base'][:T+10], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T+10), Lpath['income'][:T+10], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T+10), Lpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T+10), Lpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -736,8 +736,8 @@ ax.plot(np.arange(
      T), Cpath['base'][:T], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T), Cpath['income'][:T], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T), Cpath['wealth'][:T], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T), Cpath['wealth'][:T], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -761,8 +761,8 @@ ax.plot(np.arange(
      T), Ipath['base'][:T], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T), Ipath['income'][:T], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T), Ipath['wealth'][:T], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T), Ipath['wealth'][:T], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -786,8 +786,8 @@ ax.plot(np.arange(
      T+10), Gpath['base'][:T+10], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T+10), Gpath['income'][:T+10], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T+10), Gpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T+10), Gpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -810,8 +810,8 @@ ax.plot(np.arange(
      T+10), T_Hpath['base'][:T+10], linewidth=2, linestyle='-', label=r"Baseline")
 ax.plot(np.arange(
      T+10), T_Hpath['income'][:T+10], linewidth=2, linestyle='--', label=r"Income Tax Reform")
-# ax.plot(np.arange(
-#      T+10), T_Hpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
+ax.plot(np.arange(
+     T+10), T_Hpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
 ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
@@ -838,8 +838,8 @@ for gini_type in ('Total', 'Ability $j$', 'Age $s$'):
                 linewidth=2, linestyle='-', label=r"Baseline")
         ax.plot(np.arange(T), gini_path[var_name, gini_type, 'income'][:T],
                 linewidth=2, linestyle='--', label=r"Income Tax Reform")
-        # ax.plot(np.arange(T), gini_path[var_name, gini_type, 'wealth'][:T],
-        #         linewidth=2, linestyle='--', label=r"Wealth Tax Reform")
+        ax.plot(np.arange(T), gini_path[var_name, gini_type, 'wealth'][:T],
+                linewidth=2, linestyle='--', label=r"Wealth Tax Reform")
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
         ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
