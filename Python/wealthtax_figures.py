@@ -629,7 +629,7 @@ for item in ('wealth', 'income'):
 
 ## Time path for r in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -644,16 +644,18 @@ ax.plot(np.arange(
      T+10), rpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Real Interest Rate, \ $\hat{r}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_r')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 ## Time path for w in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -668,16 +670,18 @@ ax.plot(np.arange(
      T+10), wpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Wage Rate, \ $\hat{w}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_w')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 # ## Time path for K in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -692,16 +696,18 @@ ax.plot(np.arange(
      T+10), Kpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Aggregate Capital, \ $\hat{K}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_K')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 ## Time path for L in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -716,16 +722,18 @@ ax.plot(np.arange(
      T+10), Lpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Aggregate Labor, \ $\hat{L}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_L')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 # ## Time path for C in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -740,17 +748,19 @@ ax.plot(np.arange(
      T), Cpath['wealth'][:T], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Aggregate Consumption, \ $\hat{C}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_C')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 
 # ## Time path for I in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -765,17 +775,19 @@ ax.plot(np.arange(
      T), Ipath['wealth'][:T], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Aggregate Investment, \ $\hat{I}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_I')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 
 # ## Time path for G in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -790,16 +802,18 @@ ax.plot(np.arange(
      T+10), Gpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
 ax.set_ylabel(r'Government Spending, \ $\hat{G}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_G')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 # ## Time path for T_H in baseline and reforms
 plt.clf()
-plt.figure()
+fig = plt.figure()
 domain = np.arange(80) + 20
 plt.rc('text', usetex=True)
 plt.rc('font', family='serif')
@@ -814,11 +828,13 @@ ax.plot(np.arange(
      T+10), T_Hpath['wealth'][:T+10], linewidth=2, linestyle='-.', label=r"Wealth Tax Reform")
 box = ax.get_position()
 ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
 ax.set_xlabel(r'Year-$t$')
-ax.set_ylabel(r'Transfers, \ $\hat{K}_t$')
+ax.set_ylabel(r'Transfers, \ $\hat{T}^{H}_t$')
 plot_dir = os.path.join(GRAPH_DIR, 'TPI_T_H')
-plt.savefig(plot_dir)
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
 plt.close()
 
 
@@ -827,7 +843,7 @@ gini_name = {'Total': 'total', 'Ability $j$': 'ability', 'Age $s$': 'age'}
 for gini_type in ('Total', 'Ability $j$', 'Age $s$'):
     for var_name in ('b', 'b_at', 'y', 'y_at', 'c', 'n'):
         plt.clf()
-        plt.figure()
+        fig = plt.figure()
         domain = np.arange(80) + 20
         plt.rc('text', usetex=True)
         plt.rc('font', family='serif')
@@ -842,12 +858,14 @@ for gini_type in ('Total', 'Ability $j$', 'Age $s$'):
                 linewidth=2, linestyle='--', label=r"Wealth Tax Reform")
         box = ax.get_position()
         ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
-        ax.legend(loc='center left', bbox_to_anchor=(1, 0.5))
+        lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+                  fancybox=False, shadow=False, ncol=2)
         ax.set_xlabel(r'Year-$t$')
         ax.set_ylabel(r'Gini Coefficient')
         file_name = 'TPI_gini_' + var_name + '_' + gini_name[gini_type]
         plot_dir = os.path.join(GRAPH_DIR, file_name)
-        plt.savefig(plot_dir)
+        fig.subplots_adjust(bottom=0.2)
+        fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
         plt.close()
 
 
