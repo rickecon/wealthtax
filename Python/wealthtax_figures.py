@@ -90,6 +90,7 @@ Kpath = {}
 Lpath = {}
 Cpath = {}
 Ipath = {}
+BQpath = {}
 T_Hpath = {}
 Gpath = {}
 gini_path = {}
@@ -123,6 +124,7 @@ for item in ('base', 'wealth', 'income'):
     Lpath[item] = tpi_output['L']
     Cpath[item] = tpi_output['C']
     Ipath[item] = tpi_output['I']
+    BQpath[item] = tpi_output['BQ']
     T_Hpath[item] = tpi_output['T_H']
     Gpath[item] = tpi_output['G']
 
@@ -887,6 +889,26 @@ plot_dir = os.path.join(GRAPH_DIR, 'EllipseUtilComp')
 plt.savefig(plot_dir)
 plt.close()
 
+# Plot time path of bequests from wealth tax reform
+plt.clf()
+fig = plt.figure()
+domain = np.arange(80) + 20
+plt.rc('text', usetex=True)
+plt.rc('font', family='serif')
+ax = plt.subplot(111)
+for j in range(J):
+    ax.plot(np.arange(
+        T), BQpath['wealth'][:T, j], linewidth=2, label=r"j=" + str(j))
+box = ax.get_position()
+ax.set_position([box.x0, box.y0, box.width * 0.8, box.height])
+lgd = ax.legend(loc='upper center', bbox_to_anchor=(0.5, -0.1),
+          fancybox=False, shadow=False, ncol=2)
+ax.set_xlabel(r'Year-$t$')
+ax.set_ylabel(r'Aggregate Bequests by Ability Group, \ $\hat{BQ}_{j,t}$')
+plot_dir = os.path.join(GRAPH_DIR, 'TPI_BQ_wealth_reform')
+fig.subplots_adjust(bottom=0.2)
+fig.savefig(plot_dir, bbox_extra_artists=(lgd,), bbox='tight')
+plt.close()
 
 '''
 Figres in paper, but that don't need updating:
