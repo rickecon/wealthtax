@@ -531,25 +531,25 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     TPI_FIG_DIR = output_dir
     # Initialize guesses at time paths
     domain = np.linspace(0, T, T)
-    # r = np.ones(T + S) * rss
-    # BQ = np.zeros((T + S, J))
-    # BQ0_params = (omega_S_preTP.reshape(S, 1), lambdas, rho.reshape(S, 1), g_n_vector[0], 'SS')
-    # BQ0 = household.get_BQ(r[0], initial_b, BQ0_params)
-    # for j in xrange(J):
-    #     BQ[:, j] = list(np.linspace(BQ0[j], BQss[j], T)) + [BQss[j]] * S
-    # BQ = np.array(BQ)
-    # # print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
-    # # print "K0 vs Kss = ", K0-Kss
-    #
-    # if fix_transfers:
-    #     T_H = T_H_baseline
-    # else:
-    #     if np.abs(T_Hss) < 1e-13 :
-    #         T_Hss2 = 0.0 # sometimes SS is very small but not zero, even if taxes are zero, this get's rid of the approximation error, which affects the perc changes below
-    #     else:
-    #         T_Hss2 = T_Hss
-    #     T_H = np.ones(T + S) * T_Hss2 * (r/rss)
-    # G = np.ones(T + S) * Gss
+    r = np.ones(T + S) * rss
+    BQ = np.zeros((T + S, J))
+    BQ0_params = (omega_S_preTP.reshape(S, 1), lambdas, rho.reshape(S, 1), g_n_vector[0], 'SS')
+    BQ0 = household.get_BQ(r[0], initial_b, BQ0_params)
+    for j in xrange(J):
+        BQ[:, j] = list(np.linspace(BQ0[j], BQss[j], T)) + [BQss[j]] * S
+    BQ = np.array(BQ)
+    # print "BQ values = ", BQ[0, :], BQ[100, :], BQ[-1, :], BQss
+    # print "K0 vs Kss = ", K0-Kss
+
+    if fix_transfers:
+        T_H = T_H_baseline
+    else:
+        if np.abs(T_Hss) < 1e-13 :
+            T_Hss2 = 0.0 # sometimes SS is very small but not zero, even if taxes are zero, this get's rid of the approximation error, which affects the perc changes below
+        else:
+            T_Hss2 = T_Hss
+        T_H = np.ones(T + S) * T_Hss2 * (r/rss)
+    G = np.ones(T + S) * Gss
     # # print "T_H values = ", T_H[0], T_H[100], T_H[-1], T_Hss
     # # print "omega diffs = ", (omega_S_preTP-omega[-1]).max(), (omega[10]-omega[-1]).max()
     #
@@ -571,20 +571,21 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     # # print 'diff btwn start and end n: ', (guesses_n[0]-guesses_n[-1]).max()
     #
     # # find economic aggregates
-    # K = np.zeros(T+S)
-    # L = np.zeros(T+S)
-    # K[0] = K0
-    # K_params = (omega[:T-1].reshape(T-1, S, 1), lambdas.reshape(1, 1, J), imm_rates[:T-1].reshape(T-1,S,1), g_n_vector[1:T], 'TPI')
-    # K[1:T] = household.get_K(guesses_b[:T-1], K_params)
-    # K[T:] = Kss
-    # L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1), lambdas.reshape(1, 1, J), 'TPI')
-    # L[:T] = firm.get_L(guesses_n[:T], L_params)
-    # L[T:] = Lss
-    # Y_params = (alpha, Z)
-    # Y = firm.get_Y(K, L, Y_params)
-    # r_params = (alpha, delta)
-    # r[:T] = firm.get_r(Y[:T], K[:T], r_params)
+    K = np.zeros(T+S)
+    L = np.zeros(T+S)
+    K[0] = K0
+    K_params = (omega[:T-1].reshape(T-1, S, 1), lambdas.reshape(1, 1, J), imm_rates[:T-1].reshape(T-1,S,1), g_n_vector[1:T], 'TPI')
+    K[1:T] = household.get_K(guesses_b[:T-1], K_params)
+    K[T:] = Kss
+    L_params = (e.reshape(1, S, J), omega[:T, :].reshape(T, S, 1), lambdas.reshape(1, 1, J), 'TPI')
+    L[:T] = firm.get_L(guesses_n[:T], L_params)
+    L[T:] = Lss
+    Y_params = (alpha, Z)
+    Y = firm.get_Y(K, L, Y_params)
+    r_params = (alpha, delta)
+    r[:T] = firm.get_r(Y[:T], K[:T], r_params)
 
+    # uncomment lines below if want to use starting values from prior run
     r = TPI_START_VALUES['r']
     K = TPI_START_VALUES['K']
     L = TPI_START_VALUES['L']
@@ -592,8 +593,9 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
     T_H = TPI_START_VALUES['T_H']
     BQ = TPI_START_VALUES['BQ']
     G = TPI_START_VALUES['G']
-    # guesses_b = TPI_START_VALUES['b_mat']
-    # guesses_n = TPI_START_VALUES['n_mat']
+
+    guesses_b = TPI_START_VALUES['b_mat']
+    guesses_n = TPI_START_VALUES['n_mat']
 
 
     TPIiter = 0
@@ -734,6 +736,7 @@ def run_TPI(income_tax_params, tpi_params, iterative_params,
             print 'r dist = ', np.array(list(utils.pct_diff_func(rnew[:T], r[:T]))).max()
             print 'BQ dist = ', np.array(list(utils.pct_diff_func(BQnew[:T], BQ[:T]).flatten())).max()
             print 'T_H dist = ', np.array(list(utils.pct_diff_func(T_H_new[:T], T_H[:T]))).max()
+            print 'T_H path = ', T_H[:20]
             # print 'r old = ', r[:T]
             # print 'r new = ', rnew[:T]
             # print 'K old = ', K[:T]

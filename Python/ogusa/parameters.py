@@ -211,7 +211,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     maxiter = 250
     mindist_SS = 1e-9
     mindist_TPI = 2e-5
-    nu = .01
+    nu = 0.01
     flag_graphs = False
     #   Calibration parameters
     chi_b_guess = np.array([0.3, 0.3, 2., 14., 12.5, 98., 2150.]) * 13.0
