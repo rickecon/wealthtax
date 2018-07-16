@@ -281,20 +281,19 @@ def get_mort(totpers, min_yr, max_yr, graph=False):
     # Calculate implied mortality rates in sub-bins of mort_rates_all.
     mort_rates_mxyr = mort_rates_all[0:max_yr]
     binsize = (max_yr - min_yr + 1) / totpers
-    num_sub_bins = float(100)
+    num_sub_bins = int(100)
     len_subbins = ((np.float64((max_yr - min_yr + 1) * num_sub_bins)) /
                   totpers)
-    mort_rates_sub = np.zeros(num_sub_bins * max_yr, dtype=np.float64)
-    for i in xrange(max_yr):
-        mort_rates_sub[i*num_sub_bins:(i+1)*num_sub_bins] = (1 -
-            ((1 - np.float64(mort_rates_mxyr[i])) ** (1 / num_sub_bins)))
+    mort_rates_sub = np.zeros(num_sub_bins * max_yr, dtype=float)
+    for i in range(max_yr):
+        mort_rates_sub[i*num_sub_bins:(i+1)*num_sub_bins] =\
+            (1 - ((1 - mort_rates_mxyr[i]) ** (1.0 / num_sub_bins)))
     mort_rates = np.zeros(totpers)
     end_sub_bin = 0
-    for i in xrange(totpers):
+    for i in range(totpers):
         beg_sub_bin = int(end_sub_bin)
         end_sub_bin = int(np.rint((i + 1) * len_subbins))
-        mort_rates[i] = (1 - (1 -
-            np.float64(mort_rates_sub[beg_sub_bin:end_sub_bin])).prod())
+        mort_rates[i] = (1 - (1 - (mort_rates_sub[beg_sub_bin:end_sub_bin])).prod())
     mort_rates[-1] = 1 # Mortality rate in last period is set to 1
 
     if graph == True:
@@ -973,4 +972,3 @@ def get_pop_objs(E, S, T, min_yr, max_yr, curr_year, GraphDiag=True):
     return (omega_path_S.T, g_n_SS,
         omega_SSfx[-S:] / omega_SSfx[-S:].sum(), 1-mort_rates_S,
         mort_rates_S, g_n_path, imm_rates_mat.T, omega_S_preTP)
-

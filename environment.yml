@@ -1,15 +1,13 @@
-name: ospcdyn
-channels:
-- ospc
+name: wealthtax
 dependencies:
 - ipython
 - ipython-notebook
 - setuptools
-- scipy=0.18.1
-- matplotlib=2.0.0
-- taxcalc=0.8.3
+- mkl
+- scipy>=0.18.1
+- matplotlib
 - numba
-- numpy=1.11.2
-- pandas=0.18.0
+- numpy>=1.12.1
+- pandas>=0.20.1
 - pytest
 - python=2.7

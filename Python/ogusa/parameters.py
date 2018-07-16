@@ -22,9 +22,8 @@ import scipy.interpolate as si
 import scipy.ndimage.filters as filter
 import demographics as dem
 import income as inc
-import utils
 import pickle
-import txfunc
+import utils
 import elliptical_u_est as ellip
 import matplotlib.pyplot as plt
 
@@ -138,15 +137,13 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     T = int(3 * S)
     BW = int(10)
     lambdas = np.array([.25, .25, .2, .1, .1, .09, .01])
-    #lambdas = np.array([0.5, 0.5])
-    #lambdas = np.array([1.,])
     start_year = 2016
     starting_age = 20
     ending_age = 100
     E = int(starting_age * (S / float(ending_age - starting_age)))
     beta_annual = .96 # Carroll (JME, 2009)
     beta = beta_annual ** (float(ending_age - starting_age) / S)
-    sigma = 3.0
+    sigma = 2.0
     alpha = .35 # many use 0.33, but many find that capitals share is
                 # increasing (e.g. Elsby, Hobijn, and Sahin (BPEA, 2013))
     Z = 1.0
@@ -190,7 +187,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     #       is zero, there is no wealth tax.
     if reform == 2:
         # wealth tax reform values
-        p_wealth = 0.025 #0.0095091#0.025
+        p_wealth = 0.025
         h_wealth = 0.305509008443123
         m_wealth = 2.16050687852062
 
@@ -205,7 +202,7 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     #   Bequest and Payroll Taxes
     tau_bq = np.zeros(J)
     tau_payroll = 0.15
-    retire = np.round(9.0 * S / 16.0) - 1
+    retire = int(np.round(9.0 * S / 16.0) - 1)
 
     # Simulation Parameters
     MINIMIZER_TOL = 1e-14
@@ -213,30 +210,36 @@ def get_parameters(baseline, reform, guid, user_modifiable):
     PLOT_TPI = False
     maxiter = 250
     mindist_SS = 1e-9
-    mindist_TPI = 1e-4
-    nu = .1
+    mindist_TPI = 2e-5
+    nu = 0.01
     flag_graphs = False
     #   Calibration parameters
-    chi_b_guess =np.array([0.3, 0.3, 2., 14.,
-             12.5, 98., 2150.])*13.0 # this hits about 6% interest and very close on wealth moments for
-    #                                 # Frisch 1.5 and sigma 2.0
+    chi_b_guess = np.array([0.3, 0.3, 2., 14., 12.5, 98., 2150.]) * 13.0
+    # this hits about 5% interest and very close on wealth moments for
+    # Frisch 1.5 and sigma 2.0
 
-    chi_n_raw=np.array([50.35115078, 35.47310428, 23.63926049, 22.90508485, 22.63035262,
-                     20.35906224, 19.65935099, 19.03392052, 19.62478355, 19.13535233,
-                     17.69560359, 16.64146739, 16.64146739, 16.64146739, 16.64146739,
-                     16.64146739, 15.64146739, 14.64146739, 14.64146739, 14.98558476,
-                     14.60688512, 14.50078038, 14.2256643, 14.95992287, 14.6673207,
-                     13.6776809, 13.6120645, 13.60992325, 13.56024565, 13.54786468,
-                     13.54453725, 13.55393179, 13.5669215, 13.56866264, 14.63426928,
-                     15.66758321, 15.82479238, 15.94810588, 16.95270906, 18.24409932,
-                     19.43579108, 19.22300316, 19.19041652, 20.98193805, 20.98193805,
-                     20.98193805, 21.98193805, 22.0, 22.0, 22.0,
-                     21.0, 21.0, 21.0, 21.0, 21.0,
-                     21.0, 21.0, 20.0, 20.0, 19.0,
-                     19.0, 19.0, 18.0, 18.0, 18.0,
-                     18.0, 18.0, 18.0, 18.0, 17.0,
-                     17.0, 17.0, 17.0, 17.0, 17.0,
-                     17.0, 16.0, 16.0, 16.0, 16.0])
+    chi_n_raw = np.array([50.35115078, 35.47310428, 23.63926049,
+                          22.90508485, 22.63035262, 20.35906224,
+                          19.65935099, 19.03392052, 19.62478355,
+                          19.13535233, 17.69560359, 16.64146739,
+                          16.64146739, 16.64146739, 16.64146739,
+                          16.64146739, 15.64146739, 14.64146739,
+                          14.64146739, 14.98558476, 14.60688512,
+                          14.50078038, 14.2256643, 14.95992287,
+                          14.6673207, 13.6776809, 13.6120645,
+                          13.60992325, 13.56024565, 13.54786468,
+                          13.54453725, 13.55393179, 13.5669215,
+                          13.56866264, 14.63426928, 15.66758321,
+                          15.82479238, 15.94810588, 16.95270906,
+                          18.24409932, 19.43579108, 19.22300316,
+                          19.19041652, 20.98193805, 20.98193805,
+                          20.98193805, 21.98193805, 22.0, 22.0,
+                          22.0, 21.0, 21.0, 21.0, 21.0, 21.0,
+                          21.0, 21.0, 20.0, 20.0, 19.0, 19.0,
+                          19.0, 18.0, 18.0, 18.0, 18.0, 18.0,
+                          18.0, 18.0, 17.0, 17.0, 17.0, 17.0,
+                          17.0, 17.0, 17.0, 16.0, 16.0, 16.0,
+                          16.0])
 
     # smooth out the series of chi_n_guess_80
     chi_n_guess_80 = utils.masmooth(chi_n_raw, 3, 3)
@@ -261,24 +264,13 @@ def get_parameters(baseline, reform, guid, user_modifiable):
         (_, _, omega_SS_80, _, _, _, _,_) = dem.get_pop_objs(20, 80,
             320, 1, 100, start_year, False)
 
-
     # make pop constant
     # omega = np.tile(omega_SS.reshape(1,S),(T+S,1))
     # g_n_vector[:] = g_n_ss
     # imm_rates = np.tile(imm_rates[-1,:].reshape(1,S),(T+S,1))
     # omega_S_preTP = omega_SS
 
-
-    # e = get_e(80, 7, 20, 100, np.array([.25, .25, .2, .1, .1, .09, .01]), flag_graphs)
-    # e = e[:,:2]
-    # # # need to turn 80x7 array into SxJ array
-    # e /= (e * omega_SS.reshape(S, 1)
-    #             * lambdas.reshape(1, J)).sum()
-
     e = inc.get_e_interp(S, omega_SS, omega_SS_80, lambdas, plot=False)
-
-    # e_test = np.tile(np.reshape(e[:,3],(S,1)),(1,J))
-    # e = e_test
 
     allvars = dict(locals())
 
